@@ -1,0 +1,42 @@
+---
+import type { Post } from '../lib/books';
+
+interface Props {
+  post: Post;
+  date: string;
+  updated?: string;
+  readingTime: number;
+  bookTitle?: string;
+  bookHref?: string;
+}
+const { post, date, updated, readingTime, bookTitle, bookHref } = Astro.props;
+---
+
+<header class="border-b border-line pb-6">
+  {bookTitle && bookHref && (
+    <a href={bookHref} class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent">
+      <span class="text-accent">▤</span> {bookTitle}
+    </a>
+  )}
+  <h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">{post.data.title}</h1>
+  <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint">
+    <time datetime={date}>{date}</time>
+    {updated && updated !== date && (
+      <>
+        <span aria-hidden="true">·</span>
+        <span>更新于 {updated}</span>
+      </>
+    )}
+    <span aria-hidden="true">·</span>
+    <span>约 {readingTime} 分钟</span>
+    {post.data.tags.length > 0 && (
+      <span class="flex flex-wrap gap-2">
+        {post.data.tags.map((tag) => (
+          <a href={`/tags/${tag}`} class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">
+            #{tag}
+          </a>
+        ))}
+      </span>
+    )}
+  </div>
+</header>

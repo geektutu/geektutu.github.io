@@ -1,0 +1,134 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="搜索" description="站内全文搜索" active="search">
+  <section class="mx-auto max-w-3xl px-5 py-14">
+    <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">Search</p>
+    <h1 class="mb-8 font-display text-4xl font-semibold tracking-tight">全文搜索</h1>
+
+    <div class="relative">
+      <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      </span>
+      <input
+        id="search-input"
+        type="search"
+        placeholder="输入关键词，例如：字符串、路由、并发…"
+        autofocus
+        class="w-full rounded-2xl border border-line bg-paper-soft py-3.5 pl-12 pr-4 font-body text-lg outline-none transition-colors focus:border-accent/50"
+      />
+    </div>
+
+    <p id="search-status" class="mt-6 text-sm text-faint"></p>
+    <div id="results" class="mt-4 space-y-4"></div>
+  </section>
+</Layout>
+
+<style>
+  .result-item {
+    display: block;
+    border-radius: 1rem;
+    border: 1px solid var(--line);
+    background: var(--paper-soft);
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+  }
+  .result-item:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    box-shadow: 0 10px 20px color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+  .result-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .result-item:hover .result-title {
+    color: var(--accent);
+  }
+  .result-meta {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--faint);
+  }
+  .result-excerpt {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .result-excerpt mark {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 0.25rem;
+    padding: 0 0.2rem;
+  }
+</style>
+
+<script is:inline type="module">
+  const input = document.getElementById('search-input');
+  const status = document.getElementById('search-status');
+  const results = document.getElementById('results');
+
+  let pagefind;
+  async function loadPagefind() {
+    if (!pagefind) {
+      try {
+        // is:inline 脚本不经 Vite 处理，原生动态导入 /public 下的 pagefind 模块
+        pagefind = await import('/pagefind/pagefind.js');
+      } catch (e) {
+        status.textContent = '搜索索引尚未生成，请先运行 npm run build。';
+      }
+    }
+    return pagefind;
+  }
+
+  function excerpt(html) {
+    return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  async function run() {
+    const term = input.value.trim();
+    results.innerHTML = '';
+    if (!term) {
+      status.textContent = '';
+      return;
+    }
+    const pf = await loadPagefind();
+    if (!pf) return;
+    status.textContent = '搜索中…';
+    const search = await pf.search(term);
+    if (!search || !search.results?.length) {
+      status.textContent = `未找到与 “${term}” 相关的内容。`;
+      return;
+    }
+    status.textContent = `找到 ${search.results.length} 条结果`;
+    for (const r of search.results.slice(0, 20)) {
+      const data = await r.data();
+      const el = document.createElement('a');
+      el.href = data.url;
+      el.className = 'result-item';
+      el.innerHTML = `
+        <span class="result-title">${data.meta?.title ?? data.url}</span>
+        <div class="result-meta">${data.url}</div>
+        <p class="result-excerpt">${excerpt(data.content ?? '').slice(0, 180)}…</p>
+      `;
+      results.appendChild(el);
+    }
+  }
+
+  input.addEventListener('input', debounce(run, 250));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') run();
+  });
+
+  function debounce(fn, ms) {
+    let t;
+    return () => {
+      clearTimeout(t);
+      t = window.setTimeout(fn, ms);
+    };
+  }
+</script>

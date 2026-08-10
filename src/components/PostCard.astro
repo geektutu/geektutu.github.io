@@ -1,0 +1,41 @@
+---
+import type { Post } from '../lib/books';
+
+interface Props {
+  post: Post;
+  index?: number;
+}
+const { post, index = 0 } = Astro.props;
+const date = post.data.date.toISOString().slice(0, 10);
+const href = `/post/${post.id}.html`;
+const readingTime = Math.max(1, Math.round((post.body?.length ?? 0) / 1200));
+---
+
+<article
+  class="group relative flex flex-col gap-3 rounded-2xl border border-line bg-paper-soft p-6 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5"
+  style={{ '--i': index }}
+>
+  <div class="flex items-center gap-3 text-xs text-faint">
+    <time datetime={date}>{date}</time>
+    <span aria-hidden="true">·</span>
+    <span>{readingTime} 分钟</span>
+  </div>
+  <h2 class="font-display text-xl font-semibold leading-snug tracking-tight">
+    <a href={href} class="transition-colors hover:text-accent">{post.data.title}</a>
+  </h2>
+  {post.data.description && (
+    <p class="line-clamp-3 text-sm leading-relaxed text-muted">{post.data.description}</p>
+  )}
+  {post.data.tags.length > 0 && (
+    <div class="mt-auto flex flex-wrap gap-2 pt-2">
+      {post.data.tags.slice(0, 3).map((tag) => (
+        <a
+          href={`/tags/${tag}`}
+          class="rounded-full border border-line px-2.5 py-0.5 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"
+        >
+          #{tag}
+        </a>
+      ))}
+    </div>
+  )}
+</article>

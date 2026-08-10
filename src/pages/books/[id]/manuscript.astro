@@ -1,0 +1,80 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { getBookChapters, type Book, type Post } from '../../../lib/books';
+
+export async function getStaticPaths() {
+  const books = await getCollection('books');
+  return books.map((b) => ({ params: { id: b.data.id }, props: { book: b } }));
+}
+
+const { book } = Astro.props as { book: Book };
+const chapters = await getBookChapters(book.data.id);
+const done = chapters.filter((c) => c.post && c.post.data.status === 'done');
+const progress = chapters.length ? Math.round((done.length / chapters.length) * 100) : 0;
+
+const statusMap = { draft: '草稿', wip: '撰写中', done: '已完成' } as const;
+const statusColor = { draft: 'bg-zinc-400/70', wip: 'bg-amber-500/80', done: 'bg-olive' } as const;
+
+function wordCount(post: Post | null): number {
+  return Math.max(0, Math.round((post?.body?.length ?? 0) / 4));
+}
+let counter = 0;
+---
+
+<Layout title={`${book.data.title} · 书稿看板`} description="书稿写作进度" active="books">
+  <section class="mx-auto max-w-3xl px-5 py-14">
+    <div class="mb-8">
+      <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">Manuscript · 作者向</p>
+      <h1 class="font-display text-3xl font-semibold tracking-tight">{book.data.title} · 书稿看板</h1>
+      <p class="mt-2 text-sm text-faint">此页仅供作者查看整本书的写作进度，公开站点不会展示。</p>
+    </div>
+
+    <!-- 进度条 -->
+    <div class="mb-10 rounded-2xl border border-line bg-paper-soft p-6">
+      <div class="mb-3 flex items-baseline justify-between">
+        <span class="font-display font-semibold">整体进度</span>
+        <span class="font-mono text-sm text-muted">{done.length}/{chapters.length} 章 · {progress}%</span>
+      </div>
+      <div class="h-2.5 overflow-hidden rounded-full bg-surface">
+        <div class="h-full rounded-full bg-accent transition-all" style={{ width: `${progress}%` }}></div>
+      </div>
+    </div>
+
+    <!-- 章节表 -->
+    <ol class="space-y-3">
+      {chapters.map((item) => {
+        const num = ++counter;
+        const post = item.post;
+        const status = post?.data.status ?? 'draft';
+        return (
+          <li class="flex items-center gap-4 rounded-2xl border border-line bg-paper-soft px-5 py-4">
+            <span class="font-mono text-sm text-faint tabular-nums">{String(num).padStart(2, '0')}</span>
+            <div class="min-w-0 flex-1">
+              <p class="truncate font-display font-medium">{post?.data.title ?? item.slug}</p>
+              <p class="text-xs text-faint">
+                {item.part && <span>{item.part} · </span>}
+                {post ? (
+                  <>
+                    {wordCount(post)} 字 · 更新于 {post.data.updated?.toISOString().slice(0, 10) ?? post.data.date.toISOString().slice(0, 10)}
+                  </>
+                ) : (
+                  '尚未创建'
+                )}
+              </p>
+            </div>
+            <span class:list={['rounded-full px-3 py-1 text-xs font-medium text-white', statusColor[status]]}>
+              {statusMap[status]}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+
+    <div class="mt-8 flex gap-3">
+      <a href={`/books/${book.data.id}`} class="rounded-full border border-line px-5 py-2 text-sm text-muted transition-colors hover:border-accent/40 hover:text-accent">
+        ← 返回书籍主页
+      </a>
+    </div>
+  </section>
+</Layout>

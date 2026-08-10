@@ -1,0 +1,35 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PostCard from '../../components/PostCard.astro';
+import Pagination from '../../components/Pagination.astro';
+import { getPublishedPosts } from '../../lib/books';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  const per = 6;
+  const totalPages = Math.max(1, Math.ceil(posts.length / per));
+  return Array.from({ length: totalPages - 1 }, (_, i) => ({
+    params: { page: String(i + 2) },
+    props: { page: i + 2, totalPages },
+  }));
+}
+
+const { page, totalPages } = Astro.props;
+const allPosts = await getPublishedPosts();
+const per = 6;
+const posts = allPosts.slice((page - 1) * per, page * per);
+---
+
+<Layout title={`第 ${page} 页`} description="文章列表分页">
+  <section class="mx-auto max-w-6xl px-5 py-14">
+    <h1 class="mb-8 font-display text-3xl font-semibold tracking-tight">文章 · 第 {page} 页</h1>
+    <div class="grid gap-5 md:grid-cols-2">
+      {posts.map((post, i) => (
+        <PostCard post={post} index={i} />
+      ))}
+    </div>
+    <div class="mt-10">
+      <Pagination page={page} totalPages={totalPages} />
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,24 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BookCard from '../../components/BookCard.astro';
+import { getBooks } from '../../lib/books';
+
+const books = await getBooks();
+---
+
+<Layout title="全部书籍" description="本站的全部书籍与系列" active="books">
+  <section class="mx-auto max-w-6xl px-5 py-14">
+    <div class="mb-10 max-w-xl">
+      <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">Bookshelf</p>
+      <h1 class="font-display text-4xl font-semibold tracking-tight">全部书籍</h1>
+      <p class="mt-4 text-muted">每本书都是一套成体系的技术内容，按章节目录组织，可顺序阅读。</p>
+    </div>
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {books.map((book, i) => (
+        <div class="animate-rise" style={{ 'animation-delay': `${i * 0.08}s` }}>
+          <BookCard book={book} index={i} />
+        </div>
+      ))}
+    </div>
+  </section>
+</Layout>

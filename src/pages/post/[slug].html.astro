@@ -1,0 +1,86 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+import ChapterToc from '../../components/ChapterToc.astro';
+import ChapterNav from '../../components/ChapterNav.astro';
+import ChapterHeader from '../../components/ChapterHeader.astro';
+import ReadingProgress from '../../components/ReadingProgress.astro';
+import SectionToc from '../../components/SectionToc.astro';
+import SaveLastRead from '../../components/SaveLastRead.astro';
+import { getBookChapters, getAdjacentChapters, type Post } from '../../lib/books';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((p) => ({ params: { slug: p.id }, props: { post: p } }));
+}
+
+const { post } = Astro.props as { post: Post };
+const { Content, headings } = await render(post);
+const date = post.data.date.toISOString().slice(0, 10);
+const updated = post.data.updated ? post.data.updated.toISOString().slice(0, 10) : undefined;
+const readingTime = Math.max(1, Math.round((post.body?.length ?? 0) / 1200));
+
+// 若属书，则加载书与章节目录、上下章
+let book: { id: string; title: string } | null = null;
+let chapters: Awaited<ReturnType<typeof getBookChapters>> = [];
+let adjacent: ReturnType<typeof getAdjacentChapters> = {};
+
+if (post.data.book) {
+  const books = await getCollection('books');
+  const b = books.find((x) => x.data.id === post.data.book);
+  if (b) {
+    book = { id: b.data.id, title: b.data.title };
+    chapters = await getBookChapters(b.data.id);
+    adjacent = getAdjacentChapters(chapters, post.id);
+  }
+}
+const isBook = Boolean(book);
+---
+
+<Layout title={post.data.title} description={post.data.description}>
+  <ReadingProgress />
+
+  <div class="mx-auto max-w-6xl px-5">
+    {isBook ? (
+      <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10">
+        <aside class="no-print hidden lg:sticky lg:top-16 lg:block lg:h-[calc(100vh-4rem)] lg:overflow-hidden">
+          <div class="h-full border-r border-line">
+            <ChapterToc
+              bookTitle={book!.title}
+              bookId={book!.id}
+              chapters={chapters}
+              currentSlug={post.id}
+            />
+          </div>
+        </aside>
+
+        <article class="min-w-0 py-12">
+          <div class="mx-auto max-w-2xl">
+            <ChapterHeader
+              post={post}
+              date={date}
+              updated={updated}
+              readingTime={readingTime}
+              bookTitle={book!.title}
+              bookHref={`/books/${book!.id}`}
+            />
+            <div class="mt-8">
+              <SectionToc headings={headings} />
+              <div class="mt-6 markdown"><Content /></div>
+            </div>
+            <ChapterNav prev={adjacent.prev} next={adjacent.next} />
+            <SaveLastRead bookId={book!.id} slug={post.id} />
+          </div>
+        </article>
+      </div>
+    ) : (
+      <article class="mx-auto max-w-2xl py-14">
+        <ChapterHeader post={post} date={date} updated={updated} readingTime={readingTime} />
+        <div class="mt-8">
+          <SectionToc headings={headings} />
+          <div class="mt-6 markdown"><Content /></div>
+        </div>
+      </article>
+    )}
+  </div>
+</Layout>

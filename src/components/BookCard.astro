@@ -1,0 +1,49 @@
+---
+import { getBookChapters, type Book } from '../lib/books';
+
+interface Props {
+  book: Book;
+  index?: number;
+}
+const { book, index = 0 } = Astro.props;
+const chapters = await getBookChapters(book.data.id);
+const href = `/books/${book.data.id}`;
+---
+
+<a
+  href={href}
+  class="group flex flex-col overflow-hidden rounded-2xl border border-line bg-paper-soft transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-ink/5"
+  style={{ '--i': index }}
+>
+  <div class="relative aspect-[4/3] overflow-hidden">
+    {book.data.cover ? (
+      <img
+        src={book.data.cover}
+        alt={book.data.title}
+        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        loading="lazy"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      />
+    ) : null}
+    <div
+      class:list={[
+        'absolute inset-0 flex h-full w-full items-center justify-center bg-surface font-display text-4xl font-semibold text-muted',
+        book.data.cover ? 'hidden' : 'flex',
+      ]}
+    >
+      {book.data.title.charAt(0)}
+    </div>
+    <span class="absolute left-3 top-3 rounded-full bg-ink/80 px-2.5 py-1 text-xs text-paper backdrop-blur">
+      {chapters.filter((c) => c.post).length} 章
+    </span>
+  </div>
+  <div class="flex flex-1 flex-col gap-2 p-5">
+    <h3 class="font-display text-xl font-semibold leading-snug tracking-tight transition-colors group-hover:text-accent">
+      {book.data.title}
+    </h3>
+    <p class="line-clamp-3 text-sm leading-relaxed text-muted">{book.data.description}</p>
+    <span class="mt-auto pt-2 text-sm text-accent opacity-0 transition-opacity group-hover:opacity-100">
+      开始阅读 →
+    </span>
+  </div>
+</a>

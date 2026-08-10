@@ -1,0 +1,34 @@
+---
+import type { ChapterItem } from '../lib/books';
+
+interface Props {
+  prev?: ChapterItem;
+  next?: ChapterItem;
+}
+const { prev, next } = Astro.props;
+---
+
+<nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换">
+  {prev?.post ? (
+    <a
+      href={`/post/${prev.slug}.html`}
+      class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
+    >
+      <span class="text-xs text-faint">← 上一章</span>
+      <span class="font-display font-medium transition-colors group-hover:text-accent">{prev.post.data.title}</span>
+    </a>
+  ) : (
+    <span />
+  )}
+  {next?.post ? (
+    <a
+      href={`/post/${next.slug}.html`}
+      class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
+    >
+      <span class="text-xs text-faint">下一章 →</span>
+      <span class="font-display font-medium transition-colors group-hover:text-accent">{next.post.data.title}</span>
+    </a>
+  ) : (
+    <span />
+  )}
+</nav>

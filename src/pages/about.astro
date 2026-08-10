@@ -1,0 +1,49 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getBooks, getPublishedPosts } from '../lib/books';
+
+const books = await getBooks();
+const posts = await getPublishedPosts();
+const totalChapters = posts.length;
+---
+
+<Layout title="关于" description="关于本站与作者" active="about">
+  <section class="mx-auto max-w-3xl px-5 py-14">
+    <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">About</p>
+    <h1 class="mb-8 font-display text-4xl font-semibold tracking-tight">关于本站</h1>
+
+    <div class="space-y-6 text-lg leading-relaxed text-ink">
+      <p>
+        这是一个把技术文章组织成「书」的静态博客。每本书有清晰的章节目录，你可以像读纸质书一样顺序阅读，
+        也可以随时跳转到任意章节。
+      </p>
+      <p class="text-muted">
+        本站由 <strong class="text-ink">Astro</strong> 构建，内容以 Markdown 管理，输出纯静态站点，
+        支持明暗主题、全文搜索与书稿式打印。
+      </p>
+    </div>
+
+    <div class="mt-10 grid grid-cols-3 gap-4 rounded-2xl border border-line bg-paper-soft p-6 text-center">
+      <div>
+        <p class="font-display text-3xl font-semibold text-accent">{books.length}</p>
+        <p class="mt-1 text-sm text-faint">本书</p>
+      </div>
+      <div>
+        <p class="font-display text-3xl font-semibold text-accent">{totalChapters}</p>
+        <p class="mt-1 text-sm text-faint">章节</p>
+      </div>
+      <div>
+        <p class="font-display text-3xl font-semibold text-accent">{new Set(posts.flatMap((p) => p.data.tags)).size}</p>
+        <p class="mt-1 text-sm text-faint">标签</p>
+      </div>
+    </div>
+
+    <div class="mt-10">
+      <h2 class="mb-4 font-display text-xl font-semibold">订阅与联系</h2>
+      <ul class="space-y-2 text-muted">
+        <li><a href="/feed.xml" class="text-accent underline underline-offset-2">RSS 订阅</a></li>
+        <li><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="text-accent underline underline-offset-2">GitHub</a></li>
+      </ul>
+    </div>
+  </section>
+</Layout>

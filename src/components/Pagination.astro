@@ -1,0 +1,36 @@
+---
+interface Props {
+  page: number;
+  totalPages: number;
+  basePath?: string;
+}
+const { page, totalPages, basePath = '/' } = Astro.props;
+const pageHref = (p: number) => (p <= 1 ? basePath : `${basePath}page/${p}`);
+---
+
+{totalPages > 1 && (
+  <nav class="flex items-center justify-center gap-2 no-print" aria-label="分页">
+    {page <= 1 ? (
+      <span class="rounded-full border border-line px-4 py-1.5 text-sm opacity-40" aria-disabled="true">上一页</span>
+    ) : (
+      <a href={pageHref(page - 1)} class="rounded-full border border-line px-4 py-1.5 text-sm transition-colors hover:border-accent/40 hover:text-accent">上一页</a>
+    )}
+    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+      <a
+        href={pageHref(p)}
+        class:list={[
+          'rounded-full px-3.5 py-1.5 text-sm transition-colors',
+          p === page ? 'bg-accent text-white' : 'text-muted hover:text-ink hover:bg-surface',
+        ]}
+        aria-current={p === page ? 'page' : undefined}
+      >
+        {p}
+      </a>
+    ))}
+    {page >= totalPages ? (
+      <span class="rounded-full border border-line px-4 py-1.5 text-sm opacity-40" aria-disabled="true">下一页</span>
+    ) : (
+      <a href={pageHref(page + 1)} class="rounded-full border border-line px-4 py-1.5 text-sm transition-colors hover:border-accent/40 hover:text-accent">下一页</a>
+    )}
+  </nav>
+)}

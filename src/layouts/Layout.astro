@@ -1,0 +1,50 @@
+---
+import 'katex/dist/katex.min.css';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  active?: 'home' | 'books' | 'tags' | 'search' | 'about';
+}
+
+const { title = 'Geektutu 的笔记本', description = '把技术文章组织成书的静态博客', active } = Astro.props;
+const siteTitle = title === 'Geektutu 的笔记本' ? title : `${title} · Geektutu 的笔记本`;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{siteTitle}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- 内联防 FOUC：首帧前应用主题 -->
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen relative">
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="relative z-10 flex min-h-screen flex-col">
+      <Header active={active} />
+      <main class="flex-1"><slot /></main>
+      <Footer />
+    </div>
+  </body>
+</html>

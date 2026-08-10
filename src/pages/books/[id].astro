@@ -1,0 +1,118 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { getBookChapters, type Book } from '../../lib/books';
+
+export async function getStaticPaths() {
+  const books = await getCollection('books');
+  return books.map((b) => ({ params: { id: b.data.id }, props: { book: b } }));
+}
+
+const { book } = Astro.props as { book: Book };
+const chapters = await getBookChapters(book.data.id);
+const published = chapters.filter((c) => c.post);
+
+// 按 part 分组
+const groups: { part: string; items: typeof chapters }[] = [];
+for (const c of chapters) {
+  const key = c.part ?? '—';
+  let last = groups[groups.length - 1];
+  if (!last || last.part !== key) {
+    last = { part: key, items: [] };
+    groups.push(last);
+  }
+  last.items.push(c);
+}
+let counter = 0;
+---
+
+<Layout title={book.data.title} description={book.data.description} active="books">
+  <section class="mx-auto max-w-4xl px-5 py-14">
+    <!-- 封面 + 简介 -->
+    <div class="animate-rise grid gap-8 sm:grid-cols-[220px_1fr] sm:items-start">
+      <div class="overflow-hidden rounded-2xl border border-line shadow-lg">
+        {book.data.cover ? (
+          <img
+            src={book.data.cover}
+            alt={book.data.title}
+            class="aspect-[4/5] w-full object-cover"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+        ) : null}
+        <div
+          class:list={[
+            'flex aspect-[4/5] w-full items-center justify-center bg-surface font-display text-5xl font-semibold text-muted',
+            book.data.cover ? 'hidden' : 'flex',
+          ]}
+        >
+          {book.data.title.charAt(0)}
+        </div>
+      </div>
+      <div>
+        <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">Book</p>
+        <h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">{book.data.title}</h1>
+        <p class="mt-4 text-lg leading-relaxed text-muted">{book.data.description}</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href={`/post/${chapters[0]?.slug}.html`} class="rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90">
+            开始阅读 →
+          </a>
+          <a href={`/books/${book.data.id}/manuscript`} class="rounded-full border border-line px-6 py-2.5 text-sm text-muted transition-colors hover:border-accent/40 hover:text-accent">
+            书稿看板
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 章节目录 -->
+    <div class="mt-14">
+      <div class="mb-6 flex items-baseline justify-between border-b border-line pb-3">
+        <h2 class="font-display text-2xl font-semibold tracking-tight">章节目录</h2>
+        <span class="text-sm text-faint">{published.length} 章</span>
+      </div>
+
+      <ol class="space-y-8">
+        {groups.map((group) => (
+          <li>
+            {group.part !== '—' && (
+              <div class="mb-3 flex items-center gap-3">
+                <span class="font-display text-lg font-semibold text-ink">{group.part}</span>
+                <span class="h-px flex-1 bg-line"></span>
+              </div>
+            )}
+            <ol class="space-y-1">
+              {group.items.map((item) => {
+                const num = ++counter;
+                return (
+                  <li>
+                    {item.post ? (
+                      <a
+                        href={`/post/${item.slug}.html`}
+                        class="group flex items-baseline gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-surface"
+                      >
+                        <span class="font-mono text-sm text-faint tabular-nums">{String(num).padStart(2, '0')}</span>
+                        <span class="flex-1">
+                          <span class="font-display text-lg font-medium transition-colors group-hover:text-accent">
+                            {item.post.data.title}
+                          </span>
+                          {item.post.data.description && (
+                            <span class="mt-0.5 block text-sm text-muted">{item.post.data.description}</span>
+                          )}
+                        </span>
+                        <span class="text-faint transition-transform group-hover:translate-x-1 group-hover:text-accent">→</span>
+                      </a>
+                    ) : (
+                      <span class="flex items-baseline gap-3 rounded-xl px-3 py-2.5 opacity-50">
+                        <span class="font-mono text-sm tabular-nums">{String(num).padStart(2, '0')}</span>
+                        <span class="font-display text-lg">{item.slug}（待写）</span>
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+</Layout>

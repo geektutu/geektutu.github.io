@@ -1,0 +1,15 @@
+---
+interface Props {
+  bookId: string;
+  slug: string;
+}
+const { bookId, slug } = Astro.props;
+---
+
+<script define:vars={{ bookId, slug }}>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+</script>

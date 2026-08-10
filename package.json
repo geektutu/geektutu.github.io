@@ -1,0 +1,34 @@
+{
+  "name": "geektutu-blog",
+  "type": "module",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/html-files.mjs && pagefind --site dist && node scripts/copy-pagefind.mjs && npm run validate",
+    "preview": "astro preview",
+    "check": "astro check",
+    "pagefind": "pagefind --site dist",
+    "html-files": "node scripts/html-files.mjs",
+    "sync-pagefind": "node scripts/copy-pagefind.mjs",
+    "validate": "node scripts/validate.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/markdown-remark": "^7.2.2",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.3",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.2.0",
+    "katex": "^0.18.4",
+    "pagefind": "^1.5.2",
+    "rehype-katex": "^7.0.1",
+    "remark-directive": "^4.0.0",
+    "remark-math": "^6.0.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3"
+  }
+}

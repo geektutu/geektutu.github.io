@@ -1,0 +1,53 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+interface Props {
+  headings: Heading[];
+}
+const { headings } = Astro.props;
+const items = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+{items.length > 1 && (
+  <nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录">
+    <p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p>
+    <ul id="section-toc" class="space-y-1.5 text-sm">
+      {items.map((h) => (
+        <li style={{ 'padding-left': `${(h.depth - 2) * 0.9}rem` }}>
+          <a
+            href={`#${h.slug}`}
+            class="toc-link block text-muted"
+            data-toc-depth={h.depth}
+          >
+            {h.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<script>
+  const links = Array.from(document.querySelectorAll('#section-toc a'));
+  const headings = links
+    .map((a) => document.getElementById(a.getAttribute('href')!.slice(1)))
+    .filter(Boolean);
+
+  function onScroll() {
+    const offset = 120;
+    let current: HTMLElement | null = null;
+    for (const h of headings) {
+      if ((h as HTMLElement).getBoundingClientRect().top <= offset) current = h as HTMLElement;
+    }
+    links.forEach((a) => a.classList.remove('active'));
+    if (current) {
+      const link = links.find((a) => a.getAttribute('href') === '#' + current.id);
+      link?.classList.add('active');
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>

@@ -1,0 +1,299 @@
+@import "tailwindcss";
+
+/* 类名驱动的深色模式（在 <html> 上切换 .dark） */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --paper: #faf6ef;
+  --paper-soft: #f3ecdd;
+  --surface: #eee5d2;
+  --ink: #1a1815;
+  --muted: rgba(26, 24, 21, 0.62);
+  --faint: rgba(26, 24, 21, 0.4);
+  --accent: #c4532a;
+  --accent-soft: rgba(196, 83, 42, 0.12);
+  --olive: #6b7a4e;
+  --line: rgba(26, 24, 21, 0.14);
+  --code-bg: rgba(26, 24, 21, 0.05);
+}
+
+.dark {
+  --paper: #15130f;
+  --paper-soft: #1b1813;
+  --surface: #221e17;
+  --ink: #f3ecdd;
+  --muted: rgba(243, 236, 221, 0.62);
+  --faint: rgba(243, 236, 221, 0.42);
+  --accent: #e07a52;
+  --accent-soft: rgba(224, 122, 82, 0.16);
+  --olive: #a7b883;
+  --line: rgba(243, 236, 221, 0.14);
+  --code-bg: rgba(243, 236, 221, 0.06);
+}
+
+@theme {
+  --color-paper: var(--paper);
+  --color-paper-soft: var(--paper-soft);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-olive: var(--olive);
+  --color-line: var(--line);
+  --color-code: var(--code-bg);
+
+  --font-display: "Fraunces", "Songti SC", "Noto Serif SC", serif;
+  --font-body: "Newsreader", "Songti SC", "Noto Serif SC", serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
+
+  --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade: fade 0.5s ease both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-paper text-ink font-body antialiased;
+    letter-spacing: 0.01em;
+    transition: background-color 0.35s ease, color 0.35s ease;
+  }
+  ::selection {
+    background: var(--accent);
+    color: #fff;
+  }
+}
+
+/* 纸张噪点纹理 */
+.paper-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* 文章正文排版 */
+.markdown {
+  @apply text-ink leading-[1.9] text-[1.08rem];
+  font-size: 1.08rem;
+}
+.markdown > * + * {
+  margin-top: 1.25rem;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  @apply font-display text-ink;
+  font-weight: 600;
+  scroll-margin-top: 5rem;
+  letter-spacing: -0.01em;
+}
+.markdown h1 {
+  @apply text-3xl;
+  margin-top: 2.5rem;
+}
+.markdown h2 {
+  @apply text-2xl;
+  margin-top: 2.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+.markdown h3 {
+  @apply text-xl;
+  margin-top: 1.75rem;
+}
+.markdown h4 {
+  @apply text-lg;
+  margin-top: 1.5rem;
+}
+.markdown p {
+  margin-top: 1.1rem;
+}
+.markdown a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.2s ease;
+}
+.markdown a:hover {
+  opacity: 0.75;
+}
+.markdown strong {
+  @apply font-semibold;
+}
+.markdown ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-top: 1.1rem;
+}
+.markdown ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin-top: 1.1rem;
+}
+.markdown li {
+  margin-top: 0.4rem;
+}
+.markdown blockquote {
+  @apply border-l-2 pl-4 text-muted;
+  border-color: var(--olive);
+  font-style: italic;
+}
+.markdown hr {
+  border-color: var(--line);
+  margin: 2rem 0;
+}
+.markdown table {
+  @apply w-full text-sm;
+  border-collapse: collapse;
+  margin-top: 1.25rem;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid var(--line);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.markdown th {
+  background: var(--surface);
+  font-weight: 600;
+}
+.markdown code {
+  @apply font-mono text-[0.85em];
+  background: var(--code-bg);
+  padding: 0.15em 0.35em;
+  border-radius: 0.25rem;
+}
+.markdown pre {
+  @apply font-mono text-sm leading-relaxed;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  margin-top: 1.25rem;
+}
+.markdown pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+.markdown img {
+  @apply rounded-lg;
+  margin: 1.5rem auto;
+}
+
+/* 提示框（remark-directive 渲染为 div.callout） */
+.markdown .callout {
+  @apply rounded-xl border px-5 py-4 text-[1rem];
+  margin-top: 1.5rem;
+  border-left-width: 3px;
+}
+.markdown .callout-note {
+  border-color: var(--olive);
+  background: color-mix(in srgb, var(--olive) 10%, transparent);
+}
+.markdown .callout-tip {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.markdown .callout-warn {
+  border-color: #c9a227;
+  background: color-mix(in srgb, #c9a227 12%, transparent);
+}
+.markdown .callout-title {
+  @apply font-display font-semibold;
+  margin-bottom: 0.25rem;
+}
+.markdown .callout p {
+  margin-top: 0.3rem;
+}
+.markdown .callout > :first-child {
+  margin-top: 0;
+}
+
+/* KaTeX 公式内边距 */
+.markdown .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
+
+/* 目录项 */
+.toc-link {
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.toc-link:hover {
+  color: var(--accent);
+}
+.toc-link.active {
+  color: var(--accent);
+}
+
+/* 打印排版：书稿式 */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .paper-grain {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .markdown {
+    color: #000 !important;
+    font-size: 12pt;
+    line-height: 1.7;
+  }
+  .markdown h1,
+  .markdown h2,
+  .markdown h3,
+  .markdown h4 {
+    color: #000 !important;
+    break-after: avoid;
+  }
+  .markdown pre {
+    background: #f6f6f4 !important;
+    color: #000 !important;
+    border: 1px solid #ccc !important;
+    break-inside: avoid;
+  }
+  .markdown a {
+    color: #000 !important;
+    text-decoration: none;
+  }
+  article {
+    max-width: 100% !important;
+  }
+  @page {
+    margin: 2cm;
+  }
+}

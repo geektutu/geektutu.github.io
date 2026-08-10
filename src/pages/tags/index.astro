@@ -1,0 +1,41 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getPublishedPosts } from '../../lib/books';
+
+const posts = await getPublishedPosts();
+const tagCount = new Map<string, number>();
+for (const p of posts) {
+  for (const t of p.data.tags) {
+    tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
+  }
+}
+const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1]);
+const maxCount = Math.max(1, ...tags.map(([, c]) => c));
+---
+
+<Layout title="标签" description="按标签浏览文章" active="tags">
+  <section class="mx-auto max-w-3xl px-5 py-14">
+    <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">Tags</p>
+    <h1 class="mb-8 font-display text-4xl font-semibold tracking-tight">标签</h1>
+
+    {tags.length > 0 ? (
+      <div class="flex flex-wrap gap-3">
+        {tags.map(([tag, count], i) => {
+          const size = 0.85 + (count / maxCount) * 0.5;
+          return (
+            <a
+              href={`/tags/${tag}`}
+              class="animate-rise rounded-full border border-line px-4 py-1.5 transition-colors hover:border-accent/40 hover:text-accent"
+              style={{ 'animation-delay': `${i * 0.03}s`, 'font-size': `${size}rem` }}
+            >
+              #{tag}
+              <span class="ml-1.5 text-xs text-faint">{count}</span>
+            </a>
+          );
+        })}
+      </div>
+    ) : (
+      <p class="text-muted">暂无标签。</p>
+    )}
+  </section>
+</Layout>

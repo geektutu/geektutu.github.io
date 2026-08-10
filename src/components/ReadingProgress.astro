@@ -1,0 +1,16 @@
+<div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true">
+  <div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div>
+</div>
+
+<script>
+  const bar = document.getElementById('reading-bar');
+  function update() {
+    const doc = document.documentElement;
+    const max = doc.scrollHeight - window.innerHeight;
+    const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+    if (bar) bar.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+</script>

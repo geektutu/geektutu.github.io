@@ -1,0 +1,64 @@
+---
+interface Props {
+  active?: 'home' | 'books' | 'tags' | 'search' | 'about';
+}
+const { active } = Astro.props;
+
+const nav = [
+  { href: '/', label: '首页', key: 'home' },
+  { href: '/books', label: '书', key: 'books' },
+  { href: '/tags', label: '标签', key: 'tags' },
+  { href: '/search', label: '搜索', key: 'search' },
+  { href: '/about', label: '关于', key: 'about' },
+] as const;
+---
+
+<header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print">
+  <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+    <a href="/" class="group flex items-baseline gap-2">
+      <span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">
+        Geektutu<span class="text-accent">.</span>
+      </span>
+      <span class="hidden text-xs text-faint sm:inline">写书式技术博客</span>
+    </a>
+
+    <div class="flex items-center gap-2">
+      <nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航">
+        {nav.map((item) => (
+          <a
+            href={item.href}
+            class:list={[
+              'rounded-full px-3 py-1.5 text-sm transition-colors',
+              active === item.key
+                ? 'bg-accent text-white'
+                : 'text-muted hover:text-ink hover:bg-surface',
+            ]}
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
+      <button
+        id="theme-toggle"
+        type="button"
+        aria-label="切换深色模式"
+        class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"
+      >
+        <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  // 主题切换（按钮在 Header 内联渲染，此处仅监听）
+  const toggle = document.getElementById('theme-toggle');
+  toggle?.addEventListener('click', () => {
+    const root = document.documentElement;
+    const isDark = root.classList.toggle('dark');
+    try {
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    } catch (e) {}
+  });
+</script>

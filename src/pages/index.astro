@@ -1,0 +1,71 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BookCard from '../components/BookCard.astro';
+import PostCard from '../components/PostCard.astro';
+import Pagination from '../components/Pagination.astro';
+import { getBooks, getPublishedPosts } from '../lib/books';
+
+const POSTS_PER_PAGE = 6;
+const books = await getBooks();
+const allPosts = await getPublishedPosts();
+const totalPages = Math.max(1, Math.ceil(allPosts.length / POSTS_PER_PAGE));
+const posts = allPosts.slice(0, POSTS_PER_PAGE);
+const featured = books.filter((b) => b.data.featured);
+---
+
+<Layout active="home" description="把技术文章组织成书的个人技术博客">
+  <!-- Hero -->
+  <section class="mx-auto max-w-6xl px-5 pt-16 pb-12">
+    <div class="max-w-2xl animate-rise">
+      <p class="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-accent">技术 · 写作 · 成书</p>
+      <h1 class="font-display text-5xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
+        把零散的文章
+        <br />
+        写成一本<span class="italic text-accent">书</span>
+      </h1>
+      <p class="mt-6 text-lg leading-relaxed text-muted">
+        这里把技术笔记组织成一册册「书」，每本书有清晰的章节目录，你可以像读纸质书一样顺序阅读。
+      </p>
+    </div>
+  </section>
+
+  <!-- 精选书 -->
+  {featured.length > 0 && (
+    <section class="mx-auto max-w-6xl px-5 pb-14">
+      <div class="mb-6 flex items-end justify-between">
+        <h2 class="font-display text-2xl font-semibold tracking-tight">精选书籍</h2>
+        <a href="/books" class="text-sm text-muted transition-colors hover:text-accent">全部书 →</a>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {featured.map((book, i) => (
+          <div class="animate-rise" style={{ 'animation-delay': `${i * 0.08}s` }}>
+            <BookCard book={book} index={i} />
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- 最新文章 -->
+  <section class="mx-auto max-w-6xl px-5 pb-20">
+    <div class="mb-6 flex items-end justify-between">
+      <h2 class="font-display text-2xl font-semibold tracking-tight">最新文章</h2>
+    </div>
+    {posts.length > 0 ? (
+      <>
+        <div class="grid gap-5 md:grid-cols-2">
+          {posts.map((post, i) => (
+            <div class="animate-rise" style={{ 'animation-delay': `${i * 0.05}s` }}>
+              <PostCard post={post} index={i} />
+            </div>
+          ))}
+        </div>
+        <div class="mt-10">
+          <Pagination page={1} totalPages={totalPages} />
+        </div>
+      </>
+    ) : (
+      <p class="text-muted">还没有文章。</p>
+    )}
+  </section>
+</Layout>
