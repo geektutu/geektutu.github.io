@@ -7,6 +7,8 @@ import ChapterHeader from '../../components/ChapterHeader.astro';
 import ReadingProgress from '../../components/ReadingProgress.astro';
 import SectionToc from '../../components/SectionToc.astro';
 import SaveLastRead from '../../components/SaveLastRead.astro';
+import Gitalk from '../../components/Gitalk.astro';
+import Tip from '../../components/Tip.astro';
 import { getBookChapters, getAdjacentChapters, type Post } from '../../lib/books';
 
 export async function getStaticPaths() {
@@ -43,8 +45,8 @@ const isBook = Boolean(book);
   <div class="mx-auto max-w-6xl px-5">
     {isBook ? (
       <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10">
-        <aside class="no-print hidden lg:sticky lg:top-16 lg:block lg:h-[calc(100vh-4rem)] lg:overflow-hidden">
-          <div class="h-full border-r border-line">
+        <aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start">
+          <div class="lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto border-r border-line">
             <ChapterToc
               bookTitle={book!.title}
               bookId={book!.id}
@@ -66,21 +68,25 @@ const isBook = Boolean(book);
             />
             <div class="mt-8">
               <SectionToc headings={headings} />
-              <div class="mt-6 markdown"><Content /></div>
-            </div>
-            <ChapterNav prev={adjacent.prev} next={adjacent.next} />
+            <div class="mt-6 markdown"><Content /></div>
+          </div>
+          <Tip />
+          <ChapterNav prev={adjacent.prev} next={adjacent.next} />
             <SaveLastRead bookId={book!.id} slug={post.id} />
+            <Gitalk id={post.id} title={post.data.title} />
           </div>
         </article>
       </div>
     ) : (
       <article class="mx-auto max-w-2xl py-14">
         <ChapterHeader post={post} date={date} updated={updated} readingTime={readingTime} />
-        <div class="mt-8">
-          <SectionToc headings={headings} />
-          <div class="mt-6 markdown"><Content /></div>
-        </div>
-      </article>
+          <div class="mt-8">
+            <SectionToc headings={headings} />
+            <div class="mt-6 markdown"><Content /></div>
+          </div>
+          <Tip />
+          <Gitalk id={post.id} title={post.data.title} />
+        </article>
     )}
   </div>
 </Layout>

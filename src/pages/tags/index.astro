@@ -13,7 +13,7 @@ const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1]);
 const maxCount = Math.max(1, ...tags.map(([, c]) => c));
 ---
 
-<Layout title="标签" description="按标签浏览文章" active="tags">
+<Layout title="标签" description="按标签浏览文章" active="tags" indexable={false}>
   <section class="mx-auto max-w-3xl px-5 py-14">
     <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">Tags</p>
     <h1 class="mb-8 font-display text-4xl font-semibold tracking-tight">标签</h1>

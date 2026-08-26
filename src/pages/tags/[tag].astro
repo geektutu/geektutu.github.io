@@ -14,7 +14,7 @@ const { tag } = Astro.params;
 const posts = (await getPublishedPosts()).filter((p) => p.data.tags.includes(tag!));
 ---
 
-<Layout title={`#${tag}`} description={`标签 ${tag} 下的文章`} active="tags">
+<Layout title={`#${tag}`} description={`标签 ${tag} 下的文章`} active="tags" indexable={false}>
   <section class="mx-auto max-w-3xl px-5 py-14">
     <div class="mb-8 flex items-center gap-3">
       <span class="rounded-full bg-accent-soft px-4 py-1 text-sm font-medium text-accent">#{tag}</span>

@@ -8,9 +8,10 @@ interface Props {
   title?: string;
   description?: string;
   active?: 'home' | 'books' | 'tags' | 'search' | 'about';
+  indexable?: boolean;
 }
 
-const { title = 'Geektutu 的笔记本', description = '把技术文章组织成书的静态博客', active } = Astro.props;
+const { title = 'Geektutu 的笔记本', description = '把技术文章组织成书的静态博客', active, indexable = true } = Astro.props;
 const siteTitle = title === 'Geektutu 的笔记本' ? title : `${title} · Geektutu 的笔记本`;
 ---
 
@@ -39,7 +40,7 @@ const siteTitle = title === 'Geektutu 的笔记本' ? title : `${title} · Geekt
       })();
     </script>
   </head>
-  <body class="min-h-screen relative">
+  <body class="min-h-screen relative" data-pagefind-ignore={indexable ? undefined : 'all'}>
     <div class="paper-grain" aria-hidden="true"></div>
     <div class="relative z-10 flex min-h-screen flex-col">
       <Header active={active} />

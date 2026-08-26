@@ -26,7 +26,7 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <style>
-  .result-item {
+  :global(.result-item) {
     display: block;
     border-radius: 1rem;
     border: 1px solid var(--line);
@@ -34,32 +34,32 @@ import Layout from '../layouts/Layout.astro';
     padding: 1.25rem;
     transition: all 0.2s ease;
   }
-  .result-item:hover {
+  :global(.result-item:hover) {
     transform: translateY(-2px);
     border-color: color-mix(in srgb, var(--accent) 40%, transparent);
     box-shadow: 0 10px 20px color-mix(in srgb, var(--ink) 6%, transparent);
   }
-  .result-title {
+  :global(.result-title) {
     font-family: var(--font-display);
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--ink);
   }
-  .result-item:hover .result-title {
+  :global(.result-item:hover .result-title) {
     color: var(--accent);
   }
-  .result-meta {
+  :global(.result-meta) {
     margin-top: 0.25rem;
     font-size: 0.75rem;
     color: var(--faint);
   }
-  .result-excerpt {
+  :global(.result-excerpt) {
     margin-top: 0.5rem;
     font-size: 0.875rem;
     line-height: 1.6;
     color: var(--muted);
   }
-  .result-excerpt mark {
+  :global(.result-excerpt mark) {
     background: var(--accent-soft);
     color: var(--accent);
     border-radius: 0.25rem;
@@ -86,6 +86,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function excerpt(html) {
+    if (!html) return '';
     return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
@@ -113,7 +114,7 @@ import Layout from '../layouts/Layout.astro';
       el.innerHTML = `
         <span class="result-title">${data.meta?.title ?? data.url}</span>
         <div class="result-meta">${data.url}</div>
-        <p class="result-excerpt">${excerpt(data.content ?? '').slice(0, 180)}…</p>
+        <p class="result-excerpt">${data.excerpt ?? excerpt(data.content ?? '').slice(0, 180) + '…'}</p>
       `;
       results.appendChild(el);
     }

@@ -1,0 +1,48 @@
+---
+interface Props {
+  id: string;
+  title: string;
+}
+
+const { id, title } = Astro.props;
+
+const clientID = import.meta.env.PUBLIC_GITALK_CLIENT_ID;
+const clientSecret = import.meta.env.PUBLIC_GITALK_CLIENT_SECRET;
+const owner = import.meta.env.PUBLIC_GITALK_OWNER ?? 'geektutu';
+const repo = import.meta.env.PUBLIC_GITALK_REPO ?? 'geektutu.github.io';
+const admin = (import.meta.env.PUBLIC_GITALK_ADMIN ?? 'geektutu')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+const enabled = Boolean(clientID && clientSecret && repo && owner && admin.length);
+---
+
+{enabled && (
+  <section class="no-print mt-12 border-t border-line pt-10">
+    <p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p>
+    <div id="gitalk-container"></div>
+  </section>
+)}
+
+{enabled && (
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  <script is:inline src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script
+    is:inline
+    define:vars={{ id, title, clientID, clientSecret, owner, repo, admin }}
+  >
+    const gitalk = new Gitalk({
+      clientID,
+      clientSecret,
+      repo,
+      owner,
+      admin,
+      id,
+      title,
+      language: 'zh-CN',
+      distractionFreeMode: false,
+    });
+    gitalk.render('gitalk-container');
+  </script>
+)}

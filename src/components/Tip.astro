@@ -1,0 +1,44 @@
+---
+const alipay = import.meta.env.PUBLIC_TIP_ALIPAY;
+const wechat = import.meta.env.PUBLIC_TIP_WECHAT;
+const enabled = Boolean(alipay || wechat);
+---
+
+{enabled && (
+  <section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center">
+    <p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p>
+    <div class="flex flex-wrap items-start justify-center gap-8">
+      {alipay && (
+        <figure class="flex flex-col items-center gap-2">
+          <canvas id="tip-alipay" data-qr={alipay} class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas>
+          <figcaption class="text-sm text-muted">支付宝</figcaption>
+        </figure>
+      )}
+      {wechat && (
+        <figure class="flex flex-col items-center gap-2">
+          <canvas id="tip-wechat" data-qr={wechat} class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas>
+          <figcaption class="text-sm text-muted">微信</figcaption>
+        </figure>
+      )}
+    </div>
+  </section>
+)}
+
+{enabled && (
+  <script>
+    import QRCode from 'qrcode';
+    const opts = {
+      width: 160,
+      margin: 1,
+      color: { dark: '#1a1815', light: '#ffffff' },
+    };
+    for (const id of ['tip-alipay', 'tip-wechat']) {
+      const el = document.getElementById(id) as HTMLCanvasElement | null;
+      if (el?.dataset.qr) {
+        QRCode.toCanvas(el, el.dataset.qr, opts).catch((e) => {
+          console.error('[Tip] 生成赞赏码失败:', e);
+        });
+      }
+    }
+  </script>
+)}
