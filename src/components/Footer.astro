@@ -1,6 +1,10 @@
 ---
 const year = new Date().getFullYear();
+const beianIcp = import.meta.env.PUBLIC_BEIAN_ICP;
+const beianPolice = import.meta.env.PUBLIC_BEIAN_POLICE;
+const showBeian = Boolean(beianIcp || beianPolice);
 ---
+
 <footer class="border-t border-line no-print">
   <div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left">
     <p class="text-sm text-muted">
@@ -12,4 +16,18 @@ const year = new Date().getFullYear();
       <a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a>
     </div>
   </div>
+  {showBeian && (
+    <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint">
+      {beianIcp && (
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">
+          {beianIcp}
+        </a>
+      )}
+      {beianPolice && (
+        <a href="https://beian.mps.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">
+          {beianPolice}
+        </a>
+      )}
+    </div>
+  )}
 </footer>
