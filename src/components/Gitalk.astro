@@ -10,9 +10,9 @@ const clientID = import.meta.env.PUBLIC_GITALK_CLIENT_ID;
 const clientSecret = import.meta.env.PUBLIC_GITALK_CLIENT_SECRET;
 const owner = import.meta.env.PUBLIC_GITALK_OWNER ?? 'geektutu';
 const repo = import.meta.env.PUBLIC_GITALK_REPO ?? 'geektutu.github.io';
-const admin = (import.meta.env.PUBLIC_GITALK_ADMIN ?? 'geektutu')
+const admin = ((import.meta.env.PUBLIC_GITALK_ADMIN ?? 'geektutu') as string)
   .split(',')
-  .map((s) => s.trim())
+  .map((s: string) => s.trim())
   .filter(Boolean);
 
 const enabled = Boolean(clientID && clientSecret && repo && owner && admin.length);
