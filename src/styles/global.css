@@ -256,6 +256,22 @@
   color: var(--accent);
 }
 
+/* 书籍侧边栏滚动条（呼应原博客的自定义滚动条） */
+.book-toc-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 24%, transparent) transparent;
+}
+.book-toc-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.book-toc-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.book-toc-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 999px;
+}
+
 /* 打印排版：书稿式 */
 @media print {
   .no-print {

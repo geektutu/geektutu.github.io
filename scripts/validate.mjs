@@ -51,7 +51,8 @@ for (const f of readdirSync(BOOKS_DIR).filter((x) => extname(x) === '.md')) {
   const id = fm.id ?? f.replace(/\.md$/, '');
   const slugs = [];
   for (const group of fm.outline ?? []) {
-    for (const s of group.chapters ?? []) slugs.push(s);
+    // 章节支持两种写法："slug" 或 { slug, short }
+    for (const ch of group.chapters ?? []) slugs.push(typeof ch === 'string' ? ch : ch.slug);
   }
   bookChapters.set(id, slugs);
 }

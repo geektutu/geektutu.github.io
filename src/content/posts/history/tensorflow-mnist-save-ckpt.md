@@ -1,5 +1,6 @@
 ---
 title: TensorFlow入门(二) - mnist手写数字识别(模型保存加载)
+repo: https://github.com/geektutu/tensorflow-tutorial-samples
 description: TensorFlow 入门系列文章，第二篇，mnist手写数字识别(模型保存加载)。
 date: '2017-12-17 11:51:24'
 tags:

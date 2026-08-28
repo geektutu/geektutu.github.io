@@ -1,5 +1,6 @@
 ---
 title: TensorFlow入门(一) - mnist手写数字识别(网络搭建)
+repo: https://github.com/geektutu/tensorflow-tutorial-samples
 description: TensorFlow 入门系列文章，第一篇，mnist手写数字识别(网络搭建)。
 date: '2017-12-09 11:51:24'
 tags:

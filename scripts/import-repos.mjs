@@ -37,6 +37,44 @@ const BOOKS = [
     order: 10,
     featured: true,
     tags: ['Go'],
+    // 书籍配套仓库，章节页头部以标签形式提示
+    repo: 'https://github.com/geektutu/7days-golang',
+    // 侧边栏等紧凑场景的章节短标题（key 为 slug）
+    shortTitles: {
+      gee: 'Day0 序言',
+      'gee-day1': 'Day1 HTTP 基础',
+      'gee-day2': 'Day2 上下文',
+      'gee-day3': 'Day3 前缀树路由',
+      'gee-day4': 'Day4 分组控制',
+      'gee-day5': 'Day5 中间件',
+      'gee-day6': 'Day6 模板 Template',
+      'gee-day7': 'Day7 错误恢复',
+      geecache: 'Day0 序言',
+      'geecache-day1': 'Day1 LRU 缓存淘汰策略',
+      'geecache-day2': 'Day2 单机并发缓存',
+      'geecache-day3': 'Day3 HTTP 服务端',
+      'geecache-day4': 'Day4 一致性哈希',
+      'geecache-day5': 'Day5 分布式节点',
+      'geecache-day6': 'Day6 防止缓存击穿',
+      'geecache-day7': 'Day7 使用 Protobuf 通信',
+      geeorm: 'Day0 序言',
+      'geeorm-day1': 'Day1 database/sql 基础',
+      'geeorm-day2': 'Day2 对象表结构映射',
+      'geeorm-day3': 'Day3 记录新增和查询',
+      'geeorm-day4': 'Day4 链式操作与更新删除',
+      'geeorm-day5': 'Day5 实现钩子',
+      'geeorm-day6': 'Day6 支持事务',
+      'geeorm-day7': 'Day7 数据库迁移',
+      geerpc: 'Day0 序言',
+      'geerpc-day1': 'Day1 服务端与消息编码',
+      'geerpc-day2': 'Day2 高性能客户端',
+      'geerpc-day3': 'Day3 服务注册',
+      'geerpc-day4': 'Day4 超时处理',
+      'geerpc-day5': 'Day5 支持HTTP协议',
+      'geerpc-day6': 'Day6 负载均衡',
+      'geerpc-day7': 'Day7 服务发现与注册中心',
+      '7days-golang-q1': '接口型函数',
+    },
     parts: {
       'Web框架 - Gee': { title: 'Web 框架 Gee', order: 1 },
       '分布式缓存 - GeeCache': { title: '分布式缓存 GeeCache', order: 2 },
@@ -53,6 +91,7 @@ const BOOKS = [
     order: 40,
     featured: false,
     tags: ['面试'],
+    repo: 'https://github.com/geektutu/interview-questions',
     // ml/N.md 无 frontmatter，改写为 qa-ml-qN，并归入独立分部
     slugOverride: (rel) => {
       const m = rel.match(/^ml\/(\d+)\.md$/);
@@ -78,6 +117,7 @@ const BOOKS = [
     order: 30,
     featured: false,
     tags: ['TensorFlow 2'],
+    repo: 'https://github.com/geektutu/tensorflow2-docs-zh',
     // 按源目录分部
     partFor: (rel) => {
       if (rel.startsWith('Beginner-ML-basics/')) return { title: 'ML 基础', order: 2 };
@@ -94,6 +134,7 @@ const BOOKS = [
     order: 20,
     featured: false,
     tags: ['Go'],
+    repo: 'https://github.com/geektutu/high-performance-go',
     // 按 categories 分部（catMap 定义顺序）
     catMap: {
       序言: 1,
@@ -280,7 +321,10 @@ for (const book of BOOKS) {
     .sort((a, b) => a[1].order - b[1].order)
     .map(([partTitle, { chapters }]) => ({
       part: partTitle,
-      chapters: chapters.sort((a, b) => a.date - b.date || a.sort - b.sort).map((c) => c.slug),
+      // 有短标题的章节写为 { slug, short }，其余保持纯字符串
+      chapters: chapters
+        .sort((a, b) => a.date - b.date || a.sort - b.sort)
+        .map((c) => (book.shortTitles?.[c.slug] ? { slug: c.slug, short: book.shortTitles[c.slug] } : c.slug)),
     }));
 
   const bookFm = {
@@ -291,6 +335,7 @@ for (const book of BOOKS) {
     featured: book.featured,
     outline,
   };
+  if (book.repo) bookFm.repo = book.repo;
   fs.writeFileSync(path.join(BOOK_DEST, `${book.id}.md`), `---\n${yaml.dump(bookFm, { lineWidth: 120 })}---\n`);
 
   console.log(`「${book.title}」导入 ${[...parts.values()].reduce((n, p) => n + p.chapters.length, 0)} 章 / ${outline.length} 个分部，复制 ${copied.size} 张图片。`);

@@ -1,5 +1,6 @@
 ---
 title: TensorFlow 2.0 (七) - 强化学习 Q-Learning 玩转 OpenAI gym
+repo: https://github.com/geektutu/tensorflow-tutorial-samples
 description: TensorFlow2教程，TensorFlow2.0教程，TensorFlow 2.0 入门系列文章，第七篇，Q-Learning 玩转 OpenAI gym game MountainCar-v0。
 date: '2019-06-25 00:40:24'
 tags:

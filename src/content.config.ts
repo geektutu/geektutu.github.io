@@ -15,11 +15,20 @@ const books = defineCollection({
     cover: z.string().optional(),
     order: z.number().default(0),
     featured: z.boolean().default(false),
+    /** 书籍配套仓库，章节页会在正文顶部提示 */
+    repo: z.string().optional(),
     outline: z
       .array(
         z.object({
           part: z.string().optional(),
-          chapters: z.array(z.string()).default([]),
+          chapters: z
+            .array(
+              z.union([
+                z.string(),
+                z.object({ slug: z.string(), short: z.string().optional() }),
+              ])
+            )
+            .default([]),
         })
       )
       .default([]),
@@ -52,6 +61,8 @@ const posts = defineCollection({
       cover: image().optional(),
       status: z.enum(['draft', 'wip', 'done']).default('done'),
       draft: z.boolean().default(false),
+      /** 单篇文章配套仓库（优先级高于所属书的 repo），正文顶部提示 */
+      repo: z.string().optional(),
     }),
 });
 

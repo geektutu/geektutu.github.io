@@ -1,5 +1,6 @@
 ---
 title: TensorFlow入门(四) - mnist手写数字识别(制作h5py训练集)
+repo: https://github.com/geektutu/tensorflow-tutorial-samples
 description: TensorFlow 入门系列文章，第四篇，mnist手写数字识别(制作h5py训练集)。
 date: '2018-04-02 11:51:24'
 tags:

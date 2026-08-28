@@ -5,6 +5,8 @@ export type Book = CollectionEntry<'books'>;
 
 export interface ChapterItem {
   slug: string;
+  /** 侧边栏等紧凑场景使用的简短标题（来自 outline），缺省时回退到文章标题 */
+  short?: string;
   part?: string;
   post: Post | null;
 }
@@ -36,9 +38,12 @@ export async function getBookChapters(bookId: string): Promise<ChapterItem[]> {
 
   const chapters: ChapterItem[] = [];
   for (const group of theBook.data.outline) {
-    for (const slug of group.chapters) {
+    for (const ch of group.chapters) {
+      const slug = typeof ch === 'string' ? ch : ch.slug;
+      const short = typeof ch === 'string' ? undefined : ch.short;
       chapters.push({
         slug,
+        short,
         part: group.part,
         post: postMap.get(slug) ?? null,
       });

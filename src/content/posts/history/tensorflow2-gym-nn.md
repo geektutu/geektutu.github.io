@@ -1,5 +1,6 @@
 ---
 title: TensorFlow 2.0 (六) - 监督学习玩转 OpenAI gym game
+repo: https://github.com/geektutu/tensorflow-tutorial-samples
 description: TensorFlow2教程，TensorFlow2.0教程，TensorFlow 入门系列文章，第六篇，监督学习玩转 OpenAI gym game。
 date: '2019-06-21 00:10:20'
 tags:

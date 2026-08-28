@@ -23,7 +23,7 @@ const updated = post.data.updated ? post.data.updated.toISOString().slice(0, 10)
 const readingTime = Math.max(1, Math.round((post.body?.length ?? 0) / 1200));
 
 // 若属书，则加载书与章节目录、上下章
-let book: { id: string; title: string } | null = null;
+let book: { id: string; title: string; repo?: string } | null = null;
 let chapters: Awaited<ReturnType<typeof getBookChapters>> = [];
 let adjacent: ReturnType<typeof getAdjacentChapters> = {};
 
@@ -31,12 +31,14 @@ if (post.data.book) {
   const books = await getCollection('books');
   const b = books.find((x) => x.data.id === post.data.book);
   if (b) {
-    book = { id: b.data.id, title: b.data.title };
+    book = { id: b.data.id, title: b.data.title, repo: b.data.repo };
     chapters = await getBookChapters(b.data.id);
     adjacent = getAdjacentChapters(chapters, post.id);
   }
 }
 const isBook = Boolean(book);
+// 正文顶部的仓库提示：单篇文章 repo 优先于所属书的 repo
+const repo = post.data.repo ?? book?.repo;
 ---
 
 <Layout title={post.data.title} description={post.data.description}>
@@ -46,13 +48,15 @@ const isBook = Boolean(book);
     {isBook ? (
       <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10">
         <aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start">
-          <div class="lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto border-r border-line">
-            <ChapterToc
-              bookTitle={book!.title}
-              bookId={book!.id}
-              chapters={chapters}
-              currentSlug={post.id}
-            />
+          <div class="rounded-2xl border border-line bg-paper-soft">
+            <div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto">
+              <ChapterToc
+                bookTitle={book!.title}
+                bookId={book!.id}
+                chapters={chapters}
+                currentSlug={post.id}
+              />
+            </div>
           </div>
         </aside>
 
@@ -65,6 +69,7 @@ const isBook = Boolean(book);
               readingTime={readingTime}
               bookTitle={book!.title}
               bookHref={`/books/${book!.id}`}
+              repo={repo}
             />
             <div class="mt-8">
               <SectionToc headings={headings} />
@@ -79,7 +84,7 @@ const isBook = Boolean(book);
       </div>
     ) : (
       <article class="mx-auto max-w-2xl py-14">
-        <ChapterHeader post={post} date={date} updated={updated} readingTime={readingTime} />
+        <ChapterHeader post={post} date={date} updated={updated} readingTime={readingTime} repo={repo} />
           <div class="mt-8">
             <SectionToc headings={headings} />
             <div class="mt-6 markdown"><Content /></div>
