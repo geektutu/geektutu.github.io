@@ -7,7 +7,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/pandas-cheat-sheet-zh-cn/cheat_sheet_part.png
+cover: pandas-cheat-sheet-zh-cn/cheat_sheet_part.png
 ---
 
 ## 来源
@@ -29,8 +29,8 @@ Pandas的[英文文档](https://pandas.pydata.org/pandas-docs/stable/)内容过�
 
 ## 效果图
 
-![Pandas_Cheat_Sheet_zh_CN_1](/post/pandas-cheat-sheet-zh-cn/1.webp)
-![Pandas_Cheat_Sheet_zh_CN_2](/post/pandas-cheat-sheet-zh-cn/2.webp)
+![Pandas_Cheat_Sheet_zh_CN_1](pandas-cheat-sheet-zh-cn/1.webp)
+![Pandas_Cheat_Sheet_zh_CN_2](pandas-cheat-sheet-zh-cn/2.webp)
 
 ## PDF下载
 

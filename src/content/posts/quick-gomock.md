@@ -9,10 +9,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-gomock/gomock_logo.jpg
+cover: quick-gomock/gomock_logo.jpg
 ---
 
-![gomock](/post/quick-gomock/gomock.jpg)
+![gomock](quick-gomock/gomock.jpg)
 
 ## 1 gomock 简介
 

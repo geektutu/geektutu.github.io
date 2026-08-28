@@ -7,7 +7,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/blog-experience-5/heart.jpg
+cover: blog-experience-5/heart.jpg
 ---
 
 ## 友链，链接有趣的灵魂
@@ -35,7 +35,7 @@ cover: /post/blog-experience-5/heart.jpg
 - **Moz PQ**：高质量外链百分比(Percentage of quality backlinks, PQ)，用来评价外链的质量。Moz是一个著名的网站分析软件，Moz PQ 即 Moz 记录的高质量外链与所有外链的比例。垃圾站的外链不如不要，会影响该指标。
 - **Moz SS**：垃圾评分(Moz Spam Score, SS)，评价与其他站点的相似程度。分数越高，说明站点抄袭度越高，越容易受到搜索引擎的惩罚。
 
-![Geektutu Check Page](/post/blog-experience-5/spam_score.png)
+![Geektutu Check Page](blog-experience-5/spam_score.png)
 
 | 站点     | 网页数 | PR质量        | 高质量外链比 | 垃圾评分 | 世界排名 |
 | -------- | ------ | ------------- | ----------- | -------- | -------- |

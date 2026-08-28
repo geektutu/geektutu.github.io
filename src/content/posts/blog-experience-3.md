@@ -7,10 +7,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/blog-experience-3/cnzz.jpg
+cover: blog-experience-3/cnzz.jpg
 ---
 
-![geektutu_cnzz](/post/blog-experience-3/cnzz.jpg)
+![geektutu_cnzz](blog-experience-3/cnzz.jpg)
 
 ## 人均浏览页面翻倍
 
@@ -42,7 +42,7 @@ cover: /post/blog-experience-3/cnzz.jpg
 
 效果如图红框部分：
 
-![series-container](/post/blog-experience-3/series_container.jpg)
+![series-container](blog-experience-3/series_container.jpg)
 
 ## 增加图片与推荐
 
@@ -56,7 +56,7 @@ cover: /post/blog-experience-3/cnzz.jpg
 
 因为是基于**Hexo**搭的静态博客，所以也没办法做智能推荐，推荐都是随机生成的。但是每次发布新文章，整站会重新生成，所以只要更新频率快，大家会有推荐在变化的感觉。
 
-![recommend](/post/blog-experience-3/recommend.jpg)
+![recommend](blog-experience-3/recommend.jpg)
 
 ## 增加二维码
 

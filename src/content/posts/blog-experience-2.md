@@ -7,7 +7,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/blog-experience-2/origin_create.gif
+cover: blog-experience-2/origin_create.gif
 ---
 
 ## 两篇文章的启示

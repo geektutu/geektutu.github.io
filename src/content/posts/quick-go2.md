@@ -9,10 +9,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-go2/go2.jpg
+cover: quick-go2/go2.jpg
 ---
 
-![quick-go2](/post/quick-go2/go2.jpg)
+![quick-go2](quick-go2/go2.jpg)
 
 图片引用自`udemy.com`
 

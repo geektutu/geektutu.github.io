@@ -11,10 +11,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/tensorflow2-mnist-cnn/cnn_image_sample.gif
+cover: tensorflow2-mnist-cnn/cnn_image_sample.gif
 ---
 
-![卷积神经网络gif动图](/post/tensorflow2-mnist-cnn/cnn_image_sample.gif)
+![卷积神经网络gif动图](tensorflow2-mnist-cnn/cnn_image_sample.gif)
 
 <style>
 @media (min-width: 992px) {.gkt-article-start + p > img {min-height: 15rem;}}

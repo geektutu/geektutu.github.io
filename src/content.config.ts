@@ -27,22 +27,30 @@ const books = defineCollection({
 });
 
 /**
- * 文章（posts）：文件名即 slug。
+ * 文章（posts）：与存量仓库格式一致——
+ *   src/content/posts/<slug>.md          正文
+ *   src/content/posts/<slug>/            该文章的图片目录
+ * markdown 中以相对路径引用：<slug>/xxx.png。
  * book 声明所属书；status 用于书稿看板；draft 控制是否公开。
  */
 const posts = defineCollection({
-  loader: glob({ base: './src/content/posts', pattern: '**/*.md' }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string().default(''),
-    date: z.coerce.date(),
-    updated: z.coerce.date().optional(),
-    tags: z.array(z.string()).default([]),
-    book: z.string().optional(),
-    cover: z.string().optional(),
-    status: z.enum(['draft', 'wip', 'done']).default('done'),
-    draft: z.boolean().default(false),
+  loader: glob({
+    base: './src/content/posts',
+    pattern: '*.md',
+    generateId: ({ entry }) => entry.replace(/\.md$/, ''),
   }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      description: z.string().default(''),
+      date: z.coerce.date(),
+      updated: z.coerce.date().optional(),
+      tags: z.array(z.string()).default([]),
+      book: z.string().optional(),
+      cover: image().optional(),
+      status: z.enum(['draft', 'wip', 'done']).default('done'),
+      draft: z.boolean().default(false),
+    }),
 });
 
 export const collections = { books, posts };

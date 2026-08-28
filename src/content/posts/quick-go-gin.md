@@ -9,10 +9,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-go-gin/gin.jpg
+cover: quick-go-gin/gin.jpg
 ---
 
-![Gin](/post/quick-go-gin/gin.jpg)
+![Gin](quick-go-gin/gin.jpg)
 
 关键字：**Gin教程** **Gin中文文档** **Go语言Web框架** **Go环境搭建**
 
@@ -160,7 +160,7 @@ $ go run main.go
 
 - 浏览器访问 `http://localhost:8080`
 
-![Hello Gin](/post/quick-go-gin/hello_gin.jpg)
+![Hello Gin](quick-go-gin/hello_gin.jpg)
 
 ## 路由(Route)
 

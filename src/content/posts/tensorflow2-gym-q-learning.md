@@ -11,10 +11,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/tensorflow2-gym-q-learning/mountaincar_v0_success.gif
+cover: tensorflow2-gym-q-learning/mountaincar_v0_success.gif
 ---
 
-![Geektutu Q-Learning MountainCar Failed](/post/tensorflow2-gym-q-learning/mountaincar_v0_failed.gif)
+![Geektutu Q-Learning MountainCar Failed](tensorflow2-gym-q-learning/mountaincar_v0_failed.gif)
 
 <style>
 @media (min-width: 992px) {.gkt-article-start + p > img {min-height: 15rem;}}
@@ -205,7 +205,7 @@ model loaded
 score: -151.0
 ```
 
-![Geektutu Q-Learning MountainCar Success](/post/tensorflow2-gym-q-learning/mountaincar_v0_success.gif)
+![Geektutu Q-Learning MountainCar Success](tensorflow2-gym-q-learning/mountaincar_v0_success.gif)
 
 
 代码已经上传到[Github - tensorflow-tutorial-samples](https://github.com/geektutu/tensorflow-tutorial-samples/tree/master/gym/MountainCar-v0-q-learning)，**q_learning.py**只有50行，不妨试一试吧~

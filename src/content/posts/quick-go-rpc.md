@@ -9,7 +9,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-go-rpc/go-rpc.jpg
+cover: quick-go-rpc/go-rpc.jpg
 ---
 
 本文介绍了 Go 语言远程过程调用(Remote Procedure Call, RPC)的使用方式，示例基于 Golang 标准库 net/rpc，同时介绍了如何基于 TLS/SSL 实现服务器端和客户端的单向鉴权、双向鉴权。
@@ -25,7 +25,7 @@ RPC 协议假定某种传输协议(TCP, UDP)存在，为通信程序之间携带
 
 RPC 流程：
 
-![RPC PROCEDURE](/post/quick-go-rpc/rpc-procedure.jpg)
+![RPC PROCEDURE](quick-go-rpc/rpc-procedure.jpg)
 
 RPC 模型是一个典型的客户端-服务器模型(Client-Server, CS)，相比于调用本地的接口，RPC 还需要知道的是服务器端的地址信息。本地调用，好比两个人面对面说话，而 RPC 好比打电话，需要知道对方的电话号码，但是并不需要关心语音是怎么编码，如何传输，又如何解码的。
 

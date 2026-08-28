@@ -7,10 +7,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/blog-experience-6/value.jpg
+cover: blog-experience-6/value.jpg
 ---
 
-![blog value](/post/blog-experience-6/value_pencil.jpg)
+![blog value](blog-experience-6/value_pencil.jpg)
 
 ## 背景
 

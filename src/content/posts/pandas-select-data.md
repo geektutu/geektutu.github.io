@@ -7,7 +7,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/pandas-select-data/pandas.gif
+cover: pandas-select-data/pandas.gif
 ---
 
 使用`demo.csv`举几个栗子~

@@ -10,10 +10,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/tensorflow2-gym-nn/cartpole_v0_failed.gif
+cover: tensorflow2-gym-nn/cartpole_v0_failed.gif
 ---
 
-![gym cartpole-v0 failed](/post/tensorflow2-gym-nn/cartpole_v0_failed.gif)
+![gym cartpole-v0 failed](tensorflow2-gym-nn/cartpole_v0_failed.gif)
 
 <style>
 @media (min-width: 992px) {.gkt-article-start + p > img {min-height: 15rem;}}
@@ -236,7 +236,7 @@ using nn, score:  200.0
 
 看看效果吧~
 
-![gym cartpole-v0 success](/post/tensorflow2-gym-nn/cartpole_v0_success.gif)
+![gym cartpole-v0 success](tensorflow2-gym-nn/cartpole_v0_success.gif)
 
 在[Github - tensorflow-tutorial-samples](https://github.com/geektutu/tensorflow-tutorial-samples/tree/master/gym/CartPole-v0-nn)上提供了`.py`和`.ipynb`2种格式的代码。
 

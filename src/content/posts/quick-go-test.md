@@ -9,10 +9,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-go-test/go_test.jpg
+cover: quick-go-test/go_test.jpg
 ---
 
-![golang test](/post/quick-go-test/go_test.jpg)
+![golang test](quick-go-test/go_test.jpg)
 
 ## 1 如何写好单元测试
 

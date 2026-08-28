@@ -7,7 +7,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/blog-experience-7/comment.jpg
+cover: blog-experience-7/comment.jpg
 ---
 
 ## 背景
@@ -26,7 +26,7 @@ cover: /post/blog-experience-7/comment.jpg
 
 我选择了基于 Github Issues 的 Gitalk。一段时间下来，至今评论量没有超过100条。要是我是一个读者，使用 Github 登录评论，也有点怪怪的感觉，评论量少也就释然了。但是 disqus 的有个功能，`ALSO ON <BLOG>` 我印象很深，评论内容远比文章标题或是阅读量要吸引人。我平时看别人博客的时候，很容易因为看到一条有意思的评论，就点进去了。Gitalk 没有这样的功能，我就想着实现一个。
 
-![disqus also on](/post/blog-experience-7/also_on.jpg)
+![disqus also on](blog-experience-7/also_on.jpg)
 
 ## 数据从哪来
 

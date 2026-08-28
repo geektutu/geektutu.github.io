@@ -9,10 +9,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-go-wasm/go-wasm.jpg
+cover: quick-go-wasm/go-wasm.jpg
 ---
 
-![Golang WebAssembly](/post/quick-go-wasm/go-wasm.jpg)
+![Golang WebAssembly](quick-go-wasm/go-wasm.jpg)
 
 ## 1 WebAssembly 简介
 
@@ -97,7 +97,7 @@ $ goexec 'http.ListenAndServe(`:9999`, http.FileServer(http.Dir(`.`)))'
 
 浏览器访问 localhost:9999，则会有一个弹出窗口，上面写着 *Hello World!*。
 
-![go wasm hello world demo](/post/quick-go-wasm/hello_world.png)
+![go wasm hello world demo](quick-go-wasm/hello_world.png)
 
 为了避免每次编译都需要输入繁琐的命令，可将这个过程写在 `Makefile` 中
 
@@ -180,7 +180,7 @@ func(this Value, args []Value) interface{}
 
 接下来访问 localhost:9999，可以看到如下效果。输入一个数字，点击`Click`，计算结果显示在输入框下方。
 
-![register functions demo](/post/quick-go-wasm/register_functions.png)
+![register functions demo](quick-go-wasm/register_functions.png)
 
 ## 4 操作 DOM
 
@@ -310,7 +310,7 @@ func main() {
 
 接下来，重新编译 main.go，访问 localhost:9999，随便输入一个数字，点击 Click。页面会先显示 `Waiting 3s...`，3s过后显示计算结果。
 
-![go wasm callback demo](/post/quick-go-wasm/callback.png)
+![go wasm callback demo](quick-go-wasm/callback.png)
 
 
 ## 6 进一步的尝试

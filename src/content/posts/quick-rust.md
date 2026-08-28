@@ -10,7 +10,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-rust/rust.jpg
+cover: quick-rust/rust.jpg
 ---
 
 Rust 是一门系统编程语言(Systems Programming Language)，兼顾安全(Safety)、性能(Speed)和并发(Concurrency)。Rust作为一门底层的系统编程语言，理论上，使用 C/C++ 的领域都可以使用Rust实现，例如对硬件需要精细控制的嵌入式编程、对性能要求极高的应用软件（数据库引擎、浏览器引擎，3D渲染引擎等）。相对于 C/C++ 的系统性缺陷（内存管理不当造成的安全漏洞），Rust通过所有权(Ownership)机制在编译期间确保内存安全，无需垃圾回收(Garbage Collection, GC)，也不需要手动释放内存。

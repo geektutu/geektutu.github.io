@@ -7,7 +7,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/box-tools/colorhunt.jpg
+cover: box-tools/colorhunt.jpg
 ---
 
 准备逐步把自己平时常用的网站和工具分享出来，希望能提高大家的效率。
@@ -22,7 +22,7 @@ cover: /post/box-tools/colorhunt.jpg
 
 正则表达式无非是一些规则的集合罢了，很多童鞋有正则恐怖症，不知道自己写的是否是期望的，这个网站可以帮助你克服正则恐怖症，你正则表达式中的每一个字母符号，都会告诉你具体的含义。
 
-![regex](/post/box-tools/regex.jpg)
+![regex](box-tools/regex.jpg)
 </div>
 </details>
 
@@ -36,7 +36,7 @@ cover: /post/box-tools/colorhunt.jpg
 
 好看的配色都在这里，适合建站颜色搭配困难症。
 
-![colorhunt](/post/box-tools/colorhunt.jpg)
+![colorhunt](box-tools/colorhunt.jpg)
 </div>
 </details>
 
@@ -48,6 +48,6 @@ cover: /post/box-tools/colorhunt.jpg
 
 一直在使用的图片压缩神器，压缩率基本在 50% 以上，本站的所有图片上传前都经过 ImageOptim 压缩。而且非常小！只有一个页面，拖进去即可！
 
-![ImageOptim](/post/box-tools/imageoptim.jpg)
+![ImageOptim](box-tools/imageoptim.jpg)
 </div>
 </details>

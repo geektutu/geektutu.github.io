@@ -28,6 +28,7 @@ function readFrontmatter(file) {
 
 function listMarkdown(dir) {
   if (!existsSync(dir)) return [];
+  // 扁平结构：<slug>.md 与图片目录 <slug>/ 平铺在同一目录
   return readdirSync(dir).filter((f) => extname(f) === '.md');
 }
 
@@ -36,7 +37,7 @@ const warnings = [];
 
 // 收集书与大纲
 const bookChapters = new Map(); // bookId -> [slug]
-for (const f of listMarkdown(BOOKS_DIR)) {
+for (const f of readdirSync(BOOKS_DIR).filter((x) => extname(x) === '.md')) {
   const fm = readFrontmatter(join(BOOKS_DIR, f));
   const id = fm.id ?? f.replace(/\.md$/, '');
   const slugs = [];

@@ -10,10 +10,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/tensorflow2-gym-pg/pg_plot.jpg
+cover: tensorflow2-gym-pg/pg_plot.jpg
 ---
 
-![Geektutu Policy Gradient Success](/post/tensorflow2-gym-pg/pg_success.gif)
+![Geektutu Policy Gradient Success](tensorflow2-gym-pg/pg_success.gif)
 
 <style>
 @media (min-width: 992px) {.gkt-article-start + p > img {min-height: 15rem;}}
@@ -85,7 +85,7 @@ def choose_action(s):
 
 接下来是最大的问题，如何优化策略呢？
 
-![Policy Gradient Optimize](/post/tensorflow2-gym-pg/pg_optimize.jpg)
+![Policy Gradient Optimize](tensorflow2-gym-pg/pg_optimize.jpg)
 
 ### 1) 衰减的累加期望
 
@@ -210,7 +210,7 @@ plt.plot(x, smooth_func(x), label='Mean', linestyle='--')
 plt.show()
 ```
 
-![Geektutu Policy Gradient Plot](/post/tensorflow2-gym-pg/pg_plot.jpg)。
+![Geektutu Policy Gradient Plot](tensorflow2-gym-pg/pg_plot.jpg)。
 
 ## 测试
 
@@ -252,7 +252,7 @@ using policy gradient, score:  200.0
 using policy gradient, score:  200.0
 ```
 
-![Geektutu Policy Gradient Success](/post/tensorflow2-gym-pg/pg_success.gif)
+![Geektutu Policy Gradient Success](tensorflow2-gym-pg/pg_success.gif)
 
 ## 如何优化
 

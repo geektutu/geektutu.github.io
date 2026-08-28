@@ -7,7 +7,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/blog-experience-1/loading.gif
+cover: blog-experience-1/loading.gif
 ---
 
 ## Koa+React的尝试
@@ -34,7 +34,7 @@ cover: /post/blog-experience-1/loading.gif
 
 整个CSS的大小不超过10K，Chrome中的测试如图：
 
-![Geektutu Network Chrome Test](/post/blog-experience-1/geektutu-css-chrome.webp)
+![Geektutu Network Chrome Test](blog-experience-1/geektutu-css-chrome.webp)
 
 ## 极致性能之不使用任何JS库
 

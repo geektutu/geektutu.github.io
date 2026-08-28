@@ -11,10 +11,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/tensorflow2-gym-dqn/mountaincar_v0_scores.jpg
+cover: tensorflow2-gym-dqn/mountaincar_v0_scores.jpg
 ---
 
-![Geektutu Q-Learning MountainCar Failed](/post/tensorflow2-gym-dqn/mountaincar_v0_success.gif)
+![Geektutu Q-Learning MountainCar Failed](tensorflow2-gym-dqn/mountaincar_v0_success.gif)
 
 <style>
 @media (min-width: 992px) {.gkt-article-start + p > img {min-height: 15rem;}}
@@ -145,7 +145,7 @@ class DQN(object):
 
 整个结构如下图所示：
 
-![Geektutu DQN](/post/tensorflow2-gym-dqn/dqn.jpg)
+![Geektutu DQN](tensorflow2-gym-dqn/dqn.jpg)
 
 我们需要用到上文提到的更新方程，来构造训练数据。其中`Q_next`是对`next_s`的预测值，在这里其实也可以使用`model`，但是`model`变化得太过频繁，而且我们在训练时，是以**batch**为单位进行训练的，也就是说很多训练数据对应的是之前状态的model，而不是频繁更新值的`model`，因此，我们使用更新频率低的`target_model`来计算`next_s`的Q值。
 
@@ -234,7 +234,7 @@ plt.plot(score_list, color='green')
 plt.show()
 ```
 
-![geektutu MountainCar v0 scores](/post/tensorflow2-gym-dqn/mountaincar_v0_scores.jpg)
+![geektutu MountainCar v0 scores](tensorflow2-gym-dqn/mountaincar_v0_scores.jpg)
 
 ## 模型预测/测试
 
@@ -270,7 +270,7 @@ $ python test_dqn.py
 score: -161.0
 ```
 
-![Geektutu Q-Learning MountainCar Success](/post/tensorflow2-gym-dqn/mountaincar_v0_success.gif)
+![Geektutu Q-Learning MountainCar Success](tensorflow2-gym-dqn/mountaincar_v0_success.gif)
 
 代码已经上传到[Github - tensorflow-tutorial-samples](https://github.com/geektutu/tensorflow-tutorial-samples/tree/master/gym/MountainCar-v0-dqn)，**dqn.py**只有90行，不妨试一试吧~
 

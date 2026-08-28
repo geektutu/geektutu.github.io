@@ -10,7 +10,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/tensorflow-mnist-simplest/x_y.png
+cover: tensorflow-mnist-simplest/x_y.png
 ---
 
 这篇文章是 **TensorFlow Tutorial** 入门教程的第一篇文章。主要介绍了如何从0开始用tensorflow搭建最简单的网络进行训练。
@@ -83,7 +83,7 @@ mnist数据集里的每张图片大小为28 * 28像素，可以用28 * 28的大�
 ```
 当label为0时，交叉熵为0，label为1时，交叉熵为-log(y)，交叉熵只关注独热编码中有效位的损失。这样屏蔽了无效位值的变化（无效位的值的变化并不会影响最终结果），并且通过取对数放大了有效位的损失。当有效位的值趋近于0时，交叉熵趋近于正无穷大。
 
-![x_y](/post/tensorflow-mnist-simplest/x_y.png)
+![x_y](tensorflow-mnist-simplest/x_y.png)
 
 ### 回归模型
 
@@ -99,7 +99,7 @@ loss = (Y - labal)^2
 可以通过不断地传入X和label的值，来修正w和b，使得最终得到的Y与label的loss最小。这个训练的过程，可以采用**梯度下降**的方法。通过梯度下降，找到最快的方向，调整w和b值，使得w * X + b的值越来越接近label。
 梯度下降的具体过程，就不在这篇文章中展开了。
 
-![loss](/post/tensorflow-mnist-simplest/loss.png)
+![loss](tensorflow-mnist-simplest/loss.png)
 
 ### 学习速率
 简单说，梯度即一个函数的斜率，找到函数的斜率，其实就知道了w和b的值往哪个方向调整，能够让函数值（loss）降低得最快。那么方向知道了，往这个方向调整多少呢？这个数，神经网络中称之为学习速率。学习速率调得太低，训练速度会很慢，学习速率调得过高，每次迭代波动会很大。

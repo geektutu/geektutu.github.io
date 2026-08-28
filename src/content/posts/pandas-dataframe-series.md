@@ -7,7 +7,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/pandas-dataframe-series/pandas.gif
+cover: pandas-dataframe-series/pandas.gif
 ---
 
 本文示例基于 Version 0.21.0

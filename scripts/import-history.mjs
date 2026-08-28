@@ -4,7 +4,6 @@ import yaml from 'js-yaml';
 
 const SRC = path.resolve('../geektutu.github.io/posts');
 const POSTS_DEST = path.resolve('src/content/posts');
-const IMG_DEST = path.resolve('public/post');
 const BOOK_DEST = path.resolve('src/content/books/history.md');
 const BOOK_ID = 'history';
 
@@ -79,16 +78,22 @@ for (const file of files) {
     status: 'done',
     draft: false,
   };
-  if (fm.image) newFm.cover = String(fm.image).replace(/^post\//, '/post/');
+  if (fm.image) {
+    // 源站 cover 形如 post/<slug>/x.jpg，改为相对 md 的 <slug>/x.jpg
+    const coverName = String(fm.image).split('/').pop();
+    newFm.cover = `${slug}/${coverName}`;
+  }
 
   body = rewriteImages(body, slug);
+  // 源站图片引用（/post/<slug>/x、post/<slug>/x）统一转为相对 md 的 <slug>/x，与存量仓库格式一致
+  body = body.replace(/\]\((?:\/?post\/)?(?:\.\.\/)*[^/)]+\/([^/)#]+\.(?:png|jpe?g|gif|webp|svg|pdf))\)/gi, `](${slug}/$1)`);
 
   fs.writeFileSync(path.join(POSTS_DEST, slug + '.md'), `---\n${yaml.dump(newFm, { lineWidth: 120 })}---\n\n${body.trim()}\n`);
 
-  // 复制图片目录
+  // 复制图片目录（与 md 平铺同目录）
   const imgSrc = path.join(mdDir, slug);
   if (fs.existsSync(imgSrc) && fs.statSync(imgSrc).isDirectory()) {
-    fs.cpSync(imgSrc, path.join(IMG_DEST, slug), { recursive: true });
+    fs.cpSync(imgSrc, path.join(POSTS_DEST, slug), { recursive: true });
   }
 
   // 计算分组

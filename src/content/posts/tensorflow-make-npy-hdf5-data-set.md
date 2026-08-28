@@ -10,7 +10,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/tensorflow-mnist-simplest/x_y.png
+cover: tensorflow-mnist-simplest/x_y.png
 ---
 
 这篇文章是 **TensorFlow Tutorial** 入门教程的第四篇文章。
@@ -20,7 +20,7 @@ cover: /post/tensorflow-mnist-simplest/x_y.png
 这篇文章将使用numpy 和 h5py（HDF5文件格式）2种方式来制作训练集，并对这两种方式进行对比。
 
 ## 准备图片
-![mnist-images](/post/tensorflow-make-npy-hdf5-data-set/gen_mnist_images.png)
+![mnist-images](tensorflow-make-npy-hdf5-data-set/gen_mnist_images.png)
 
 直接读取tensorflow中mnist数据集，将数据集还原为图片。
 

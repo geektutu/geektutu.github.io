@@ -7,14 +7,14 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/blog-experience-4/google.jpg
+cover: blog-experience-4/google.jpg
 ---
 
 ## V2EX 的帖子火了
 
 昨天在`V2EX`发了一贴，[独立博客被各种聚合网站爬，好心累](https://v2ex.com/t/578515)，一天之内有上百个评论，五百左右的收藏，成了6月29日V2最热的帖子，这个话题的火爆程度远远超过了我的想象。而且昨天和今天，竟然给我的博客带来了接近1万的 PV。V2EX 的能量实在是太高了，贴图纪念一下。本站的数据是公开的，页面最下面的**站长统计**可以点进去看每日 PV/UV/IP 等数据。
 
-![GEEKTUTU CNZZ 29-30 TRAFFIC](/post/blog-experience-4/cnzz_29_30.jpg)
+![GEEKTUTU CNZZ 29-30 TRAFFIC](blog-experience-4/cnzz_29_30.jpg)
 
 ## 重拾荒废一年的站点
 
@@ -44,7 +44,7 @@ cover: /post/blog-experience-4/google.jpg
 
 这两周，又爆肝写了几篇，好几篇文章的更新时间都是凌晨，到今天为止，加上原来的已经有14篇了。想安安静静地将原来没写完的专题继续写完，每次写完文章，都主动去`Google Search Console`手工更新`sitemap.xml`。Google 的效率很高，一般手工更新完站点地图后，5分钟就爬完了。当然，没有站点地图也可以测试单个网址，如果显示没有编入索引，点击请求编入索引，很快 Google 就会爬取相关页面，编入索引了。第一个提交，原创资格自然容易保证了。
 
-![Geektutu Google Search Console](/post/blog-experience-4/google_search_console.jpg)
+![Geektutu Google Search Console](blog-experience-4/google_search_console.jpg)
 
 ## 积极举报抄袭网页
 
@@ -54,7 +54,7 @@ cover: /post/blog-experience-4/google.jpg
 
 我用文章标题直接搜索，而且点击了 Google 搜索页面最下面的**显示全部相似的结果**，短短半天，就有4个聚合站采集了我的文章，均将我的链接移除了，只有一个站在文章最后面一个很不起眼的位置，加了`查看原文`，指向了我。而且这些站点的 Google 收录时间与我的只差了一个小时，如果权重比我高，容易认定高权重的网站为原创。我只能尽可能地联系聚合站的站长，希望他们能够删除我的文章，有1个通过微信联系，有2个通过留言，均删除了。并且告知我的文章禁止转载，口头答应，发下一篇的时候，又被无耻地采集了。还有另一个站长，网站上没有留任何的联系方式，根本找不到人。无奈之下，我发现了这个网站[Google Spam Report](https://www.google.com/webmasters/tools/spamreportform?hl=zh-CN)可以举报垃圾网页。抱着试一试的心态，举报了抄袭我文章的地址。两小时后再去搜索，居然发现我的文章排到了首页，被举报的网址搜不到了。举报是真有效！后来找到了**Google Spam Report**的浏览器插件，举报起来更是得心应手。这个周，持续不断地与无良聚合站作斗争，每天坚持举报5个以上的地址。如果第二天搜索结果还没消失，继续举报。
 
-![blog-experience-4](/post/blog-experience-4/google_spam_report.jpg)
+![blog-experience-4](blog-experience-4/google_spam_report.jpg)
 
 ## 博客自身的改进
 
@@ -77,7 +77,7 @@ cover: /post/blog-experience-4/google.jpg
 
 从重拾博客到今天，三周加一个周末，23天。博客访问量从50慢慢稳定在300左右，一个帖子，让2天有接近1万的阅读量，这些都是预料之外的。还有更意想不到的事情是，Google 竟然为我的小站添加了**导航栏**，受宠若惊。
 
-![Google Geektutu](/post/blog-experience-4/google_geektutu.jpg)
+![Google Geektutu](blog-experience-4/google_geektutu.jpg)
 
 昨晚，第二次提交`Google Adsense`申请，也通过了。
 

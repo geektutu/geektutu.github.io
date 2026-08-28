@@ -10,7 +10,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/tensorflow-mnist-tensorboard-training/tensorboard_mnist_graph.png
+cover: tensorflow-mnist-tensorboard-training/tensorboard_mnist_graph.png
 ---
 
 这篇文章是 **TensorFlow Tutorial** 入门教程的第三篇文章。
@@ -25,11 +25,11 @@ tensorboard 是通过读取 tensorflow 的`事件文件`来运行的，因为，
 
 - **网络结构图**
 
-![tensorboard_mnist_graph](/post/tensorflow-mnist-tensorboard-training/tensorboard_mnist_graph.png)
+![tensorboard_mnist_graph](tensorflow-mnist-tensorboard-training/tensorboard_mnist_graph.png)
 
 - **accuray与loss，bias与weight**
 
-![tensorbord_mnist_loss](/post/tensorflow-mnist-tensorboard-training/tensorbord_mnist_loss.png)
+![tensorbord_mnist_loss](tensorflow-mnist-tensorboard-training/tensorbord_mnist_loss.png)
 
 ## summary的生命周期 
 

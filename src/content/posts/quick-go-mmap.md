@@ -9,10 +9,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-go-mmap/mmap_sm.jpg
+cover: quick-go-mmap/mmap_sm.jpg
 ---
 
-![golang mmap](/post/quick-go-mmap/mmap.jpg)
+![golang mmap](quick-go-mmap/mmap.jpg)
 
 ## 1 mmap 简介
 

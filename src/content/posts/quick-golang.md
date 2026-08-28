@@ -10,10 +10,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-golang/golang.jpg
+cover: quick-golang/golang.jpg
 ---
 
-![Golang中文教程](/post/quick-golang/golang.jpg)
+![Golang中文教程](quick-golang/golang.jpg)
 
 > Go（又称Golang）是Google开发的一种静态强类型、编译型、并发型，并具有垃圾回收功能的编程语言。 —— [Go - wikipedia.org](https://zh.wikipedia.org/wiki/Go)
 

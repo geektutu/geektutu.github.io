@@ -9,7 +9,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-go-context/context_sm.jpg
+cover: quick-go-context/context_sm.jpg
 ---
 
 ## 1 为什么需要 Context

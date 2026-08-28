@@ -9,7 +9,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/cheat-sheet-sqlite/sqlite.jpg
+cover: cheat-sheet-sqlite/sqlite.jpg
 ---
 
 ## SQLite 命令

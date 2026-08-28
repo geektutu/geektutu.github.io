@@ -10,7 +10,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/tensorflow-mnist-save-ckpt/save_ckpt.png
+cover: tensorflow-mnist-save-ckpt/save_ckpt.png
 ---
 
 这篇文章是 **TensorFlow Tutorial** 入门教程的第二篇文章。

@@ -7,7 +7,7 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/awesome-config/wsl.jpg
+cover: awesome-config/wsl.jpg
 ---
 
 ## Git

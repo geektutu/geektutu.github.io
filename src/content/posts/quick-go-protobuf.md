@@ -10,10 +10,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-go-protobuf/protocol-buffers.jpg
+cover: quick-go-protobuf/protocol-buffers.jpg
 ---
 
-![Golang Protocol Buffers](/post/quick-go-protobuf/go-protobuf.jpg)
+![Golang Protocol Buffers](quick-go-protobuf/go-protobuf.jpg)
 
 ## 1 Protocol Buffers 简介
 

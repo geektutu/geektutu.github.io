@@ -10,10 +10,10 @@ tags:
 book: history
 status: done
 draft: false
-cover: /post/quick-python/python.jpg
+cover: quick-python/python.jpg
 ---
 
-![Python 中文教程](/post/quick-python/python.jpg)
+![Python 中文教程](quick-python/python.jpg)
 
 > Python is a programming language that lets you work more quickly and integrate your systems more effectively. -- [python.org](https://www.python.org)
 
