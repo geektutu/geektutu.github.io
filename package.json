@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "pull": "bash pull.sh && node scripts/import-repos.mjs",
     "build": "astro build && node scripts/html-files.mjs && pagefind --site dist && node scripts/copy-pagefind.mjs && npm run validate",
     "preview": "astro preview",
     "check": "astro check",
