@@ -319,6 +319,7 @@ for (const book of BOOKS) {
     outline,
   };
   if (book.repo) bookFm.repo = book.repo;
+  if (book.cover) bookFm.cover = book.cover;
   fs.writeFileSync(path.join(BOOK_DEST, `${book.id}.md`), `---\n${yaml.dump(bookFm, { lineWidth: 120 })}---\n`);
 
   console.log(`「${book.title}」导入 ${[...parts.values()].reduce((n, p) => n + p.chapters.length, 0)} 章 / ${outline.length} 个分部，复制 ${copied.size} 张图片。`);

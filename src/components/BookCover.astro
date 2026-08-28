@@ -1,0 +1,116 @@
+---
+/**
+ * 书籍封面兜底（也作为默认封面）。
+ * 现代风：灰调中间色底 + 同色系淡彩晕染 + 细噪点 + 居中大字排版。
+ * 五款莫兰迪色系（暖米/灰绿/雾蓝/灰陶/灰紫）按书名哈希稳定分配，
+ * 每款自带专属深墨文字色，不随明暗主题变化。
+ * 注意：宽高比用本组件内的 .r-4-3/.r-4-5 类控制，
+ * 不要用动态拼接的 aspect-[...] 类名（Tailwind 扫描不到，不会生成 CSS）。
+ */
+interface Props {
+  title: string;
+  /** 卡片横版 4/3，详情页竖版 4/5 */
+  ratio?: '4/3' | '4/5';
+}
+const { title, ratio = '4/5' } = Astro.props;
+
+// 按书名哈希稳定挑选配色，保证同一本书永远同款、不同书大概率不同款
+const palettes = ['sand', 'sage', 'sky', 'clay', 'mauve'];
+let h = 0;
+for (const ch of title) h = (h * 31 + (ch.codePointAt(0) ?? 0)) >>> 0;
+const palette = palettes[h % palettes.length];
+
+// 宽高比：固定类名，避免 Tailwind 无法扫描动态类
+const ratioClass = ratio === '4/3' ? 'r-4-3' : 'r-4-5';
+
+// 按字数缩放字号
+const len = [...title].length;
+const size = len <= 8 ? 'text-3xl' : len <= 14 ? 'text-2xl' : 'text-xl';
+---
+
+<div
+  class:list={['book-cover relative flex w-full flex-col items-center justify-center overflow-hidden px-7', ratioClass, `v-${palette}`]}
+  role="img"
+  aria-label={title}
+>
+  <p class:list={['title relative z-10 text-center font-display font-semibold leading-snug [text-wrap:balance]', size]}>
+    {title}
+  </p>
+  <div class="byline absolute bottom-5 z-10 flex items-center gap-3">
+    <span class="hairline" aria-hidden="true"></span>
+    <span class="author text-[0.65rem] font-medium uppercase tracking-[0.35em]">极客兔兔</span>
+    <span class="hairline" aria-hidden="true"></span>
+  </div>
+</div>
+
+<style>
+  .book-cover {
+    border-radius: 0.375rem;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.07);
+    --cover-ink: #42351f;
+  }
+  /* 卡片横版 / 详情页竖版 */
+  .r-4-3 {
+    aspect-ratio: 4 / 3;
+  }
+  .r-4-5 {
+    aspect-ratio: 4 / 5;
+  }
+  /* 灰调中间色底 + 同色系晕染，安静不甜腻 */
+  .v-sand {
+    background:
+      radial-gradient(85% 65% at 15% 10%, rgb(203 187 148 / 0.4), transparent 62%),
+      radial-gradient(90% 70% at 88% 100%, rgb(196 172 124 / 0.26), transparent 65%),
+      #e3dccb;
+    --cover-ink: #42351f;
+  }
+  .v-sage {
+    background:
+      radial-gradient(85% 65% at 15% 10%, rgb(154 172 128 / 0.38), transparent 62%),
+      radial-gradient(90% 70% at 88% 100%, rgb(126 152 128 / 0.26), transparent 65%),
+      #c8d1b9;
+    --cover-ink: #2c3a24;
+  }
+  .v-sky {
+    background:
+      radial-gradient(85% 65% at 15% 10%, rgb(145 167 190 / 0.38), transparent 62%),
+      radial-gradient(90% 70% at 88% 100%, rgb(124 149 176 / 0.26), transparent 65%),
+      #c1cdd9;
+    --cover-ink: #1f3049;
+  }
+  .v-clay {
+    background:
+      radial-gradient(85% 65% at 15% 10%, rgb(188 148 122 / 0.4), transparent 62%),
+      radial-gradient(90% 70% at 88% 100%, rgb(174 128 100 / 0.26), transparent 65%),
+      #d5bcab;
+    --cover-ink: #46200e;
+  }
+  .v-mauve {
+    background:
+      radial-gradient(85% 65% at 15% 10%, rgb(158 148 178 / 0.38), transparent 62%),
+      radial-gradient(90% 70% at 88% 100%, rgb(139 122 158 / 0.26), transparent 65%),
+      #cec8d6;
+    --cover-ink: #332a47;
+  }
+  /* 细噪点，纸张质感 */
+  .book-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.16;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E");
+  }
+  /* 书名与落款：配色专属墨色 */
+  .title {
+    color: var(--cover-ink);
+  }
+  .hairline {
+    width: 1.25rem;
+    height: 1px;
+    background: color-mix(in srgb, var(--cover-ink) 40%, transparent);
+  }
+  .author {
+    color: color-mix(in srgb, var(--cover-ink) 80%, transparent);
+  }
+</style>
