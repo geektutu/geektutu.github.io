@@ -26,23 +26,62 @@ const enabled = Boolean(clientID && clientSecret && repo && owner && admin.lengt
 )}
 
 {enabled && (
-  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
-  <script is:inline src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
   <script
     is:inline
     define:vars={{ id, title, clientID, clientSecret, owner, repo, admin }}
   >
-    const gitalk = new Gitalk({
-      clientID,
-      clientSecret,
-      repo,
-      owner,
-      admin,
-      id,
-      title,
-      language: 'zh-CN',
-      distractionFreeMode: false,
-    });
-    gitalk.render('gitalk-container');
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
   </script>
 )}
