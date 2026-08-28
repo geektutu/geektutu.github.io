@@ -27,17 +27,19 @@ const books = defineCollection({
 });
 
 /**
- * 文章（posts）：与存量仓库格式一致——
- *   src/content/posts/<slug>.md          正文
- *   src/content/posts/<slug>/            该文章的图片目录
+ * 文章（posts）：按书分目录存放——
+ *   src/content/posts/<bookDir>/<slug>.md        正文
+ *   src/content/posts/<bookDir>/<slug>/          该文章的图片目录
  * markdown 中以相对路径引用：<slug>/xxx.png。
+ * id 只取文件名（<slug>），与 URL /post/<slug>/ 及书 outline 的章节 slug 一致；
+ * 新增其他书时，在 posts 下新建对应子目录即可。
  * book 声明所属书；status 用于书稿看板；draft 控制是否公开。
  */
 const posts = defineCollection({
   loader: glob({
     base: './src/content/posts',
-    pattern: '*.md',
-    generateId: ({ entry }) => entry.replace(/\.md$/, ''),
+    pattern: '**/*.md',
+    generateId: ({ entry }) => entry.replace(/\.md$/, '').split('/').pop()!,
   }),
   schema: ({ image }) =>
     z.object({

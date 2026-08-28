@@ -3,7 +3,7 @@ import path from 'node:path';
 import yaml from 'js-yaml';
 
 const SRC = path.resolve('../geektutu.github.io/posts');
-const POSTS_DEST = path.resolve('src/content/posts');
+const POSTS_DEST = path.resolve('src/content/posts/history');
 const BOOK_DEST = path.resolve('src/content/books/history.md');
 const BOOK_ID = 'history';
 

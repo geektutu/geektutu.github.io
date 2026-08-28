@@ -5,7 +5,7 @@
  *  3. 死链检查：dist 中的内部链接 / 图片是否都能解析到真实文件
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
-import { join, extname } from 'node:path';
+import { join, extname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 
@@ -28,8 +28,17 @@ function readFrontmatter(file) {
 
 function listMarkdown(dir) {
   if (!existsSync(dir)) return [];
-  // 扁平结构：<slug>.md 与图片目录 <slug>/ 平铺在同一目录
-  return readdirSync(dir).filter((f) => extname(f) === '.md');
+  // 按书分子目录：<bookDir>/<slug>.md 与图片目录 <bookDir>/<slug>/ 同级
+  const out = [];
+  const walk = (d) => {
+    for (const name of readdirSync(d)) {
+      const full = join(d, name);
+      if (statSync(full).isDirectory()) walk(full);
+      else if (extname(name) === '.md') out.push(full);
+    }
+  };
+  walk(dir);
+  return out;
 }
 
 const errors = [];
@@ -47,11 +56,11 @@ for (const f of readdirSync(BOOKS_DIR).filter((x) => extname(x) === '.md')) {
   bookChapters.set(id, slugs);
 }
 
-// 收集文章
+// 收集文章（id 只取文件名，与子目录无关）
 const postInfo = new Map(); // slug -> {book}
 for (const f of listMarkdown(POSTS_DIR)) {
-  const slug = f.replace(/\.md$/, '');
-  const fm = readFrontmatter(join(POSTS_DIR, f));
+  const slug = basename(f, '.md');
+  const fm = readFrontmatter(f);
   postInfo.set(slug, { book: fm.book });
 }
 
