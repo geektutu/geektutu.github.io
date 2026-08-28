@@ -30,4 +30,26 @@ const showBeian = Boolean(beianIcp || beianPolice);
       )}
     </div>
   )}
+  <p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums">
+    <span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span>
+    <span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span>
+  </p>
 </footer>
+
+<!-- 不蒜子访问统计：页面加载完成后异步引入 -->
+<script is:inline>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script>
+
+<style is:global>
+  /* 数值未填充（脚本加载失败或请求中）时隐藏统计行，填充后自动显示。
+     用 !important 压过 Tailwind preflight 与脚本内联样式，避免出现空图标。 */
+  [id^='busuanzi_container_']:has([id^='busuanzi_value_']:empty) {
+    display: none !important;
+  }
+</style>
