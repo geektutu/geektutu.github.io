@@ -17,5 +17,4 @@ pull() {
 cd $root
 pull geektutu/7days-golang posts/7days-golang
 pull geektutu/interview-questions posts/interview-questions
-pull geektutu/tensorflow2-docs-zh posts/tensorflow2-docs-zh
 pull geektutu/high-performance-go posts/high-performance-go

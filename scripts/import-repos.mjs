@@ -1,9 +1,9 @@
 /**
- * 导入 posts/ 下的 4 个源仓库（pull.sh 拉取）为 4 本独立的书籍：
+ * 导入 posts/ 下的 3 个源仓库（pull.sh 拉取）为 3 本独立的书籍：
  *   7days-golang          → 七天用Go从零实现系列
  *   interview-questions   → 极客面试
- *   tensorflow2-docs-zh   → TensorFlow 2 中文文档
  *   high-performance-go   → Go 语言高性能编程
+ * （tensorflow2-docs-zh 已并入「历史博客」history 书，见 import-history.mjs）
  *
  * 与 import-history.mjs 相同的产物约定：
  *   src/content/posts/<bookDir>/<slug>.md        正文（frontmatter 重写）
@@ -107,23 +107,6 @@ const BOOKS = [
       const m = rel.match(/^ml\/(\d+)\.md$/);
       if (!m) return heading;
       return `机器学习面试题 ${m[1]}：${heading.replace(/^\d+[.、]\s*/, '')}`;
-    },
-  },
-  {
-    dir: 'tensorflow2-docs-zh',
-    id: 'tensorflow2-docs-zh',
-    title: 'TensorFlow 2 中文文档',
-    description: 'TensorFlow 2 官方文档中文版（有删改），覆盖 ML 基础、图像分类、文本与序列等入门教程。',
-    order: 30,
-    featured: false,
-    tags: ['TensorFlow 2'],
-    repo: 'https://github.com/geektutu/tensorflow2-docs-zh',
-    // 按源目录分部
-    partFor: (rel) => {
-      if (rel.startsWith('Beginner-ML-basics/')) return { title: 'ML 基础', order: 2 };
-      if (rel.startsWith('Beginner-Images/')) return { title: '图像分类', order: 3 };
-      if (rel.startsWith('Beginner-Text-and-sequences/')) return { title: '文本与序列', order: 4 };
-      return { title: '序言', order: 1 };
     },
   },
   {

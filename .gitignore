@@ -4,14 +4,13 @@ dist/
 /posts/
 
 # npm run pull 导入生成的内容（源仓库文章与书籍元数据，可随时重新生成）
+# 注：tensorflow2-docs-zh 已并入 history 书（src/content/posts/history/），内容直接入库
 src/content/posts/7days-golang/
 src/content/posts/high-performance-go/
 src/content/posts/interview-questions/
-src/content/posts/tensorflow2-docs-zh/
 src/content/books/7days-golang.md
 src/content/books/high-performance-go.md
 src/content/books/interview-questions.md
-src/content/books/tensorflow2-docs-zh.md
 # generated types
 .astro/
 # pagefind index synced for dev

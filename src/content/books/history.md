@@ -34,6 +34,28 @@ outline:
       - tensorflow2-gym-q-learning
       - tensorflow2-gym-dqn
       - tensorflow2-gym-pg
+  - part: TensorFlow 2 中文文档
+    chapters:
+      - slug: tf2doc
+        short: 序言
+      - slug: tf2doc-ml-basic-image
+        short: 图像分类
+      - slug: tf2doc-ml-basic-text
+        short: 文本分类
+      - slug: tf2doc-ml-basic-structured-data
+        short: 结构化数据分类
+      - slug: tf2doc-ml-basic-regression
+        short: 回归问题
+      - slug: tf2doc-ml-basic-overfit
+        short: 过拟合与欠拟合
+      - slug: tf2doc-ml-basic-save-model
+        short: 保存与恢复模型
+      - slug: tf2doc-cnn-cifar10
+        short: 卷积神经网络 CNN
+      - slug: tf2doc-tfhub-image-tl
+        short: 迁移学习 TF Hub
+      - slug: tf2doc-rnn-lstm-text
+        short: RNN 与 LSTM
   - part: 数据挖掘
     chapters:
       - pandas-dataframe-series
