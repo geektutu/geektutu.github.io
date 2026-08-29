@@ -1,593 +1,406 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
-<!-- Head tag -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="referrer" content="no-referrer-when-downgrade">
-  
-  <meta name="baidu-site-verification" content="p7Pz3jlx4t" />
-  <meta name="google-site-verification" content="X31OY0d2sKImNbS2x8-OpITWRK4nn7nZCcXe3_hA9ew" />
-  <meta name="msvalidate.01" content="7E2AEE3378AC93764DEAB411177A21A1" />
-  <meta name="360-site-verification" content="1d1e81a1a48a1ed2e3308d7cb8e548e7" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- if page has tags, then add tags to keyword -->
-  
-  
-  <meta name="keywords" content="geektutu,jiketutu,Go语言,golang,python,TensorFlow 2,官方文档,TensorFlow2.0,TensorFlow2文档,TensorFlow2.0文档,Regression,回归">
-  <!-- page.description has higher priority -->
-  <meta name="description" content="TensorFlow2文档，TensorFlow2.0文档，TensorFlow2.0 TF2.0 TensorFlow 2 / 2.0 官方文档中文版，Regression 回归，示例使用 Auto MPG 燃油效率数据集。">
-  <link rel="shortcut icon" href="/img/icon.png">
-  <title>
-    
-    TensorFlow 2 中文文档 - 回归预测燃油效率 | 极客兔兔
-    
-  </title>
-
-  <link rel="canonical" href="https://geektutu.com/post/tf2doc-ml-basic-regression.html">
-  
-<link rel="stylesheet" href="/css/geektutu.css">
-
-  <!-- global function -->
-  <script>
-    window.globalAddScript = function (url, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = url;
-      onload && (s.onload = onload);
-      onerror && (s.onerror = onerror);
-      document.body.appendChild(s);
-    }
-    window.globalAddCss = function (url) {
-      var s = document.createElement('link');
-      s.rel = 'stylesheet';
-      s.href = url;
-      document.body.appendChild(s);
-    }
-    window.getPosition = function (ele) {
-      var x = 0, y = 0;
-      while (ele) {
-        x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-        y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-        ele = ele.offsetParent;
-      }
-      return { x: x, y: y };
-    }
-    window.getDom = function (str) { return document.querySelector(str) }
-  </script>
-  <!-- google ad -->
-  
-<meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/feed.xml" title="极客兔兔" type="application/rss+xml">
-</head>
-
-<body>
-    
-<header class="gkt-header col-xs-12 padding-0">
-    <div id="gkt-nav" class="gkt-header-container">
-        <a href="/" class="gkt-header-title float-left">
-            <img class="float-left" src="/img/icon.png" alt="">
-            <span>极客兔兔</span>
-        </a>
-        <nav class="gkt-header-nav text-right">
-            <ul>
-                <li><a class="hidden-xs" href="/feed.xml">订阅</a></li>
-                <li><a href="/series/">专题</a></li>
-                <li><a href="/archives/">归档</a></li>
-                <li><a href="/post/link.html">友链</a></li>
-                <li><a href="/post/about.html">关于</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="gkt-cate-nav" class="gkt-header-container hidden-xs">
-        
-        <nav class="gkt-header-nav float-left">
-            <ul>
-                
-                
-                <li class="gkt-cate-name float-left active">
-                    <a class="float-left" href="/post/tensorflow-mnist-simplest.html">简明教程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tensorflow-mnist-simplest.html">TensorFlow 教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/pandas-dataframe-series.html">Pandas 数据处理</a></li>
-                        
-                        <li class="gkt-sub-cate-name active"><a class="float-left"
-                                href="/post/tf2doc.html">TensorFlow2 文档</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-golang.html">Go 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-rust.html">Rust 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-python.html">Python 简明教程</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/blog-experience-1.html">杂谈 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/blog-experience-1.html">建站经历</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/2020.html">年终总结</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/qa-ml.html">面试 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-ml.html">机器学习面试题</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-golang.html">Go 语言面试题</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/gee.html">从零实现 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/gee.html">Web框架 - Gee</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geecache.html">分布式缓存 - GeeCache</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geeorm.html">ORM框架 - GeeORM</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geerpc.html">RPC框架 - GeeRPC</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/7days-golang-q1.html">7days-golang Q &amp; A</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/box-tools.html">百宝箱 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/box-tools.html">工具</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/cheat-sheet-sqlite.html">SQLite 速查表</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/high-performance-go.html">高性能编程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/high-performance-go.html">序言</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-benchmark.html">性能分析</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-string-concat.html">常用数据结构</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-mutex.html">并发编程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-reduce-size.html">编译优化</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-gotchas-array-slice.html">语言陷阱</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-            </ul>
-        </nav>
-    </div>
-</header>
-<div class="gkt-header-placeholder" style="height: 44px"></div>
-<div class="gkt-header-placeholder hidden-xs" style="height: 44px"></div>
-<script>
-    (function () {
-        window.addEventListener('scroll', function () {
-            if (window.innerWidth < 768) {
-                return;
-            }
-            var nav = document.querySelector('#gkt-nav');
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            scrollTop > 50 && (nav.classList.add('hide'));
-            scrollTop <= 50 && (nav.classList.remove('hide'));
-        });
-        var cateNavs = document.querySelectorAll('#gkt-cate-nav>nav>ul>li');
-        [].slice.call(cateNavs).forEach(function (item) {
-            var sub = item.querySelector('.gkt-sub-cate');
-            if (!sub) return;
-            item.addEventListener('mouseenter', function (e) { sub.style.display = 'block'; }, false);
-            item.addEventListener('mouseleave', function (e) { sub.style.display = 'none'; }, false);
-        })
-    })();
-</script>
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Main Content -->
-<main class="col-xs-12 padding-0 markdown-it">
-    <!-- Post Container -->
-    
-    
-    <!-- Post Content -->
-<div class="float-left post-container box-shadow">
-    <div class="u-arrow-wrapper hidden-xs">
-        
-        <a class="float-left" href="/post/tf2doc-ml-basic-structured-data.html"><i class="u-arrow-left"></i></a>
-        
-        
-        <a class="float-right" href="/post/tf2doc-ml-basic-overfit.html"><i class="u-arrow-right"></i></a>
-        
-    </div>
-    <article class="col-xs-12">
-        <h1> TensorFlow 2 中文文档 - 回归预测燃油效率 </h1>
-        
-        
-        <div class="hidden-lg hidden-md series_links">
-            <p> <strong> TensorFlow2 文档系列文章链接：</strong></p>
-            <ul>
-                
-                <li>
-                    <a href="/post/tf2doc.html">TensorFlow 2 / 2.0 中文文档</a>
-                    <span class="post-item-date">(Jul 9, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-image.html">TensorFlow 2 中文文档 - MNIST 图像分类</a>
-                    <span class="post-item-date">(Jul 9, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-text.html">TensorFlow 2 中文文档 - IMDB 文本分类</a>
-                    <span class="post-item-date">(Jul 9, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-structured-data.html">TensorFlow 2 中文文档 - 特征工程结构化数据分类</a>
-                    <span class="post-item-date">(Jul 9, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-regression.html">TensorFlow 2 中文文档 - 回归预测燃油效率</a>
-                    <span class="post-item-date">(Jul 11, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-overfit.html">TensorFlow 2 中文文档 - 过拟合与欠拟合</a>
-                    <span class="post-item-date">(Jul 12, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-save-model.html">TensorFlow 2 中文文档 - 保存与加载模型</a>
-                    <span class="post-item-date">(Jul 13, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-cnn-cifar10.html">TensorFlow 2 中文文档 - 卷积神经网络分类 CIFAR-10</a>
-                    <span class="post-item-date">(Jul 19, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-tfhub-image-tl.html">TensorFlow 2 中文文档 - TFHub 迁移学习</a>
-                    <span class="post-item-date">(Jul 19, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-rnn-lstm-text.html">TensorFlow 2 中文文档 - RNN LSTM 文本分类</a>
-                    <span class="post-item-date">(Jul 22, 2019)</span>
-                </li>
-                
-            </ul>
-        </div>
-        
-        
-        <blockquote>
-            <p>源代码/数据集已上传到
-                <a href="https://github.com/geektutu/tensorflow2-docs-zh" target="_blank" rel="noopener">Github - tensorflow2-docs-zh</a>
-            </p>
-        </blockquote>
-        
-        <div class="gkt-article-start"></div>
-        <p><strong>TF2.0 TensorFlow 2 / 2.0 文档：Regression 回归</strong></p>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="TensorFlow2文档，TensorFlow2.0文档，TensorFlow2.0 TF2.0 TensorFlow 2 / 2.0 官方文档中文版，Regression 回归，示例使用 Auto MPG 燃油效率数据集。"><title>TensorFlow 2 中文文档 - 回归预测燃油效率 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.B88FlGyz.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-baseline gap-2"><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔<span class="text-accent">.</span></span><span class="hidden text-xs text-faint sm:inline">写书式技术博客</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/history" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">历史博客</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">快速上手 · Go</span></div><ul><li><a href="/post/quick-golang.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言简明教程</a></li><li><a href="/post/quick-go-gin.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Gin 简明教程</a></li><li><a href="/post/quick-go2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go2 新特性简明教程</a></li><li><a href="/post/quick-go-protobuf.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Protobuf 简明教程</a></li><li><a href="/post/quick-go-rpc.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go RPC &amp; TLS 鉴权简明教程</a></li><li><a href="/post/quick-go-wasm.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go WebAssembly (Wasm) 简明教程</a></li><li><a href="/post/quick-go-test.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Test 单元测试简明教程</a></li><li><a href="/post/quick-gomock.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Mock (gomock)简明教程</a></li><li><a href="/post/quick-go-mmap.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Mmap 文件内存映射简明教程</a></li><li><a href="/post/quick-go-context.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Context 并发编程简明教程</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">快速上手 · Python</span></div><ul><li><a href="/post/quick-python.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Python 简明教程</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">快速上手 · Rust</span></div><ul><li><a href="/post/quick-rust.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Rust 简明教程</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">TensorFlow 教程</span></div><ul><li><a href="/post/tensorflow-mnist-simplest.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow入门(一) - mnist手写数字识别(网络搭建)</a></li><li><a href="/post/tensorflow-mnist-save-ckpt.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow入门(二) - mnist手写数字识别(模型保存加载)</a></li><li><a href="/post/tensorflow-mnist-tensorboard-training.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow入门(三) - mnist手写数字识别(可视化训练)</a></li><li><a href="/post/tensorflow-make-npy-hdf5-data-set.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow入门(四) - mnist手写数字识别(制作h5py训练集)</a></li><li><a href="/post/tensorflow2-mnist-cnn.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow 2.0 (五) - mnist手写数字识别(CNN卷积神经网络)</a></li><li><a href="/post/tensorflow2-gym-nn.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow 2.0 (六) - 监督学习玩转 OpenAI gym game</a></li><li><a href="/post/tensorflow2-gym-q-learning.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow 2.0 (七) - 强化学习 Q-Learning 玩转 OpenAI gym</a></li><li><a href="/post/tensorflow2-gym-dqn.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow 2.0 (八) - 强化学习 DQN 玩转 gym Mountain Car</a></li><li><a href="/post/tensorflow2-gym-pg.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow 2.0 (九) - 强化学习 70行代码实战 Policy Gradient</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">TensorFlow 2 中文文档</span></div><ul><li><a href="/post/tf2doc.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">序言</a></li><li><a href="/post/tf2doc-ml-basic-image.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">图像分类</a></li><li><a href="/post/tf2doc-ml-basic-text.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">文本分类</a></li><li><a href="/post/tf2doc-ml-basic-structured-data.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">结构化数据分类</a></li><li><a href="/post/tf2doc-ml-basic-regression.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">回归问题</a></li><li><a href="/post/tf2doc-ml-basic-overfit.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">过拟合与欠拟合</a></li><li><a href="/post/tf2doc-ml-basic-save-model.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">保存与恢复模型</a></li><li><a href="/post/tf2doc-cnn-cifar10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">卷积神经网络 CNN</a></li><li><a href="/post/tf2doc-tfhub-image-tl.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">迁移学习 TF Hub</a></li><li><a href="/post/tf2doc-rnn-lstm-text.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">RNN 与 LSTM</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">数据挖掘</span></div><ul><li><a href="/post/pandas-dataframe-series.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Pandas 数据处理(一) - DataFrame 与 Series</a></li><li><a href="/post/pandas-select-data.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Pandas 数据处理(二) - 筛选数据</a></li><li><a href="/post/pandas-cheat-sheet-zh-cn.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Pandas 数据处理(三) - Cheat Sheet 中文版</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">速查表</span></div><ul><li><a href="/post/cheat-sheet-sqlite.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">SQLite 常用命令</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">潘多拉魔盒</span></div><ul><li><a href="/post/box-tools.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">百宝箱 - 值得收藏的工具网站</a></li><li><a href="/post/awesome-config.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">WSL, Git, Mircosoft Terminal 等常用工具配置</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">年度总结</span></div><ul><li><a href="/post/2020.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">2020 年终总结</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">建站经历</span></div><ul><li><a href="/post/blog-experience-1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(一) - 极致性能的尝试</a></li><li><a href="/post/blog-experience-2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(二) - 对搜索引擎的理解</a></li><li><a href="/post/blog-experience-3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(三) - 主题设计、彩蛋与阅读量翻倍</a></li><li><a href="/post/blog-experience-4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(四) - 原创资格是争取来的</a></li><li><a href="/post/blog-experience-5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(五) - 友链这件事，没那么简单</a></li><li><a href="/post/blog-experience-6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(六) - 不要为了流量忘记了初心</a></li><li><a href="/post/blog-experience-7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(七) - Gitalk Plus</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/history" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 历史博客</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">TensorFlow 2 中文文档 - 回归预测燃油效率</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2019-07-11">2019-07-11</time><span aria-hidden="true">·</span><span>约 7 分钟</span><a href="https://github.com/geektutu/tensorflow2-docs-zh" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/tensorflow2-docs-zh" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/tensorflow2-docs-zh</a><span class="flex flex-wrap gap-2"><a href="/tags/TensorFlow 2" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#TensorFlow 2</a><a href="/tags/官方文档" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#官方文档</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#auto-mpg-数据集" class="toc-link block text-muted" data-toc-depth="2">Auto MPG 数据集</a></li><li style="padding-left:0.9rem"><a href="#获取数据" class="toc-link block text-muted" data-toc-depth="3">获取数据</a></li><li style="padding-left:0.9rem"><a href="#清洗数据" class="toc-link block text-muted" data-toc-depth="3">清洗数据</a></li><li style="padding-left:0.9rem"><a href="#划分训练集与测试集" class="toc-link block text-muted" data-toc-depth="3">划分训练集与测试集</a></li><li style="padding-left:0.9rem"><a href="#检查数据" class="toc-link block text-muted" data-toc-depth="3">检查数据</a></li><li style="padding-left:0.9rem"><a href="#分离-label" class="toc-link block text-muted" data-toc-depth="3">分离 label</a></li><li style="padding-left:0.9rem"><a href="#归一化数据" class="toc-link block text-muted" data-toc-depth="3">归一化数据</a></li><li style="padding-left:0rem"><a href="#模型" class="toc-link block text-muted" data-toc-depth="2">模型</a></li><li style="padding-left:0.9rem"><a href="#搭建模型" class="toc-link block text-muted" data-toc-depth="3">搭建模型</a></li><li style="padding-left:0.9rem"><a href="#训练模型" class="toc-link block text-muted" data-toc-depth="3">训练模型</a></li><li style="padding-left:0rem"><a href="#预测" class="toc-link block text-muted" data-toc-depth="2">预测</a></li><li style="padding-left:0rem"><a href="#结论" class="toc-link block text-muted" data-toc-depth="2">结论</a></li><li style="padding-left:0rem"><a href="#附-推荐" class="toc-link block text-muted" data-toc-depth="2">附 推荐</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><p><strong>TF2.0 TensorFlow 2 / 2.0 文档：Regression 回归</strong></p>
 <p>主要内容：使用回归预测烟油效率。</p>
 <p>回归通常用来预测连续值，比如价格和概率。分类问题不一样，类别是固定的，目的是判断属于哪一类。比如给你一堆猫和狗的图片，判断一张图片是猫还是狗就是一个典型的分类问题。</p>
-<p>接下来使用的是经典的 <a target="_blank" rel="noopener" href="https://archive.ics.uci.edu/ml/datasets/auto+mpg">Auto MPG</a> 数据集，这个数据集包括气缸(cylinders)，排量(displayment)，马力(horsepower) 和重量(weight)等属性。我们需要利用这些属性搭建模型，预测汽车的燃油效率(fuel efficiency)。</p>
+<p>接下来使用的是经典的 <a href="https://archive.ics.uci.edu/ml/datasets/auto+mpg">Auto MPG</a> 数据集，这个数据集包括气缸(cylinders)，排量(displayment)，马力(horsepower) 和重量(weight)等属性。我们需要利用这些属性搭建模型，预测汽车的燃油效率(fuel efficiency)。</p>
 <p>模型搭建使用<code>tf.keras</code> API。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pathlib</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">import</span> seaborn <span class="keyword">as</span> sns</span><br><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"><span class="keyword">from</span> tensorflow <span class="keyword">import</span> keras</span><br><span class="line"><span class="keyword">from</span> tensorflow.keras <span class="keyword">import</span> layers</span><br></pre></td></tr></table></figure>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> pathlib</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> matplotlib.pyplot </span><span style="color:#D73A49">as</span><span style="color:#24292E"> plt</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> pandas </span><span style="color:#D73A49">as</span><span style="color:#24292E"> pd</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> seaborn </span><span style="color:#D73A49">as</span><span style="color:#24292E"> sns</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> tensorflow </span><span style="color:#D73A49">as</span><span style="color:#24292E"> tf</span></span>
+<span class="line"><span style="color:#D73A49">from</span><span style="color:#24292E"> tensorflow </span><span style="color:#D73A49">import</span><span style="color:#24292E"> keras</span></span>
+<span class="line"><span style="color:#D73A49">from</span><span style="color:#24292E"> tensorflow.keras </span><span style="color:#D73A49">import</span><span style="color:#24292E"> layers</span></span></code></pre>
+<h2 id="auto-mpg-数据集">Auto MPG 数据集</h2>
+<h3 id="获取数据">获取数据</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># 下载数据集到本地</span></span>
+<span class="line"><span style="color:#24292E">url </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data"</span></span>
+<span class="line"><span style="color:#24292E">dataset_path </span><span style="color:#D73A49">=</span><span style="color:#24292E"> keras.utils.get_file(</span><span style="color:#032F62">"auto-mpg.data"</span><span style="color:#24292E">, url)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 使用Pandas读取数据</span></span>
+<span class="line"><span style="color:#24292E">column_names </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [</span><span style="color:#032F62">'MPG'</span><span style="color:#24292E">,</span><span style="color:#032F62">'气缸'</span><span style="color:#24292E">,</span><span style="color:#032F62">'排量'</span><span style="color:#24292E">,</span><span style="color:#032F62">'马力'</span><span style="color:#24292E">,</span><span style="color:#032F62">'重量'</span><span style="color:#24292E">,</span><span style="color:#032F62">'加速度'</span><span style="color:#24292E">, </span><span style="color:#032F62">'年份'</span><span style="color:#24292E">, </span><span style="color:#032F62">'产地'</span><span style="color:#24292E">]</span></span>
+<span class="line"><span style="color:#24292E">raw_dataset </span><span style="color:#D73A49">=</span><span style="color:#24292E"> pd.read_csv(dataset_path, </span><span style="color:#E36209">names</span><span style="color:#D73A49">=</span><span style="color:#24292E">column_names,</span></span>
+<span class="line"><span style="color:#E36209">                      na_values</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> "?"</span><span style="color:#24292E">, </span><span style="color:#E36209">comment</span><span style="color:#D73A49">=</span><span style="color:#032F62">'</span><span style="color:#005CC5">\t</span><span style="color:#032F62">'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#E36209">                      sep</span><span style="color:#D73A49">=</span><span style="color:#032F62">" "</span><span style="color:#24292E">, </span><span style="color:#E36209">skipinitialspace</span><span style="color:#D73A49">=</span><span style="color:#005CC5">True</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">dataset </span><span style="color:#D73A49">=</span><span style="color:#24292E"> raw_dataset.copy()</span></span>
+<span class="line"><span style="color:#6A737D"># 查看前3条数据</span></span>
+<span class="line"><span style="color:#24292E">dataset.head(</span><span style="color:#005CC5">3</span><span style="color:#24292E">)</span></span></code></pre>
 
 
 
-<h2 id="Auto-MPG-数据集"><a href="#Auto-MPG-数据集" class="headerlink" title="Auto MPG 数据集"></a>Auto MPG 数据集</h2><h3 id="获取数据"><a href="#获取数据" class="headerlink" title="获取数据"></a>获取数据</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载数据集到本地</span></span><br><span class="line">url = <span class="string">&quot;http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data&quot;</span></span><br><span class="line">dataset_path = keras.utils.get_file(<span class="string">&quot;auto-mpg.data&quot;</span>, url)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用Pandas读取数据</span></span><br><span class="line">column_names = [<span class="string">&#x27;MPG&#x27;</span>,<span class="string">&#x27;气缸&#x27;</span>,<span class="string">&#x27;排量&#x27;</span>,<span class="string">&#x27;马力&#x27;</span>,<span class="string">&#x27;重量&#x27;</span>,<span class="string">&#x27;加速度&#x27;</span>, <span class="string">&#x27;年份&#x27;</span>, <span class="string">&#x27;产地&#x27;</span>]</span><br><span class="line">raw_dataset = pd.read_csv(dataset_path, names=column_names,</span><br><span class="line">                      na_values = <span class="string">&quot;?&quot;</span>, comment=<span class="string">&#x27;\t&#x27;</span>,</span><br><span class="line">                      sep=<span class="string">&quot; &quot;</span>, skipinitialspace=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">dataset = raw_dataset.copy()</span><br><span class="line"><span class="comment"># 查看前3条数据</span></span><br><span class="line">dataset.head(<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
 
-<table>
-<thead>
-<tr>
-<th align="right"></th>
-<th align="right">MPG</th>
-<th align="right">气缸</th>
-<th align="right">排量</th>
-<th align="right">马力</th>
-<th align="right">重量</th>
-<th align="right">加速度</th>
-<th align="right">年份</th>
-<th align="right">产地</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="right">0</td>
-<td align="right">18.0</td>
-<td align="right">8</td>
-<td align="right">307.0</td>
-<td align="right">130.0</td>
-<td align="right">3504.0</td>
-<td align="right">12.0</td>
-<td align="right">70</td>
-<td align="right">1</td>
-</tr>
-<tr>
-<td align="right">1</td>
-<td align="right">15.0</td>
-<td align="right">8</td>
-<td align="right">350.0</td>
-<td align="right">165.0</td>
-<td align="right">3693.0</td>
-<td align="right">11.5</td>
-<td align="right">70</td>
-<td align="right">1</td>
-</tr>
-<tr>
-<td align="right">2</td>
-<td align="right">18.0</td>
-<td align="right">8</td>
-<td align="right">318.0</td>
-<td align="right">150.0</td>
-<td align="right">3436.0</td>
-<td align="right">11.0</td>
-<td align="right">70</td>
-<td align="right">1</td>
-</tr>
-</tbody></table>
-<h3 id="清洗数据"><a href="#清洗数据" class="headerlink" title="清洗数据"></a>清洗数据</h3><p>检查是否有 NA 值。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dataset.isna().<span class="built_in">sum</span>()</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">MPG    0</span><br><span class="line">气缸     0</span><br><span class="line">排量     0</span><br><span class="line">马力     6</span><br><span class="line">重量     0</span><br><span class="line">加速度    0</span><br><span class="line">年份     0</span><br><span class="line">产地    0</span><br><span class="line">dtype: int64</span><br></pre></td></tr></table></figure>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="right"></th><th align="right">MPG</th><th align="right">气缸</th><th align="right">排量</th><th align="right">马力</th><th align="right">重量</th><th align="right">加速度</th><th align="right">年份</th><th align="right">产地</th></tr></thead><tbody><tr><td align="right">0</td><td align="right">18.0</td><td align="right">8</td><td align="right">307.0</td><td align="right">130.0</td><td align="right">3504.0</td><td align="right">12.0</td><td align="right">70</td><td align="right">1</td></tr><tr><td align="right">1</td><td align="right">15.0</td><td align="right">8</td><td align="right">350.0</td><td align="right">165.0</td><td align="right">3693.0</td><td align="right">11.5</td><td align="right">70</td><td align="right">1</td></tr><tr><td align="right">2</td><td align="right">18.0</td><td align="right">8</td><td align="right">318.0</td><td align="right">150.0</td><td align="right">3436.0</td><td align="right">11.0</td><td align="right">70</td><td align="right">1</td></tr></tbody></table>
+<h3 id="清洗数据">清洗数据</h3>
+<p>检查是否有 NA 值。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">dataset.isna().sum()</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">MPG</span><span style="color:#005CC5">    0</span></span>
+<span class="line"><span style="color:#6F42C1">气缸</span><span style="color:#005CC5">     0</span></span>
+<span class="line"><span style="color:#6F42C1">排量</span><span style="color:#005CC5">     0</span></span>
+<span class="line"><span style="color:#6F42C1">马力</span><span style="color:#005CC5">     6</span></span>
+<span class="line"><span style="color:#6F42C1">重量</span><span style="color:#005CC5">     0</span></span>
+<span class="line"><span style="color:#6F42C1">加速度</span><span style="color:#005CC5">    0</span></span>
+<span class="line"><span style="color:#6F42C1">年份</span><span style="color:#005CC5">     0</span></span>
+<span class="line"><span style="color:#6F42C1">产地</span><span style="color:#005CC5">    0</span></span>
+<span class="line"><span style="color:#6F42C1">dtype:</span><span style="color:#032F62"> int64</span></span></code></pre>
 <p>直接去除含有NA值的行（马力）</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dataset = dataset.dropna()</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">dataset </span><span style="color:#D73A49">=</span><span style="color:#24292E"> dataset.dropna()</span></span></code></pre>
 <p>在获取的数据集中，<code>Origin</code>(产地)不是数值类型，需转为独热编码。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">origin = dataset.pop(<span class="string">&#x27;产地&#x27;</span>)</span><br><span class="line">dataset[<span class="string">&#x27;美国&#x27;</span>] = (origin == <span class="number">1</span>)*<span class="number">1.0</span></span><br><span class="line">dataset[<span class="string">&#x27;欧洲&#x27;</span>] = (origin == <span class="number">2</span>)*<span class="number">1.0</span></span><br><span class="line">dataset[<span class="string">&#x27;日本&#x27;</span>] = (origin == <span class="number">3</span>)*<span class="number">1.0</span></span><br><span class="line"><span class="comment"># 看一看转换后的结果</span></span><br><span class="line">dataset.head(<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">origin </span><span style="color:#D73A49">=</span><span style="color:#24292E"> dataset.pop(</span><span style="color:#032F62">'产地'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">dataset[</span><span style="color:#032F62">'美国'</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (origin </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">)</span><span style="color:#D73A49">*</span><span style="color:#005CC5">1.0</span></span>
+<span class="line"><span style="color:#24292E">dataset[</span><span style="color:#032F62">'欧洲'</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (origin </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">)</span><span style="color:#D73A49">*</span><span style="color:#005CC5">1.0</span></span>
+<span class="line"><span style="color:#24292E">dataset[</span><span style="color:#032F62">'日本'</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (origin </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> 3</span><span style="color:#24292E">)</span><span style="color:#D73A49">*</span><span style="color:#005CC5">1.0</span></span>
+<span class="line"><span style="color:#6A737D"># 看一看转换后的结果</span></span>
+<span class="line"><span style="color:#24292E">dataset.head(</span><span style="color:#005CC5">3</span><span style="color:#24292E">)</span></span></code></pre>
 
-<table>
-<thead>
-<tr>
-<th align="right"></th>
-<th align="right">MPG</th>
-<th align="right">气缸</th>
-<th align="right">排量</th>
-<th align="right">马力</th>
-<th align="right">重量</th>
-<th align="right">加速度</th>
-<th align="right">年份</th>
-<th align="right">美国</th>
-<th align="right">欧洲</th>
-<th align="right">日本</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="right">0</td>
-<td align="right">18.0</td>
-<td align="right">8</td>
-<td align="right">307.0</td>
-<td align="right">130.0</td>
-<td align="right">3504.0</td>
-<td align="right">12.0</td>
-<td align="right">70</td>
-<td align="right">1.0</td>
-<td align="right">0.0</td>
-<td align="right">0.0</td>
-</tr>
-<tr>
-<td align="right">1</td>
-<td align="right">15.0</td>
-<td align="right">8</td>
-<td align="right">350.0</td>
-<td align="right">165.0</td>
-<td align="right">3693.0</td>
-<td align="right">11.5</td>
-<td align="right">70</td>
-<td align="right">1.0</td>
-<td align="right">0.0</td>
-<td align="right">0.0</td>
-</tr>
-<tr>
-<td align="right">2</td>
-<td align="right">18.0</td>
-<td align="right">8</td>
-<td align="right">318.0</td>
-<td align="right">150.0</td>
-<td align="right">3436.0</td>
-<td align="right">11.0</td>
-<td align="right">70</td>
-<td align="right">1.0</td>
-<td align="right">0.0</td>
-<td align="right">0.0</td>
-</tr>
-</tbody></table>
-<h3 id="划分训练集与测试集"><a href="#划分训练集与测试集" class="headerlink" title="划分训练集与测试集"></a>划分训练集与测试集</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 训练集 80%， 测试集 20%</span></span><br><span class="line">train_dataset = dataset.sample(frac=<span class="number">0.8</span>, random_state=<span class="number">0</span>)</span><br><span class="line">test_dataset = dataset.drop(train_dataset.index)</span><br></pre></td></tr></table></figure>
 
-<h3 id="检查数据"><a href="#检查数据" class="headerlink" title="检查数据"></a>检查数据</h3><p>快速看一看训练集中属性两两之间的关系吧。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 解决中文乱码问题</span></span><br><span class="line">plt.rcParams[<span class="string">&#x27;font.sans-serif&#x27;</span>]=[<span class="string">&#x27;SimHei&#x27;</span>]</span><br><span class="line">plt.rcParams[<span class="string">&#x27;axes.unicode_minus&#x27;</span>]=<span class="literal">False</span></span><br><span class="line"></span><br><span class="line">sns.pairplot(train_dataset[[<span class="string">&quot;MPG&quot;</span>, <span class="string">&quot;气缸&quot;</span>, <span class="string">&quot;排量&quot;</span>, <span class="string">&quot;重量&quot;</span>]], diag_kind=<span class="string">&quot;kde&quot;</span>)</span><br></pre></td></tr></table></figure>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="right"></th><th align="right">MPG</th><th align="right">气缸</th><th align="right">排量</th><th align="right">马力</th><th align="right">重量</th><th align="right">加速度</th><th align="right">年份</th><th align="right">美国</th><th align="right">欧洲</th><th align="right">日本</th></tr></thead><tbody><tr><td align="right">0</td><td align="right">18.0</td><td align="right">8</td><td align="right">307.0</td><td align="right">130.0</td><td align="right">3504.0</td><td align="right">12.0</td><td align="right">70</td><td align="right">1.0</td><td align="right">0.0</td><td align="right">0.0</td></tr><tr><td align="right">1</td><td align="right">15.0</td><td align="right">8</td><td align="right">350.0</td><td align="right">165.0</td><td align="right">3693.0</td><td align="right">11.5</td><td align="right">70</td><td align="right">1.0</td><td align="right">0.0</td><td align="right">0.0</td></tr><tr><td align="right">2</td><td align="right">18.0</td><td align="right">8</td><td align="right">318.0</td><td align="right">150.0</td><td align="right">3436.0</td><td align="right">11.0</td><td align="right">70</td><td align="right">1.0</td><td align="right">0.0</td><td align="right">0.0</td></tr></tbody></table>
+<h3 id="划分训练集与测试集">划分训练集与测试集</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># 训练集 80%， 测试集 20%</span></span>
+<span class="line"><span style="color:#24292E">train_dataset </span><span style="color:#D73A49">=</span><span style="color:#24292E"> dataset.sample(</span><span style="color:#E36209">frac</span><span style="color:#D73A49">=</span><span style="color:#005CC5">0.8</span><span style="color:#24292E">, </span><span style="color:#E36209">random_state</span><span style="color:#D73A49">=</span><span style="color:#005CC5">0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">test_dataset </span><span style="color:#D73A49">=</span><span style="color:#24292E"> dataset.drop(train_dataset.index)</span></span></code></pre>
+<h3 id="检查数据">检查数据</h3>
+<p>快速看一看训练集中属性两两之间的关系吧。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># 解决中文乱码问题</span></span>
+<span class="line"><span style="color:#24292E">plt.rcParams[</span><span style="color:#032F62">'font.sans-serif'</span><span style="color:#24292E">]</span><span style="color:#D73A49">=</span><span style="color:#24292E">[</span><span style="color:#032F62">'SimHei'</span><span style="color:#24292E">]</span></span>
+<span class="line"><span style="color:#24292E">plt.rcParams[</span><span style="color:#032F62">'axes.unicode_minus'</span><span style="color:#24292E">]</span><span style="color:#D73A49">=</span><span style="color:#005CC5">False</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">sns.pairplot(train_dataset[[</span><span style="color:#032F62">"MPG"</span><span style="color:#24292E">, </span><span style="color:#032F62">"气缸"</span><span style="color:#24292E">, </span><span style="color:#032F62">"排量"</span><span style="color:#24292E">, </span><span style="color:#032F62">"重量"</span><span style="color:#24292E">]], </span><span style="color:#E36209">diag_kind</span><span style="color:#D73A49">=</span><span style="color:#032F62">"kde"</span><span style="color:#24292E">)</span></span></code></pre>
 <blockquote>
-<p>matplotlib 中文乱码看这里：<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/25404709">matplotlib图例中文乱码?</a></p>
+<p>matplotlib 中文乱码看这里：<a href="https://www.zhihu.com/question/25404709">matplotlib图例中文乱码?</a></p>
 </blockquote>
-<p><img src="tf2doc-ml-basic-regression/sns.jpg" alt="Seaborn four feature relation"></p>
+<p><img alt="Seaborn four feature relation" loading="lazy" decoding="async" width="712" height="709" src="/_astro/sns.CgC2HIhv_rCzGn.webp" srcset=""></p>
 <p>你还可以使用<code>train_dataset.describle()</code>快速浏览每一属性的平均值、标准差、最小值、最大值等信息，能够帮助你快速地识别出不合理的数据。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">train_stats = train_dataset.describe()</span><br><span class="line">train_stats.pop(<span class="string">&quot;MPG&quot;</span>)</span><br><span class="line">train_stats = train_stats.transpose()</span><br><span class="line">train_stats</span><br></pre></td></tr></table></figure>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">train_stats </span><span style="color:#D73A49">=</span><span style="color:#24292E"> train_dataset.describe()</span></span>
+<span class="line"><span style="color:#24292E">train_stats.pop(</span><span style="color:#032F62">"MPG"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">train_stats </span><span style="color:#D73A49">=</span><span style="color:#24292E"> train_stats.transpose()</span></span>
+<span class="line"><span style="color:#24292E">train_stats</span></span></code></pre>
 
-<table>
-<thead>
-<tr>
-<th align="right"></th>
-<th align="right">count</th>
-<th align="right">mean</th>
-<th align="right">std</th>
-<th align="right">min</th>
-<th align="right">25%</th>
-<th align="right">50%</th>
-<th align="right">75%</th>
-<th align="right">max</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="right">气缸</td>
-<td align="right">314.0</td>
-<td align="right">5.477707</td>
-<td align="right">1.699788</td>
-<td align="right">3.0</td>
-<td align="right">4.00</td>
-<td align="right">4.0</td>
-<td align="right">8.00</td>
-<td align="right">8.0</td>
-</tr>
-<tr>
-<td align="right">排量</td>
-<td align="right">314.0</td>
-<td align="right">195.318471</td>
-<td align="right">104.331589</td>
-<td align="right">68.0</td>
-<td align="right">105.50</td>
-<td align="right">151.0</td>
-<td align="right">265.75</td>
-<td align="right">455.0</td>
-</tr>
-<tr>
-<td align="right">…</td>
-<td align="right">…</td>
-<td align="right">…</td>
-<td align="right">…</td>
-<td align="right">…</td>
-<td align="right">…</td>
-<td align="right">….</td>
-<td align="right">…</td>
-<td align="right">…</td>
-</tr>
-</tbody></table>
-<h3 id="分离-label"><a href="#分离-label" class="headerlink" title="分离 label"></a>分离 label</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 分离 label</span></span><br><span class="line">train_labels = train_dataset.pop(<span class="string">&#x27;MPG&#x27;</span>)</span><br><span class="line">test_labels = test_dataset.pop(<span class="string">&#x27;MPG&#x27;</span>)</span><br></pre></td></tr></table></figure>
 
-<h3 id="归一化数据"><a href="#归一化数据" class="headerlink" title="归一化数据"></a>归一化数据</h3><p>通常训练前需要归一化数据，不同属性使用的计量单位不一样，值的范围不一样，训练就会很困难。比如其中一个属性的范围是[0.1, 0.5]，而另一个属性的范围是[1000, 5000]，那数值大的属性就容易对训练产生干扰，很可能导致训练不能收敛，或者是数值小的属性在模型中几乎没有发挥作用。归一化将不同范围的数据映射到[0,1]的空间内，可以有效地避免这个问题。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">norm</span>(<span class="params">x</span>):</span><br><span class="line">  <span class="keyword">return</span> (x - train_stats[<span class="string">&#x27;mean&#x27;</span>]) / train_stats[<span class="string">&#x27;std&#x27;</span>]</span><br><span class="line">normed_train_data = norm(train_dataset)</span><br><span class="line">normed_test_data = norm(test_dataset)</span><br></pre></td></tr></table></figure>
 
-<h2 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h2><h3 id="搭建模型"><a href="#搭建模型" class="headerlink" title="搭建模型"></a>搭建模型</h3><p>我们的模型包含2个全连接的隐藏层构成，输出层返回一个连续值。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">build_model</span>():</span><br><span class="line">  input_dim = <span class="built_in">len</span>(train_dataset.keys())</span><br><span class="line">  model = keras.Sequential([</span><br><span class="line">    layers.Dense(<span class="number">64</span>, activation=<span class="string">&#x27;relu&#x27;</span>, input_shape=[input_dim,]),</span><br><span class="line">    layers.Dense(<span class="number">64</span>, activation=<span class="string">&#x27;relu&#x27;</span>),</span><br><span class="line">    layers.Dense(<span class="number">1</span>)</span><br><span class="line">  ])</span><br><span class="line"></span><br><span class="line">  model.<span class="built_in">compile</span>(loss=<span class="string">&#x27;mse&#x27;</span>, metrics=[<span class="string">&#x27;mae&#x27;</span>, <span class="string">&#x27;mse&#x27;</span>],</span><br><span class="line">                optimizer=tf.keras.optimizers.RMSprop(<span class="number">0.001</span>))</span><br><span class="line">  <span class="keyword">return</span> model</span><br><span class="line"></span><br><span class="line">model = build_model()</span><br><span class="line"><span class="comment"># 打印模型的描述信息，每一层的大小、参数个数等</span></span><br><span class="line">model.summary()</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Model: <span class="string">&quot;sequential_1&quot;</span></span><br><span class="line">_________________________________________________________________</span><br><span class="line">Layer (<span class="built_in">type</span>)                 Output Shape              Param <span class="comment">#   </span></span><br><span class="line">=================================================================</span><br><span class="line">dense_4 (Dense)              (<span class="literal">None</span>, <span class="number">64</span>)                <span class="number">640</span>       </span><br><span class="line">_________________________________________________________________</span><br><span class="line">dense_5 (Dense)              (<span class="literal">None</span>, <span class="number">32</span>)                <span class="number">2080</span>      </span><br><span class="line">_________________________________________________________________</span><br><span class="line">dense_6 (Dense)              (<span class="literal">None</span>, <span class="number">1</span>)                 <span class="number">33</span>        </span><br><span class="line">=================================================================</span><br><span class="line">Total params: <span class="number">2</span>,<span class="number">753</span></span><br><span class="line">Trainable params: <span class="number">2</span>,<span class="number">753</span></span><br><span class="line">Non-trainable params: <span class="number">0</span></span><br><span class="line">_________________________________________________________________</span><br></pre></td></tr></table></figure>
 
-<h3 id="训练模型"><a href="#训练模型" class="headerlink" title="训练模型"></a>训练模型</h3><p>在之前的案例，比如<a href="https://geektutu.com/post/tf2doc-ml-basic-structured-data.html">结构化数据分类</a>，我们调用<code>model.fit</code>会打印出训练的进度。我们可以禁用默认的行为，并自定义训练进度条。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">EPOCHS = <span class="number">1000</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ProgressBar</span>(keras.callbacks.Callback):</span><br><span class="line">  <span class="keyword">def</span> <span class="title function_">on_epoch_end</span>(<span class="params">self, epoch, logs</span>):</span><br><span class="line">    <span class="comment"># 显示进度条</span></span><br><span class="line">    <span class="variable language_">self</span>.draw_progress_bar(epoch + <span class="number">1</span>, EPOCHS)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">def</span> <span class="title function_">draw_progress_bar</span>(<span class="params">self, cur, total, bar_len=<span class="number">50</span></span>):</span><br><span class="line">    cur_len = <span class="built_in">int</span>(cur / total * bar_len)</span><br><span class="line">    sys.stdout.write(<span class="string">&quot;\r&quot;</span>)</span><br><span class="line">    sys.stdout.write(<span class="string">&quot;[&#123;:&lt;&#123;&#125;&#125;] &#123;&#125;/&#123;&#125;&quot;</span>.<span class="built_in">format</span>(<span class="string">&quot;=&quot;</span> * cur_len, bar_len, cur, total))</span><br><span class="line">    sys.stdout.flush()</span><br><span class="line"></span><br><span class="line">history = model.fit(</span><br><span class="line">  normed_train_data, train_labels,</span><br><span class="line">  epochs=EPOCHS, validation_split = <span class="number">0.2</span>, verbose=<span class="number">0</span>,</span><br><span class="line">  callbacks=[ProgressBar()])</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[==================================================] 1000/1000</span><br></pre></td></tr></table></figure>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="right"></th><th align="right">count</th><th align="right">mean</th><th align="right">std</th><th align="right">min</th><th align="right">25%</th><th align="right">50%</th><th align="right">75%</th><th align="right">max</th></tr></thead><tbody><tr><td align="right">气缸</td><td align="right">314.0</td><td align="right">5.477707</td><td align="right">1.699788</td><td align="right">3.0</td><td align="right">4.00</td><td align="right">4.0</td><td align="right">8.00</td><td align="right">8.0</td></tr><tr><td align="right">排量</td><td align="right">314.0</td><td align="right">195.318471</td><td align="right">104.331589</td><td align="right">68.0</td><td align="right">105.50</td><td align="right">151.0</td><td align="right">265.75</td><td align="right">455.0</td></tr><tr><td align="right">…</td><td align="right">…</td><td align="right">…</td><td align="right">…</td><td align="right">…</td><td align="right">…</td><td align="right">…</td><td align="right">…</td><td align="right">…</td></tr></tbody></table>
+<h3 id="分离-label">分离 label</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># 分离 label</span></span>
+<span class="line"><span style="color:#24292E">train_labels </span><span style="color:#D73A49">=</span><span style="color:#24292E"> train_dataset.pop(</span><span style="color:#032F62">'MPG'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">test_labels </span><span style="color:#D73A49">=</span><span style="color:#24292E"> test_dataset.pop(</span><span style="color:#032F62">'MPG'</span><span style="color:#24292E">)</span></span></code></pre>
+<h3 id="归一化数据">归一化数据</h3>
+<p>通常训练前需要归一化数据，不同属性使用的计量单位不一样，值的范围不一样，训练就会很困难。比如其中一个属性的范围是[0.1, 0.5]，而另一个属性的范围是[1000, 5000]，那数值大的属性就容易对训练产生干扰，很可能导致训练不能收敛，或者是数值小的属性在模型中几乎没有发挥作用。归一化将不同范围的数据映射到[0,1]的空间内，可以有效地避免这个问题。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> norm</span><span style="color:#24292E">(x):</span></span>
+<span class="line"><span style="color:#D73A49">  return</span><span style="color:#24292E"> (x </span><span style="color:#D73A49">-</span><span style="color:#24292E"> train_stats[</span><span style="color:#032F62">'mean'</span><span style="color:#24292E">]) </span><span style="color:#D73A49">/</span><span style="color:#24292E"> train_stats[</span><span style="color:#032F62">'std'</span><span style="color:#24292E">]</span></span>
+<span class="line"><span style="color:#24292E">normed_train_data </span><span style="color:#D73A49">=</span><span style="color:#24292E"> norm(train_dataset)</span></span>
+<span class="line"><span style="color:#24292E">normed_test_data </span><span style="color:#D73A49">=</span><span style="color:#24292E"> norm(test_dataset)</span></span></code></pre>
+<h2 id="模型">模型</h2>
+<h3 id="搭建模型">搭建模型</h3>
+<p>我们的模型包含2个全连接的隐藏层构成，输出层返回一个连续值。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> build_model</span><span style="color:#24292E">():</span></span>
+<span class="line"><span style="color:#24292E">  input_dim </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> len</span><span style="color:#24292E">(train_dataset.keys())</span></span>
+<span class="line"><span style="color:#24292E">  model </span><span style="color:#D73A49">=</span><span style="color:#24292E"> keras.Sequential([</span></span>
+<span class="line"><span style="color:#24292E">    layers.Dense(</span><span style="color:#005CC5">64</span><span style="color:#24292E">, </span><span style="color:#E36209">activation</span><span style="color:#D73A49">=</span><span style="color:#032F62">'relu'</span><span style="color:#24292E">, </span><span style="color:#E36209">input_shape</span><span style="color:#D73A49">=</span><span style="color:#24292E">[input_dim,]),</span></span>
+<span class="line"><span style="color:#24292E">    layers.Dense(</span><span style="color:#005CC5">64</span><span style="color:#24292E">, </span><span style="color:#E36209">activation</span><span style="color:#D73A49">=</span><span style="color:#032F62">'relu'</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#24292E">    layers.Dense(</span><span style="color:#005CC5">1</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">  ])</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">  model.compile(</span><span style="color:#E36209">loss</span><span style="color:#D73A49">=</span><span style="color:#032F62">'mse'</span><span style="color:#24292E">, </span><span style="color:#E36209">metrics</span><span style="color:#D73A49">=</span><span style="color:#24292E">[</span><span style="color:#032F62">'mae'</span><span style="color:#24292E">, </span><span style="color:#032F62">'mse'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#E36209">                optimizer</span><span style="color:#D73A49">=</span><span style="color:#24292E">tf.keras.optimizers.RMSprop(</span><span style="color:#005CC5">0.001</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#D73A49">  return</span><span style="color:#24292E"> model</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">model </span><span style="color:#D73A49">=</span><span style="color:#24292E"> build_model()</span></span>
+<span class="line"><span style="color:#6A737D"># 打印模型的描述信息，每一层的大小、参数个数等</span></span>
+<span class="line"><span style="color:#24292E">model.summary()</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">Model: </span><span style="color:#032F62">"sequential_1"</span></span>
+<span class="line"><span style="color:#24292E">_________________________________________________________________</span></span>
+<span class="line"><span style="color:#24292E">Layer (</span><span style="color:#005CC5">type</span><span style="color:#24292E">)                 Output Shape              Param </span><span style="color:#6A737D">#   </span></span>
+<span class="line"><span style="color:#D73A49">=================================================================</span></span>
+<span class="line"><span style="color:#24292E">dense_4 (Dense)              (</span><span style="color:#005CC5">None</span><span style="color:#24292E">, </span><span style="color:#005CC5">64</span><span style="color:#24292E">)                </span><span style="color:#005CC5">640</span><span style="color:#24292E">       </span></span>
+<span class="line"><span style="color:#24292E">_________________________________________________________________</span></span>
+<span class="line"><span style="color:#24292E">dense_5 (Dense)              (</span><span style="color:#005CC5">None</span><span style="color:#24292E">, </span><span style="color:#005CC5">32</span><span style="color:#24292E">)                </span><span style="color:#005CC5">2080</span><span style="color:#24292E">      </span></span>
+<span class="line"><span style="color:#24292E">_________________________________________________________________</span></span>
+<span class="line"><span style="color:#24292E">dense_6 (Dense)              (</span><span style="color:#005CC5">None</span><span style="color:#24292E">, </span><span style="color:#005CC5">1</span><span style="color:#24292E">)                 </span><span style="color:#005CC5">33</span><span style="color:#24292E">        </span></span>
+<span class="line"><span style="color:#D73A49">=================================================================</span></span>
+<span class="line"><span style="color:#24292E">Total params: </span><span style="color:#005CC5">2</span><span style="color:#24292E">,</span><span style="color:#005CC5">753</span></span>
+<span class="line"><span style="color:#24292E">Trainable params: </span><span style="color:#005CC5">2</span><span style="color:#24292E">,</span><span style="color:#005CC5">753</span></span>
+<span class="line"><span style="color:#24292E">Non</span><span style="color:#D73A49">-</span><span style="color:#24292E">trainable params: </span><span style="color:#005CC5">0</span></span>
+<span class="line"><span style="color:#24292E">_________________________________________________________________</span></span></code></pre>
+<h3 id="训练模型">训练模型</h3>
+<p>在之前的案例，比如<a href="https://geektutu.com/post/tf2doc-ml-basic-structured-data.html">结构化数据分类</a>，我们调用<code>model.fit</code>会打印出训练的进度。我们可以禁用默认的行为，并自定义训练进度条。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> sys</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#005CC5">EPOCHS</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 1000</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">class</span><span style="color:#6F42C1"> ProgressBar</span><span style="color:#24292E">(</span><span style="color:#6F42C1">keras</span><span style="color:#24292E">.</span><span style="color:#6F42C1">callbacks</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Callback</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#D73A49">  def</span><span style="color:#6F42C1"> on_epoch_end</span><span style="color:#24292E">(self, epoch, logs):</span></span>
+<span class="line"><span style="color:#6A737D">    # 显示进度条</span></span>
+<span class="line"><span style="color:#005CC5">    self</span><span style="color:#24292E">.draw_progress_bar(epoch </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">, </span><span style="color:#005CC5">EPOCHS</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">  def</span><span style="color:#6F42C1"> draw_progress_bar</span><span style="color:#24292E">(self, cur, total, bar_len</span><span style="color:#D73A49">=</span><span style="color:#005CC5">50</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#24292E">    cur_len </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> int</span><span style="color:#24292E">(cur </span><span style="color:#D73A49">/</span><span style="color:#24292E"> total </span><span style="color:#D73A49">*</span><span style="color:#24292E"> bar_len)</span></span>
+<span class="line"><span style="color:#24292E">    sys.stdout.write(</span><span style="color:#032F62">"</span><span style="color:#005CC5">\r</span><span style="color:#032F62">"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    sys.stdout.write(</span><span style="color:#032F62">"[</span><span style="color:#005CC5">{</span><span style="color:#D73A49">:</span><span style="color:#005CC5">&#x3C;{}}</span><span style="color:#032F62">] </span><span style="color:#005CC5">{}</span><span style="color:#032F62">/</span><span style="color:#005CC5">{}</span><span style="color:#032F62">"</span><span style="color:#24292E">.format(</span><span style="color:#032F62">"="</span><span style="color:#D73A49"> *</span><span style="color:#24292E"> cur_len, bar_len, cur, total))</span></span>
+<span class="line"><span style="color:#24292E">    sys.stdout.flush()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">history </span><span style="color:#D73A49">=</span><span style="color:#24292E"> model.fit(</span></span>
+<span class="line"><span style="color:#24292E">  normed_train_data, train_labels,</span></span>
+<span class="line"><span style="color:#E36209">  epochs</span><span style="color:#D73A49">=</span><span style="color:#005CC5">EPOCHS</span><span style="color:#24292E">, </span><span style="color:#E36209">validation_split</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 0.2</span><span style="color:#24292E">, </span><span style="color:#E36209">verbose</span><span style="color:#D73A49">=</span><span style="color:#005CC5">0</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#E36209">  callbacks</span><span style="color:#D73A49">=</span><span style="color:#24292E">[ProgressBar()])</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#24292E">[</span><span style="color:#D73A49">==================================================</span><span style="color:#24292E">] 1000/1000</span></span></code></pre>
 <p>训练过程都存储在了<code>history</code>对象中，我们可以借助 matplotlib 将训练过程可视化。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hist = pd.DataFrame(history.history)</span><br><span class="line">hist[<span class="string">&#x27;epoch&#x27;</span>] = history.epoch</span><br><span class="line">hist.tail(<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">hist </span><span style="color:#D73A49">=</span><span style="color:#24292E"> pd.DataFrame(history.history)</span></span>
+<span class="line"><span style="color:#24292E">hist[</span><span style="color:#032F62">'epoch'</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> history.epoch</span></span>
+<span class="line"><span style="color:#24292E">hist.tail(</span><span style="color:#005CC5">3</span><span style="color:#24292E">)</span></span></code></pre>
 
-<table>
-<thead>
-<tr>
-<th align="right">loss</th>
-<th align="right">mae</th>
-<th align="right">mse</th>
-<th align="right">val_loss</th>
-<th align="right">val_mae</th>
-<th align="right">val_mse</th>
-<th align="right">epoch</th>
-<th></th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="right">997</td>
-<td align="right">3.132053</td>
-<td align="right">1.142280</td>
-<td align="right">3.132053</td>
-<td align="right">9.711935</td>
-<td align="right">2.361466</td>
-<td align="right">9.711935</td>
-<td>997</td>
-</tr>
-<tr>
-<td align="right">998</td>
-<td align="right">3.021109</td>
-<td align="right">1.093424</td>
-<td align="right">3.021109</td>
-<td align="right">9.488593</td>
-<td align="right">2.298264</td>
-<td align="right">9.488593</td>
-<td>998</td>
-</tr>
-<tr>
-<td align="right">999</td>
-<td align="right">3.028849</td>
-<td align="right">1.132241</td>
-<td align="right">3.028849</td>
-<td align="right">9.453931</td>
-<td align="right">2.275017</td>
-<td align="right">9.453931</td>
-<td>999</td>
-</tr>
-</tbody></table>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">plot_history</span>(<span class="params">history</span>):</span><br><span class="line">  hist = pd.DataFrame(history.history)</span><br><span class="line">  hist[<span class="string">&#x27;epoch&#x27;</span>] = history.epoch</span><br><span class="line">  plt.figure()</span><br><span class="line">  plt.xlabel(<span class="string">&#x27;epoch&#x27;</span>)</span><br><span class="line">  plt.ylabel(<span class="string">&#x27;metric - MSE&#x27;</span>)</span><br><span class="line">  plt.plot(hist[<span class="string">&#x27;epoch&#x27;</span>], hist[<span class="string">&#x27;mse&#x27;</span>], label=<span class="string">&#x27;训练集&#x27;</span>)</span><br><span class="line">  plt.plot(hist[<span class="string">&#x27;epoch&#x27;</span>], hist[<span class="string">&#x27;val_mse&#x27;</span>], label = <span class="string">&#x27;验证集&#x27;</span>)</span><br><span class="line">  plt.ylim([<span class="number">0</span>, <span class="number">20</span>])</span><br><span class="line">  plt.legend()</span><br><span class="line">  </span><br><span class="line">  plt.figure()</span><br><span class="line">  plt.xlabel(<span class="string">&#x27;epoch&#x27;</span>)</span><br><span class="line">  plt.ylabel(<span class="string">&#x27;metric - MAE&#x27;</span>)</span><br><span class="line">  plt.plot(hist[<span class="string">&#x27;epoch&#x27;</span>], hist[<span class="string">&#x27;mae&#x27;</span>], label=<span class="string">&#x27;训练集&#x27;</span>)</span><br><span class="line">  plt.plot(hist[<span class="string">&#x27;epoch&#x27;</span>], hist[<span class="string">&#x27;val_mae&#x27;</span>], label = <span class="string">&#x27;验证集&#x27;</span>)</span><br><span class="line">  plt.ylim([<span class="number">0</span>, <span class="number">5</span>])</span><br><span class="line">  plt.legend()</span><br><span class="line">  </span><br><span class="line">plot_history(history)</span><br></pre></td></tr></table></figure>
 
-<p><img src="tf2doc-ml-basic-regression/mse.jpg" alt="MAE"></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="right">loss</th><th align="right">mae</th><th align="right">mse</th><th align="right">val_loss</th><th align="right">val_mae</th><th align="right">val_mse</th><th align="right">epoch</th><th></th></tr></thead><tbody><tr><td align="right">997</td><td align="right">3.132053</td><td align="right">1.142280</td><td align="right">3.132053</td><td align="right">9.711935</td><td align="right">2.361466</td><td align="right">9.711935</td><td>997</td></tr><tr><td align="right">998</td><td align="right">3.021109</td><td align="right">1.093424</td><td align="right">3.021109</td><td align="right">9.488593</td><td align="right">2.298264</td><td align="right">9.488593</td><td>998</td></tr><tr><td align="right">999</td><td align="right">3.028849</td><td align="right">1.132241</td><td align="right">3.028849</td><td align="right">9.453931</td><td align="right">2.275017</td><td align="right">9.453931</td><td>999</td></tr></tbody></table>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> plot_history</span><span style="color:#24292E">(history):</span></span>
+<span class="line"><span style="color:#24292E">  hist </span><span style="color:#D73A49">=</span><span style="color:#24292E"> pd.DataFrame(history.history)</span></span>
+<span class="line"><span style="color:#24292E">  hist[</span><span style="color:#032F62">'epoch'</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> history.epoch</span></span>
+<span class="line"><span style="color:#24292E">  plt.figure()</span></span>
+<span class="line"><span style="color:#24292E">  plt.xlabel(</span><span style="color:#032F62">'epoch'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">  plt.ylabel(</span><span style="color:#032F62">'metric - MSE'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">  plt.plot(hist[</span><span style="color:#032F62">'epoch'</span><span style="color:#24292E">], hist[</span><span style="color:#032F62">'mse'</span><span style="color:#24292E">], </span><span style="color:#E36209">label</span><span style="color:#D73A49">=</span><span style="color:#032F62">'训练集'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">  plt.plot(hist[</span><span style="color:#032F62">'epoch'</span><span style="color:#24292E">], hist[</span><span style="color:#032F62">'val_mse'</span><span style="color:#24292E">], </span><span style="color:#E36209">label</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> '验证集'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">  plt.ylim([</span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">20</span><span style="color:#24292E">])</span></span>
+<span class="line"><span style="color:#24292E">  plt.legend()</span></span>
+<span class="line"><span style="color:#24292E">  </span></span>
+<span class="line"><span style="color:#24292E">  plt.figure()</span></span>
+<span class="line"><span style="color:#24292E">  plt.xlabel(</span><span style="color:#032F62">'epoch'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">  plt.ylabel(</span><span style="color:#032F62">'metric - MAE'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">  plt.plot(hist[</span><span style="color:#032F62">'epoch'</span><span style="color:#24292E">], hist[</span><span style="color:#032F62">'mae'</span><span style="color:#24292E">], </span><span style="color:#E36209">label</span><span style="color:#D73A49">=</span><span style="color:#032F62">'训练集'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">  plt.plot(hist[</span><span style="color:#032F62">'epoch'</span><span style="color:#24292E">], hist[</span><span style="color:#032F62">'val_mae'</span><span style="color:#24292E">], </span><span style="color:#E36209">label</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> '验证集'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">  plt.ylim([</span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">5</span><span style="color:#24292E">])</span></span>
+<span class="line"><span style="color:#24292E">  plt.legend()</span></span>
+<span class="line"><span style="color:#24292E">  </span></span>
+<span class="line"><span style="color:#24292E">plot_history(history)</span></span></code></pre>
+<p><img alt="MAE" loading="lazy" decoding="async" width="1000" height="323" src="/_astro/mse.DSubAX1r_2lo0YX.webp" srcset=""></p>
 <p>从图中，我们可以看到，从100 epoch开始，训练集的loss仍旧继续降低，但验证集的loss却在升高，说明过拟合了，训练应该早一点结束。接下来，我们使用 <code>keras.callbacks.EarlyStopping</code>，每一波(epoch)训练结束时，测试训练情况，如果训练不再有效果（验证集的loss，即val_loss 不再下降），则自动地停止训练。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">model = build_model()</span><br><span class="line">early_stop = keras.callbacks.EarlyStopping(monitor=<span class="string">&#x27;val_loss&#x27;</span>, patience=<span class="number">10</span>)</span><br><span class="line">history = model.fit(normed_train_data, train_labels, epochs=EPOCHS,</span><br><span class="line">                    validation_split = <span class="number">0.2</span>, verbose=<span class="number">0</span>, </span><br><span class="line">                    callbacks=[early_stop, ProgressBar()])</span><br><span class="line">plot_history(history)</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[===                                               ] 70/1000</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">model </span><span style="color:#D73A49">=</span><span style="color:#24292E"> build_model()</span></span>
+<span class="line"><span style="color:#24292E">early_stop </span><span style="color:#D73A49">=</span><span style="color:#24292E"> keras.callbacks.EarlyStopping(</span><span style="color:#E36209">monitor</span><span style="color:#D73A49">=</span><span style="color:#032F62">'val_loss'</span><span style="color:#24292E">, </span><span style="color:#E36209">patience</span><span style="color:#D73A49">=</span><span style="color:#005CC5">10</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">history </span><span style="color:#D73A49">=</span><span style="color:#24292E"> model.fit(normed_train_data, train_labels, </span><span style="color:#E36209">epochs</span><span style="color:#D73A49">=</span><span style="color:#005CC5">EPOCHS</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#E36209">                    validation_split</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 0.2</span><span style="color:#24292E">, </span><span style="color:#E36209">verbose</span><span style="color:#D73A49">=</span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span></span>
+<span class="line"><span style="color:#E36209">                    callbacks</span><span style="color:#D73A49">=</span><span style="color:#24292E">[early_stop, ProgressBar()])</span></span>
+<span class="line"><span style="color:#24292E">plot_history(history)</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#24292E">[</span><span style="color:#D73A49">===</span><span style="color:#24292E">                                               ] 70/1000</span></span></code></pre>
 <p>在第 70 epoch 时，停止了训练。</p>
-<p><img src="tf2doc-ml-basic-regression/early_mse.jpg" alt="MAE"></p>
+<p><img alt="MAE" loading="lazy" decoding="async" width="1000" height="331" src="/_astro/early_mse.DO1NAxPC_1BEVvs.webp" srcset=""></p>
 <p>接下来使用测试集来评估训练效果。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">loss, mae, mse = model.evaluate(normed_test_data, test_labels, verbose=<span class="number">0</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;测试集平均绝对误差(MAE): &#123;:5.2f&#125; MPG&quot;</span>.<span class="built_in">format</span>(mae))</span><br><span class="line"><span class="comment"># 测试集平均绝对误差(MAE):  1.90 MPG</span></span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">loss, mae, mse </span><span style="color:#D73A49">=</span><span style="color:#24292E"> model.evaluate(normed_test_data, test_labels, </span><span style="color:#E36209">verbose</span><span style="color:#D73A49">=</span><span style="color:#005CC5">0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">"测试集平均绝对误差(MAE): </span><span style="color:#005CC5">{</span><span style="color:#D73A49">:5.2f</span><span style="color:#005CC5">}</span><span style="color:#032F62"> MPG"</span><span style="color:#24292E">.format(mae))</span></span>
+<span class="line"><span style="color:#6A737D"># 测试集平均绝对误差(MAE):  1.90 MPG</span></span></code></pre>
 <p>从图中我们也可以看出，1.9比验证集还略低一点。</p>
-<h2 id="预测"><a href="#预测" class="headerlink" title="预测"></a>预测</h2><p>最后，我们使用测试集中的数据来预测 MPG 值。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">test_pred = model.predict(normed_test_data).flatten()</span><br><span class="line"></span><br><span class="line">plt.scatter(test_labels, test_pred)</span><br><span class="line">plt.xlabel(<span class="string">&#x27;真实值&#x27;</span>)</span><br><span class="line">plt.ylabel(<span class="string">&#x27;预测值&#x27;</span>)</span><br><span class="line">plt.axis(<span class="string">&#x27;equal&#x27;</span>)</span><br><span class="line">plt.axis(<span class="string">&#x27;square&#x27;</span>)</span><br><span class="line">plt.xlim([<span class="number">0</span>,plt.xlim()[<span class="number">1</span>]])</span><br><span class="line">plt.ylim([<span class="number">0</span>,plt.ylim()[<span class="number">1</span>]])</span><br><span class="line">plt.plot([-<span class="number">100</span>, <span class="number">100</span>], [-<span class="number">100</span>, <span class="number">100</span>])</span><br></pre></td></tr></table></figure>
-
+<h2 id="预测">预测</h2>
+<p>最后，我们使用测试集中的数据来预测 MPG 值。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">test_pred </span><span style="color:#D73A49">=</span><span style="color:#24292E"> model.predict(normed_test_data).flatten()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">plt.scatter(test_labels, test_pred)</span></span>
+<span class="line"><span style="color:#24292E">plt.xlabel(</span><span style="color:#032F62">'真实值'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">plt.ylabel(</span><span style="color:#032F62">'预测值'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">plt.axis(</span><span style="color:#032F62">'equal'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">plt.axis(</span><span style="color:#032F62">'square'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">plt.xlim([</span><span style="color:#005CC5">0</span><span style="color:#24292E">,plt.xlim()[</span><span style="color:#005CC5">1</span><span style="color:#24292E">]])</span></span>
+<span class="line"><span style="color:#24292E">plt.ylim([</span><span style="color:#005CC5">0</span><span style="color:#24292E">,plt.ylim()[</span><span style="color:#005CC5">1</span><span style="color:#24292E">]])</span></span>
+<span class="line"><span style="color:#24292E">plt.plot([</span><span style="color:#D73A49">-</span><span style="color:#005CC5">100</span><span style="color:#24292E">, </span><span style="color:#005CC5">100</span><span style="color:#24292E">], [</span><span style="color:#D73A49">-</span><span style="color:#005CC5">100</span><span style="color:#24292E">, </span><span style="color:#005CC5">100</span><span style="color:#24292E">])</span></span></code></pre>
 <p>看起来，模型训练得还不错。</p>
-<p><img src="tf2doc-ml-basic-regression/test_true_pred.jpg" alt="Test True Pred"></p>
-<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><ul>
-<li> 均方误差(Mean Squared Error, MSE) 常作为回归问题的损失函数(loss function)，与分类问题不太一样。</li>
+<p><img alt="Test True Pred" loading="lazy" decoding="async" width="538" height="518" src="/_astro/test_true_pred.C95iUXN7_1dx1HD.webp" srcset=""></p>
+<h2 id="结论">结论</h2>
+<ul>
+<li>均方误差(Mean Squared Error, MSE) 常作为回归问题的损失函数(loss function)，与分类问题不太一样。</li>
 <li>同样，评价指标(evaluation metrics)也不一样，分类问题常用准确率(accuracy)，回归问题常用平均绝对误差 (Mean Absolute Error, MAE)</li>
 <li>每一列数据都有不同的范围，每一列，即每一个feature的数据需要分别缩放到相同的范围。常用归一化的方式，缩放到[0, 1]。</li>
 <li>如果训练数据过少，最好搭建一个隐藏层少的小的神经网络，避免过拟合。</li>
@@ -595,940 +408,86 @@
 </ul>
 <p>返回<a href="https://geektutu.com/post/tf2doc.html">文档首页</a></p>
 <blockquote>
-<p>完整代码：<a target="_blank" rel="noopener" href="https://github.com/geektutu/tensorflow2-docs-zh/tree/master/code">Github - auto_mpg_regression.ipynb</a><br>参考文档：<a target="_blank" rel="noopener" href="https://www.tensorflow.org/beta/tutorials/keras/basic_regression">Regression: Predict fuel efficiency</a></p>
+<p>完整代码：<a href="https://github.com/geektutu/tensorflow2-docs-zh/tree/master/code">Github - auto_mpg_regression.ipynb</a>
+参考文档：<a href="https://www.tensorflow.org/beta/tutorials/keras/basic_regression">Regression: Predict fuel efficiency</a></p>
 </blockquote>
-<h2 id="附-推荐"><a href="#附-推荐" class="headerlink" title="附 推荐"></a>附 推荐</h2><ul>
+<h2 id="附-推荐">附 推荐</h2>
+<ul>
 <li><a href="https://geektutu.com/post/quick-python.html">一篇文章入门 Python</a></li>
-</ul>
+</ul></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/tf2doc-ml-basic-structured-data.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">TensorFlow 2 中文文档 - 特征工程结构化数据分类</span></a><a href="/post/tf2doc-ml-basic-overfit.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">TensorFlow 2 中文文档 - 过拟合与欠拟合</span></a></nav><script>(function(){const bookId = "history";
+const slug = "tf2doc-ml-basic-regression";
 
-        
-<script src="/js/qrious.min.js"></script>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "tf2doc-ml-basic-regression";
+const title = "TensorFlow 2 中文文档 - 回归预测燃油效率";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
 
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
 
-        <hr style="margin-top: 2rem;">
-        <div>
-            
-            <p>
-                <span>专题: </span>
-                
-                <a href="/series/#TensorFlow2 文档">
-                    <code key="TensorFlow2 文档" class="post-label">TensorFlow2 文档</code>
-                </a>
-                
-            </p>
-            
-            <p>
-                <span>本文发表于 2019-07-11，最后修改于 2026-02-23。</span>
-            </p>
-            <!-- 文章末尾的提示 start -->
-            
-            <p>
-                本站永久域名「 <a
-                        href="/post/tf2doc-ml-basic-regression.html">geektutu.com</a>
-                    」，也可搜索「 极客兔兔 」找到我。
-            </p>
-            
-            
-                
-            <!-- 文章末尾的提示 end -->
-        </div>
-        <hr />
-        <p name="pagination" style="font-size: 1.2em">
-    
-    <a class="float-left" href="/post/tf2doc-ml-basic-structured-data.html">上一篇 « TensorFlow 2 中文文档 - 特征工程结构化数据分类</a>
-    
-    
-    <a class="float-right" href="/post/tf2doc-ml-basic-overfit.html">下一篇 » TensorFlow 2 中文文档 - 过拟合与欠拟合</a>
-    
-</p>
-    </article>
-    <!-- 赞赏 -->
-    <!--打赏-->
-
-<style>
-    #reward .reward-btn-wrapper {
-        width: 100px;
-        padding-top: 35px;
-        cursor: pointer;
-        margin: 0 auto;
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
     }
 
-    #reward .reward-btn {
-        padding: 2px 15px;
-        color: #fff;
-        background-color: #ea6f5a;
-        border-radius: 20px;
-    }
-
-    #reward .reward-code {
-        position: absolute;
-        top: -220px;
-        left: 50%;
-        display: none;
-        width: 360px;
-        height: 240px;
-        margin-left: -180px;
-        padding: 15px 20px;
-        border: 1px solid #e6e6e6;
-        background: #fff;
-        box-shadow: 0 1px 1px 1px #efefef;
-    }
-
-    #reward .reward-code:after,
-    #reward .reward-code:before {
-        position: absolute;
-        content: '';
-        border: 10px solid transparent
-    }
-
-    #reward .reward-code:after {
-        bottom: -19px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #fff
-    }
-
-    #reward .reward-code:before {
-        bottom: -20px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #e6e6e6
-    }
-
-    #reward .qr-code {
-        width: 50%;
-        float: left;
-        padding: 5px;
-    }
-
-    #reward .qr-code p {
-        margin-top: -6px;
-    }
-
-    #reward img {
-        transform: none;
-        -webkit-transform: none;
-        margin-left: 0;
-    }
-
-    #reward img[alt='i'] {
-        width: 20px;
-        height: 20px;
-        z-index: 2;
-        position: absolute;
-        margin: 65px 0 0 65px;
-    }
-
-    #reward img[alt="ali"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #0f9be0;
-    }
-
-    #reward img[alt="wechat"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #3db034;
-    }
-
-    #reward .reward-tip {
-        font-size: 1.2em;
-        margin-bottom: 0;
-        color: #ea6f5a;
-    }
-</style>
-<div id="reward" class="col-xs-12">
-    <div class="reward-btn-wrapper">
-        <div class="reward-btn text-center">赞赏支持</div>
-    </div>
-    <div class="reward-code text-center">
-        <p class="text-center reward-tip"><strong>请我吃胡萝卜 =^_^= </strong></p>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-ali" src="" alt="ali">
-            <p><small>支付宝</small></p>
-        </div>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-wechat" src="" alt="wechat">
-            <p><small>微信</small></p>
-        </div>
-    </div>
-</div>
-<script>
-    (function (window, document) {
-        var aliQr = new QRious({ value: 'HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8' });
-        var wechatQr = new QRious({ value: 'wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5' });
-        document.querySelector('#reward-ali').src = aliQr.toDataURL();
-        document.querySelector('#reward-wechat').src = wechatQr.toDataURL();
-
-        var rewardBtn = document.querySelector('#reward .reward-btn-wrapper');
-        var qrCode = document.querySelector('#reward .reward-code')
-        var activeFunc = function (e) {
-            qrCode.style.display = 'block';
-        }
-        var hideFunc = function (e) {
-            qrCode.style.display = 'none';
-        }
-
-        rewardBtn.addEventListener('mouseenter', activeFunc, false)
-        rewardBtn.addEventListener('mouseover', activeFunc, false)
-        rewardBtn.addEventListener('mouseleave', hideFunc, false)
-        qrCode.addEventListener('mouseenter', activeFunc, false)
-        qrCode.addEventListener('mouseover', activeFunc, false)
-        qrCode.addEventListener('mouseleave', hideFunc, false)
-    })(window, document);
-</script>
-
-    
-<div class="col-xs-12 text-center" style="margin-top: 30px;">
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://github.com/geektutu" title="Github"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/github.png" /></a>
-    
-    <a style="display:inline-block;" href="https://geektutu.com/feed.xml" title="RSS"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/rss.jpg" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie" title="知乎"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/zhihu.png" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://weibo.com/geektutu" title="微博"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/weibo.jpg" /></a>
-    
-</div>
-
-    <!-- 推荐阅读三篇文章 -->
-    <div class="col-xs-12">
-        <h3>推荐阅读</h3>
-        
-        <div class="post-preview">
-    <div class="post-img" style="background-image: url('/post/gee-day7/go-panic.png')"></div>
-    <div class="post-info">
-        <div class="post-info-center">
-            <div class="hidden-xs">
-                
-                
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#Go"
-                    title="Go">Go</a>
-                <span>/</span>
-                
-                
-            </div>
-            <a href="/post/gee-day7.html" class="title">
-                Go语言动手写Web框架 - Gee第七天 错误恢复(Panic Recover)
-            </a>
-            <p class="text-gray">
-                <small>
-                    <span>发表于2020-01-09，</span>
-                    <span class="hidden-xs">全文6855字，</span>
-                    <span>阅读约23分钟</span>
-                </small>
-            </p>
-        </div>
-    </div>
-</div>
-        
-        <div class="post-preview">
-    <div class="post-img" style="background-image: url('/post/tf2doc-cnn-cifar10/cifar10-eg.jpg')"></div>
-    <div class="post-info">
-        <div class="post-info-center">
-            <div class="hidden-xs">
-                
-                
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#TensorFlow 2"
-                    title="TensorFlow 2">TensorFlow 2</a>
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#官方文档"
-                    title="官方文档">官方文档</a>
-                <span>/</span>
-                
-                
-            </div>
-            <a href="/post/tf2doc-tfhub-image-tl.html" class="title">
-                TensorFlow 2 中文文档 - TFHub 迁移学习
-            </a>
-            <p class="text-gray">
-                <small>
-                    <span>发表于2019-07-19，</span>
-                    <span class="hidden-xs">全文5338字，</span>
-                    <span>阅读约18分钟</span>
-                </small>
-            </p>
-        </div>
-    </div>
-</div>
-        
-        <div class="post-preview">
-    <div class="post-img" style="background-image: url('/post/tensorflow-mnist-save-ckpt/save_ckpt.png')"></div>
-    <div class="post-info">
-        <div class="post-info-center">
-            <div class="hidden-xs">
-                
-                
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#机器学习"
-                    title="机器学习">机器学习</a>
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#Python"
-                    title="Python">Python</a>
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#TensorFlow"
-                    title="TensorFlow">TensorFlow</a>
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#mnist"
-                    title="mnist">mnist</a>
-                <span>/</span>
-                
-                
-            </div>
-            <a href="/post/tensorflow-mnist-save-ckpt.html" class="title">
-                TensorFlow入门(二) - mnist手写数字识别(模型保存加载)
-            </a>
-            <p class="text-gray">
-                <small>
-                    <span>发表于2017-12-17，</span>
-                    <span class="hidden-xs">全文5793字，</span>
-                    <span>阅读约20分钟</span>
-                </small>
-            </p>
-        </div>
-    </div>
-</div>
-        
-    </div>
-    <div class="col-xs-12">
-        <!-- 标签列表 -->
-        <!-- Featured Tags -->
-<style>
-    #featured-tag .post-tag-item {
-        font-size: 12px;
-        line-height: 30px;
-        display: inline-block;
-        height: 30px;
-        margin: 5px 0px;
-        padding: 0 7px;
-        color: #333;
-        border-radius: 15px;
-        background: #f6f6f6;
-    }
-
-    #featured-tag .post-tag-item:hover {
-        color: #337ab7;
-    }
-</style>
-<div id="featured-tag">
-    
-    <a class="post-tag-item" href="/tags/#关于我" title="关于我"
-        rel="9">#关于我 (9) </a>
-    
-    <a class="post-tag-item" href="/tags/#Go" title="Go"
-        rel="48">#Go (48) </a>
-    
-    <a class="post-tag-item" href="/tags/#百宝箱" title="百宝箱"
-        rel="2">#百宝箱 (2) </a>
-    
-    <a class="post-tag-item" href="/tags/#Cheat Sheet" title="Cheat Sheet"
-        rel="1">#Cheat Sheet (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#Go语言高性能编程" title="Go语言高性能编程"
-        rel="20">#Go语言高性能编程 (20) </a>
-    
-    <a class="post-tag-item" href="/tags/#友链" title="友链"
-        rel="1">#友链 (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#Pandas" title="Pandas"
-        rel="3">#Pandas (3) </a>
-    
-    <a class="post-tag-item" href="/tags/#机器学习" title="机器学习"
-        rel="9">#机器学习 (9) </a>
-    
-    <a class="post-tag-item" href="/tags/#Python" title="Python"
-        rel="10">#Python (10) </a>
-    
-    <a class="post-tag-item" href="/tags/#Rust" title="Rust"
-        rel="1">#Rust (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#TensorFlow" title="TensorFlow"
-        rel="9">#TensorFlow (9) </a>
-    
-    <a class="post-tag-item" href="/tags/#mnist" title="mnist"
-        rel="5">#mnist (5) </a>
-    
-    <a class="post-tag-item" href="/tags/#强化学习" title="强化学习"
-        rel="3">#强化学习 (3) </a>
-    
-    <a class="post-tag-item" href="/tags/#OpenAI gym" title="OpenAI gym"
-        rel="4">#OpenAI gym (4) </a>
-    
-    <a class="post-tag-item" href="/tags/#DQN" title="DQN"
-        rel="1">#DQN (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#Q-Learning" title="Q-Learning"
-        rel="1">#Q-Learning (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#CNN" title="CNN"
-        rel="1">#CNN (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#TensorFlow 2" title="TensorFlow 2"
-        rel="10">#TensorFlow 2 (10) </a>
-    
-    <a class="post-tag-item" href="/tags/#官方文档" title="官方文档"
-        rel="10">#官方文档 (10) </a>
-    
-</div>
-    </div>
-    <!-- 评论 -->
-    
-    <div class="col-xs-12">
-        
-<div class="col-xs-12 padding-0">
-    <div id="gitalk-container">
-        <div class="gt-container text-center" style="margin-top: 50px;">
-            <button class="gt-btn gt-btn-public"><span class="gt-btn-text">去 Github 评论</span></button>
-        </div>
-    </div>
-    <div id="gitalk-related"></div>
-</div>
-
-<link rel="stylesheet" href="/css/gitalk.css">
-
-
-<script src="/js/gitalk.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        function renderCommentUrl(data) {
-            var url = (data[window.location.pathname] || {}).url
-            url && getDom('#gitalk-container button').addEventListener('click', function (e) { window.open(url)})
-            url || (getDom('#gitalk-container').style.display = 'none')
-        }
-        const gitalk = new Gitalk({
-            clientID: 'c1fdd456a4caae5f7df0',
-            clientSecret: 'b2674451e21feae50520f99337ec15d2aebe7879',
-            accessToken: '513dc2f1e6df8c07a12fbf1547874f54679d9712',
-            repo: 'geektutu.github.io',
-            owner: 'geektutu',
-            admin: ['geektutu'],
-            id: window.location.pathname,
-            distractionFreeMode: false
-        });
-        fetch("https://api.github.com/user").then(function(resp){
-            gitalk.render('gitalk-container');
-        }).catch(function(e){
-            fetch('/tool/issues.json').then(function (r) { return r.json() }).then(renderCommentUrl).catch(function (e) { })
-        })
-        getDom('#gitalk-container').addEventListener('click', function (e) {
-            e && e.stopPropagation && e.stopPropagation();
-        });
-    })
-</script>
-<script>
-    window.addEventListener('load', function () {
-        function render(comments) {
-            var template = '<a href="${comment.url}?utm_source=gitalk" class="dis-item-url"><h3 class="dis-item-title">${comment.title}</h3>' +
-                '<p class="dis-item-des">${comment.count} 评论 ● ${comment.date}</p>' +
-                '<div class="dis-item-content"><img class="dis-item-img" src="${comment.icon}" alt="icon"><p><b><span class="dis-item-user">${comment.user}</span></b>&nbsp;——&nbsp;${comment.body}</p></div>' +
-                '</a>'
-
-            var wrapper = getDom('#gitalk-related');
-            comments = shuffle(comments);
-            comments.slice(0, 4).forEach(function (c) {
-                var div = document.createElement('div');
-                div.classList.add('dis-item');
-                div.innerHTML = template.replace("${comment.url}", c.url)
-                    .replace("${comment.title}", c.title)
-                    .replace("${comment.count}", c.count)
-                    .replace("${comment.date}", c.date)
-                    .replace("${comment.icon}", c.icon)
-                    .replace("${comment.user}", c.user)
-                    .replace("${comment.body}", c.body)
-                wrapper.appendChild(div)
-            })
-            var p = document.createElement('p')
-            p.innerHTML = '<a href="https://geektutu.com/post/blog-experience-7.html">Gitalk Plus</a>';
-            p.classList.add('dis-divide');
-            wrapper.appendChild(p);
-            wrapper.classList.add('dis-wrapper')
-        }
-        function shuffle(a) {
-            for (var i = a.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-        fetch('/tool/comments.json').then(function (r) { return r.json() }).then(render).catch(function (e) { })
-    })
-</script>
-
-    </div>
-    
-</div>
-<aside class="float-left gkt-sidebar hidden-xs hidden-sm">
-    <div style="clear: both"></div>
-    <div class="gkt-sidebar-wrapper">
-        <section class="box-shadow"><style>
-    .gkt-summary {
-        border: 1px solid #DDDDDD;
-        border-radius: 3px;
-        padding: 5px;
-        width: 100%;
-    }
-
-
-    .gkt-summary nav {
-        overflow: hidden;
-    }
-
-    .gkt-summary nav a {
-        display: inline-block;
-        text-align: center;
-        color: #333;
-        font-size: 12px;
-    }
-
-    .gkt-summary nav span {
-        display: block;
-    }
-
-    .gkt-summary nav .middle {
-        border-left: 1px solid #eaecef;
-        border-right: 1px solid #eaecef;
-    }
-
-    .gkt-summary .number {
-        font-weight: bold;
-    }
-
-    .gkt-summary .link-list {
-        margin-top: 5px;
-        margin-bottom: -5px;
-        padding-top: 7px;
-        border-top: 1px dashed #999;
-        display: flex;
-    }
-
-    .gkt-summary .link-list a {
-        flex: 1;
-    }
-
-    .gkt-summary .link-list img {
-        width: 25px;
-        height: 25px;
-    }
-</style>
-
-<div class="gkt-summary">
-    <nav>
-        <a href="/" class="col-xs-4">
-            <span class="number">108</span><span>文章</span>
-        </a>
-        <a href="/series" class="col-xs-4 middle">
-            <span class="number">23</span><span>专题</span>
-        </a>
-        <a href="/tags" class="col-xs-4">
-            <span class="number">19</span><span>标签</span>
-        </a>
-    </nav>
-
-    
-    <div class="link-list">
-        
-        <a target="_blank" rel="noopener" href="https://github.com/geektutu"><img src="/img/related_links/github.png" /></a>
-        
-        <a href="https://geektutu.com/feed.xml"><img src="/img/related_links/rss.jpg" /></a>
-        
-        <a target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie"><img src="/img/related_links/zhihu.png" /></a>
-        
-        <a target="_blank" rel="noopener" href="https://weibo.com/geektutu"><img src="/img/related_links/weibo.jpg" /></a>
-        
-    </div>
-    
-</div></section>
-        
-        
-        <section class="gkt-sidebar-content box-shadow">
-            <strong>TensorFlow2 文档</strong>
-            <ul>
-                
-                <li>
-                    <a href="/post/tf2doc.html"
-                        class="">TensorFlow 2 / 2.0 中文文档</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-image.html"
-                        class="">MNIST 图像分类</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-text.html"
-                        class="">IMDB 文本分类</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-structured-data.html"
-                        class="">特征工程结构化数据分类</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-regression.html"
-                        class="gkt-sidebar-active">回归预测燃油效率</a>
-                    
-                    <!-- Table of Contents -->
-<div id="sidebar-toc">
-  <!-- TOC  -->
-  
-  
-  <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Auto-MPG-%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="toc-nav-text">Auto MPG 数据集</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E6%A8%A1%E5%9E%8B"><span class="toc-nav-text">模型</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%A2%84%E6%B5%8B"><span class="toc-nav-text">预测</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="toc-nav-text">结论</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%99%84-%E6%8E%A8%E8%8D%90"><span class="toc-nav-text">附 推荐</span></a></li></ol>
-  
-</div>
-
-<script>
-  (function () {
-    var h2 = document.querySelectorAll('article h2');
-    var h3 = document.querySelectorAll('article h3');
-    var linkList = document.querySelectorAll('#sidebar-toc a');
-
-    function findLinkElement(name) {
-      for (var i = 0; i < linkList.length; i++) {
-        var items = linkList[i].href.split('#');
-        if (items && items[items.length - 1] === encodeURIComponent(name)) {
-          return i;
-        }
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
       }
-      return -1;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
     }
 
-    function activeLink(titleList) {
-      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      for (var i = titleList.length - 1; i >= 0; i--) {
-        if (scrollTop - titleList[i].offsetTop > 0) {
-          var index = findLinkElement(titleList[i].id);
-          index != -1 && linkList[index].classList.add('gkt-sidebar-active');
-          break;
-        }
-      }
-    }
-
-    window.addEventListener("scroll", function (e) {
-      [].slice.call(linkList).forEach(function (link) {
-        link.classList.remove('gkt-sidebar-active');
-      })
-      activeLink(h2);
-    })
-  })();
-</script>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-overfit.html"
-                        class="">过拟合与欠拟合</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-ml-basic-save-model.html"
-                        class="">保存与加载模型</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-cnn-cifar10.html"
-                        class="">卷积神经网络分类 CIFAR-10</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-tfhub-image-tl.html"
-                        class="">TFHub 迁移学习</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/tf2doc-rnn-lstm-text.html"
-                        class="">RNN LSTM 文本分类</a>
-                    
-                </li>
-                
-            </ul>
-        </section>
-        
-        
-        <section class="gkt-sidebar-content box-shadow">
-            <strong>最近的文章</strong>
-            <ul>
-                
-                <li>
-                    <a href="/post/hpg-sync-cond.html">Go sync.Cond</a>
-                </li>
-                
-                <li>
-                    <a href="/post/hpg-dead-code-elimination.html">Go 死码消除与调试(debug)模式</a>
-                </li>
-                
-                <li>
-                    <a href="/post/hpg-sync-once.html">Go sync.Once</a>
-                </li>
-                
-            </ul>
-        </section>
-        
-    </div>
-</aside>
-
-<script>
-    (function () {
-        function resizeUArrow() {
-            var s = getDom('.u-arrow-wrapper').style
-            var pc = getDom('.post-container')
-            s.left = getPosition(pc).x + 'px';
-            s.width = pc.clientWidth + 'px';
-        }
-        resizeUArrow()
-        window.addEventListener('resize', resizeUArrow);
-    })();
-</script>
-
-    
-
-<script>
-    (function () {
-        var ele = getDom('.gkt-sidebar-content')
-        if(!ele) return;
-        var wrapper = getDom('.gkt-sidebar-wrapper')
-        var last = 0
-        ele.style.maxHeight = ((window.innerHeight || 798) - 200) + 'px'
-        var f = function (e) {
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            var isDown = scrollTop > last;
-            var pos = getPosition(ele).y - scrollTop;
-            var downLimit = 50;
-            var upLimit = -100;
-            // uarrow.style.marginTop = scrollTop + 'px';
-            isDown && pos <= downLimit && wrapper.classList.add("gkt-sidebar-fixed");
-            !isDown && pos > upLimit && wrapper.classList.remove("gkt-sidebar-fixed");
-            last = scrollTop
-        }
-        f()
-        window.addEventListener("scroll", f)
-    })();
-</script>
-
-</main>
-    </div>
-    <style>
-    img#go-top {
-        position: fixed;
-        bottom: 100px;
-        width: 50px;
-        cursor: pointer;
-        z-index: 9999;
-    }
-</style>
-<img id="go-top" src="/icon/top.png" class="hidden-xs" style="display: none" />
-<script>
-    (function () {
-        var goTop = document.getElementById('go-top');
-        var mainContainer = document.querySelector('.main-container');
-        
-        goTop.addEventListener('click', function () {
-            window.scroll(0, 0);
-        }, false);
-        window.addEventListener('scroll', function () {
-            var right = document.body.offsetWidth - mainContainer.getBoundingClientRect().right;
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            goTop.style.right = right + 10 + 'px'
-            scrollTop > 700 && (goTop.style.display = "block");
-            scrollTop <= 700 && (goTop.style.display = "none");
-        });
-    })();
-</script>
-    <style>
-    #geektutu-click-img-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        text-align: center;
-        width: 100%;
-        display: none;
-        z-index: 9999;
-    }
-
-    #geektutu-click-img-container img {
-        object-fit: contain;
-        background: #eaecef;
-        padding: 15px;
-        border-radius: 10px;
-        height: auto;
-        width: auto;
-        vertical-align: middle;
-    }
-</style>
-
-
-<div id="geektutu-click-img-container">
-    <img src="" alt="Big Image">
-</div>
-
-<script>
-    (function () {
-        var container = document.querySelector('#geektutu-click-img-container')
-        var targetImg = container.querySelector('img')
-        var imgs = document.querySelectorAll('article img');
-        targetImg.addEventListener('click', function (e) {
-            container.style.display = 'none';
-            e && e.stopPropagation && e.stopPropagation();
-        }, false);
-
-        for (var i = 0; i < imgs.length; ++i) {
-            var img = imgs[i];
-            img.addEventListener('click', (function (src, rate) {
-                return function (e) {
-                    e && e.stopPropagation && e.stopPropagation();
-                    if (window.innerWidth < 980) {
-                        return
-                    }
-                    targetImg.style.height = targetImg.style.width = 'auto';
-                    if (window.innerWidth / window.innerHeight > rate) {
-                        targetImg.style.height = (window.innerHeight - 20) + 'px';
-                    } else {
-                        targetImg.style.width = (window.innerWidth - 20) + 'px';
-                    }
-                    container.style.height = window.innerHeight + 'px'
-                    container.style.lineHeight = window.innerHeight + 'px'
-                    container.style.display = 'block';
-                    targetImg.src = src;
-                };
-            }(img.src, img.width / img.height)), false)
-        }
-    })();
-</script>
-    <!-- Footer -->
-    <!-- Footer -->
-<style>
-    footer {
-        width: 100%;
-        line-height: 1.5;
-        padding: 20px;
-    }
-
-    footer a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    .footer-hexo img {
-        height: 20px;
-        margin-bottom: -5px;
-    }
-
-    .footer-hexo a {
-        color: #337ab7;
-    }
-</style>
-<footer class="text-center col-xs-12">
-    <p>
-        <small>© 2026 - 极客兔兔 - </small>
-        <small>
-            <a target="_blank" rel="nofollow noopener" href="http://beian.miit.gov.cn/">沪ICP备18001798号-1</a>
-        </small>
-    </p>
-    <p class="footer-hexo">
-        <!-- 但若直接使用或修改主题，请务必保留这段声明 -->
-        <small>Powered by <a target="_blank" href="https://hexo.io">Hexo</a> | Theme
-            <a target="_blank" href="https://geektutu.com">Geektutu</a>
-            <a target="_blank" rel="noopener" href="https://github.com/geektutu/hexo-theme-geektutu">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIACIAUAMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQQFBwIDBgj/2gAIAQEAAAAA9KrHSgAYL5/z6zZGuJd12uugbhq3uKtmuRtix20IS7lTLAfAAAn/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oACAECEAAAAAAB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAxAAAAAAAf/EADEQAAICAQIEBQEGBwAAAAAAAAECAwQFAAYREhORBxQhUlQxQVFic5KxJDJCYYGC0f/aAAgBAQABPwCFHnjWUzuvN6hV4cANSRLGjO9yRVUcSzMoA7jVXJYe5N0a2dhmk9kc0bN2GvLN8mbuNeWb5M3ca8s3yZu415Y/Jm7jXlm+TN3H/NeVPyZu40vOk3TZywK8wJ+v3EHVM/wsI/Dq2lrxN3Nnca16eti8chSAIoMbzByhMwP14kHVfwIiSaF5c96J6kwwCOTnHsYk8uvCrdmQy1TI4rJuz3cZLyGR/wCd4+YoOf8AEpUjXitubLYPG4paFsUxcuiGe7yc5gTW3LW44szXmobsi3Dhmic2+Z4+vCVH9CpraPiQ+QvbgTJrPFBWd5YpWrmNIIEXiRO32Pqt4p7cnfHk18lFBdmEVW1LVdIZGOrniTt6plrWKaO69yCykDRxwF+LMAewB0Txtr+Sf31VI8tEPw62fZt7N3Humtbpzz13ucX6CGSWMSuzpLyD1eNgeUka3PuvHbaxq3biTMHfkiSNCS78CwU+3Xg7Vu3MhuTcU6cq3Zemn3Eh2dv8Lzcut+29x1atKbHYqLJUhLwyNMwiZ3j9yDWOxUOV3tgb+3No5LDx1pi9+aeIwRlNY6bc+Jv+IFGrhLxtXJZ7VKcw81diiAAEn0JOrkWZyNfbEr0tz27UGQgkuGzXdIIvyowq99bRxk9ffO/L81SZBPZgEEroQroIxxMZOgeNsfkn99QypHGqO4Vl9CDrN4LDZkwyzyyQ2IgRHZrzGCZVP1XnQglT9oOtw4LC7iqV6uRkZoYpxKFSQpzFRw4EjVRMfSrQ1qqwxQxKFjjTgFUD7BoWYR6iVe+mtxt9Zwf9teaj4AdccPu5tedX5A/VrzUR+sy/q1CwksF19VEfDj/cnQRW+qg66cfsXtrpx+xe2unH7F7a6cfsXtrpx+xe2unH7F7a6cfsXtoxx+xe2gAAOA1//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwB//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwB//9k="
-                    alt="Github Star">
-            </a>
-        </small>
-    </p>
-    
-    <p>
-        <small>
-            <span id="busuanzi_container_site_pv">👁<span id="busuanzi_value_site_pv"></span></span> &nbsp;
-            <span id="busuanzi_container_page_pv">📚<span id="busuanzi_value_page_pv"></span></span>
-        </small>
-    </p>
-    
-    
-
-</footer>
-
-
-<script>
-    window.addEventListener('load', function () {
-        globalAddScript('//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js');
-    })
-</script>
-
-<!-- Baidu Tongji -->
-
-<script>
-    window.addEventListener('load', function () {
-        var _hmt = _hmt || [];
-        globalAddScript('//hm.baidu.com/hm.js?1a0ec38c52c08db815b0046c2783b1aa')
-    })
-</script>
-
-
-
-<!-- baidu auto push for seo -->
-<script>
-    window.addEventListener('load', function () {
-        var src = 'http://push.zhanzhang.baidu.com/push.js'
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        globalAddScript(src);
-    })
-</script>
-
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-142641425-1');
-
-    window.addEventListener('load', function () {
-        globalAddScript('https://www.googletagmanager.com/gtag/js?id=UA-142641425-1');
-    });
-</script>
-
-
-    <script>
-        // 非本站网址，新开tab页签
-        (function () {
-            var stopBubble = function (e) {
-                e && e.stopPropagation && e.stopPropagation();
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
             }
-            var links = document.querySelectorAll('a');
-            [].slice.call(links).forEach(function (item) {
-                if (item.href && item.href.indexOf(window.location.host) === -1) {
-                    item.target = '_blank'
-                }
-                // 阻止冒泡，不触发彩蛋。
-                item.addEventListener('click', stopBubble, false);
-            });
-            var article = document.querySelector('article');
-            article && article.addEventListener('click', stopBubble, false)
-        })();
-    </script>
-    
-</body>
-
-</html>
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

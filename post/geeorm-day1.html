@@ -1,618 +1,95 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
-<!-- Head tag -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="referrer" content="no-referrer-when-downgrade">
-  
-  <meta name="baidu-site-verification" content="p7Pz3jlx4t" />
-  <meta name="google-site-verification" content="X31OY0d2sKImNbS2x8-OpITWRK4nn7nZCcXe3_hA9ew" />
-  <meta name="msvalidate.01" content="7E2AEE3378AC93764DEAB411177A21A1" />
-  <meta name="360-site-verification" content="1d1e81a1a48a1ed2e3308d7cb8e548e7" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- if page has tags, then add tags to keyword -->
-  
-  
-  <meta name="keywords" content="geektutu,jiketutu,Go语言,golang,python,Go,Go语言,从零实现ORM框架,database/sql,sqlite">
-  <!-- page.description has higher priority -->
-  <meta name="description" content="7天用 Go语言/golang 从零实现 ORM 框架 GeeORM 教程(7 days implement golang object relational mapping framework from scratch tutorial)，动手写 ORM 框架，参照 gorm, xorm 的实现。介绍了 SQLite 的基础操作（连接数据库，创建表、增删记录等），使用 Go 标准库 database/sql 操作 SQLite 数据库，包括执行(Exec)，查询(Query, QueryRow)。">
-  <link rel="shortcut icon" href="/img/icon.png">
-  <title>
-    
-    动手写ORM框架 - GeeORM第一天 database/sql 基础 | 极客兔兔
-    
-  </title>
-
-  <link rel="canonical" href="https://geektutu.com/post/geeorm-day1.html">
-  
-<link rel="stylesheet" href="/css/geektutu.css">
-
-  <!-- global function -->
-  <script>
-    window.globalAddScript = function (url, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = url;
-      onload && (s.onload = onload);
-      onerror && (s.onerror = onerror);
-      document.body.appendChild(s);
-    }
-    window.globalAddCss = function (url) {
-      var s = document.createElement('link');
-      s.rel = 'stylesheet';
-      s.href = url;
-      document.body.appendChild(s);
-    }
-    window.getPosition = function (ele) {
-      var x = 0, y = 0;
-      while (ele) {
-        x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-        y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-        ele = ele.offsetParent;
-      }
-      return { x: x, y: y };
-    }
-    window.getDom = function (str) { return document.querySelector(str) }
-  </script>
-  <!-- google ad -->
-  
-<meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/feed.xml" title="极客兔兔" type="application/rss+xml">
-</head>
-
-<body>
-    
-<style>
-    body {
-        background: white;
-    }
-    .gkt-header-placeholder, .gkt-header {
-        display: none;
-    }
-    .main-container {
-        width: 100%;
-        padding-top: 0;
-        max-width: 100%;
-    }
-</style>
-
-<header class="gkt-header col-xs-12 padding-0">
-    <div id="gkt-nav" class="gkt-header-container">
-        <a href="/" class="gkt-header-title float-left">
-            <img class="float-left" src="/img/icon.png" alt="">
-            <span>极客兔兔</span>
-        </a>
-        <nav class="gkt-header-nav text-right">
-            <ul>
-                <li><a class="hidden-xs" href="/feed.xml">订阅</a></li>
-                <li><a href="/series/">专题</a></li>
-                <li><a href="/archives/">归档</a></li>
-                <li><a href="/post/link.html">友链</a></li>
-                <li><a href="/post/about.html">关于</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="gkt-cate-nav" class="gkt-header-container hidden-xs">
-        
-        <nav class="gkt-header-nav float-left">
-            <ul>
-                
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/tensorflow-mnist-simplest.html">简明教程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tensorflow-mnist-simplest.html">TensorFlow 教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/pandas-dataframe-series.html">Pandas 数据处理</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tf2doc.html">TensorFlow2 文档</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-golang.html">Go 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-rust.html">Rust 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-python.html">Python 简明教程</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/blog-experience-1.html">杂谈 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/blog-experience-1.html">建站经历</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/2020.html">年终总结</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/qa-ml.html">面试 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-ml.html">机器学习面试题</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-golang.html">Go 语言面试题</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left active">
-                    <a class="float-left" href="/post/gee.html">从零实现 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/gee.html">Web框架 - Gee</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geecache.html">分布式缓存 - GeeCache</a></li>
-                        
-                        <li class="gkt-sub-cate-name active"><a class="float-left"
-                                href="/post/geeorm.html">ORM框架 - GeeORM</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geerpc.html">RPC框架 - GeeRPC</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/7days-golang-q1.html">7days-golang Q &amp; A</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/box-tools.html">百宝箱 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/box-tools.html">工具</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/cheat-sheet-sqlite.html">SQLite 速查表</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/high-performance-go.html">高性能编程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/high-performance-go.html">序言</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-benchmark.html">性能分析</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-string-concat.html">常用数据结构</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-mutex.html">并发编程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-reduce-size.html">编译优化</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-gotchas-array-slice.html">语言陷阱</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-            </ul>
-        </nav>
-    </div>
-</header>
-<div class="gkt-header-placeholder" style="height: 44px"></div>
-<div class="gkt-header-placeholder hidden-xs" style="height: 44px"></div>
-<script>
-    (function () {
-        window.addEventListener('scroll', function () {
-            if (window.innerWidth < 768) {
-                return;
-            }
-            var nav = document.querySelector('#gkt-nav');
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            scrollTop > 50 && (nav.classList.add('hide'));
-            scrollTop <= 50 && (nav.classList.remove('hide'));
-        });
-        var cateNavs = document.querySelectorAll('#gkt-cate-nav>nav>ul>li');
-        [].slice.call(cateNavs).forEach(function (item) {
-            var sub = item.querySelector('.gkt-sub-cate');
-            if (!sub) return;
-            item.addEventListener('mouseenter', function (e) { sub.style.display = 'block'; }, false);
-            item.addEventListener('mouseleave', function (e) { sub.style.display = 'none'; }, false);
-        })
-    })();
-</script>
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Main Content -->
-<main class="col-xs-12 padding-0 markdown-it">
-    <!-- Post Container -->
-    
-    
-    <!-- Post Content -->
-<style>
-  .markdown-it article h1, .markdown-it article h2, .markdown-it article h3 {
-    padding-top: 5px;
-    margin-top: 0px;
-  }
-  .post-container {
-    padding: 0 !important;
-    width: 100%;
-  }
-  .post-container article {
-    padding: 0 15px !important;
-  }
-  .gkt-book {
-    max-width: 80rem;
-    margin: 1rem auto;
-    display: flex;
-  }
-  .gkt-book-title {
-    color: #343a40;
-    font-size: 1.2em;
-  }
-  .gkt-sidebar-wrapper {
-    position: fixed;
-    margin-top: 15px;
-  }
-  .gkt-book-menu {
-    flex: 0 0 16rem;
-    padding-left: 15px;
-    padding-top: 5px;
-    z-index: 999;
-  }
-  .gkt-book-menu a {
-    color: #343a40;
-  }
-  .gkt-book-menu a.active {
-    color: #337ab7;
-  }
-  .gkt-book-menu > nav {
-    position: fixed;
-    overflow: auto;
-    padding-right: 15px;
-    height: 95%;
-    font-size: 0.85em;
-    line-height: 2;
-    -ms-overflow-style: none;
-    overflow: -moz-scrollbars-none;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-    border-left: 1px solid #eee;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-thumb {
-      background-color: #c1c1c1;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar {
-    width: 5px !important;
-  }
-  .gkt-book-menu hr {
-    padding: 2px;
-  }
-  .gkt-book-menu > nav > ul {
-    padding-left: 0;
-  }
-  .gkt-book-menu > nav ul,
-  .gkt-book-toc ul,
-  .gkt-book-toc ol {
-    list-style: none !important;
-  }
-  @media (min-width: 992px) {
-    .gkt-book-page {
-      width: calc(100% - 32rem);
-    }
-  }
-  .gkt-book-page {
-    min-width: 20rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-  .gkt-page-tips {
-    color: #555;
-    margin-top: -10px;
-  }
-  .gkt-book-toc {
-    flex: 0 0 16rem;
-    font-size: 0.85em;
-  }
-  .gkt-book .series_links {
-    border: 1px solid #eaecef;
-    padding: 0 15px;
-    background-color: #fff8dc;
-    margin-bottom: 20px;
-    border-radius: 5px;
-  }
-  .gkt-book-menu-icon {
-    padding: 0 15px;
-    font-size: 16px;
-    overflow: hidden;
-    cursor: pointer;
-  }
-  @media (max-width: 767px) {
-    .gkt-book-menu-hidden {
-      margin-left: -16rem;
-    }
-  }
-  .gkt-book-menu-checked {
-    opacity: 0.4;
-    margin-right: -16rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-</style>
-<div class="gkt-book post-container">
-  <aside class="gkt-book-menu gkt-book-menu-hidden">
-    <nav>
-      
-      <h3 class="text-center">
-        <a class="gkt-book-title" href="/post/gee.html">七天用Go从零实现系列</a>
-      </h3>
-      
-      <ul class="col-xs-12 text-center">
-        <li><a href="/">极客兔兔</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://github.com/geektutu">Github</a></li>
-        
-        <li><a href="https://geektutu.com/feed.xml">RSS</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie">知乎</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://weibo.com/geektutu">微博</a></li>
-        
-      </ul>
-      
-      <hr />
-      
-      <ul>
-        
-        <li>
-          <a>Web框架 - Gee</a>
-          <ul>
-            
-            <li><a href="/post/gee.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/gee-day1.html" class=" ">Day1 HTTP 基础</a></li>
-            
-            <li><a href="/post/gee-day2.html" class=" ">Day2 上下文</a></li>
-            
-            <li><a href="/post/gee-day3.html" class=" ">Day3 前缀树路由</a></li>
-            
-            <li><a href="/post/gee-day4.html" class=" ">Day4 分组控制</a></li>
-            
-            <li><a href="/post/gee-day5.html" class=" ">Day5 中间件</a></li>
-            
-            <li><a href="/post/gee-day6.html" class=" ">Day6 模板 Template</a></li>
-            
-            <li><a href="/post/gee-day7.html" class=" ">Day7 错误恢复</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>分布式缓存 - GeeCache</a>
-          <ul>
-            
-            <li><a href="/post/geecache.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/geecache-day1.html" class=" ">Day1 LRU 缓存淘汰策略</a></li>
-            
-            <li><a href="/post/geecache-day2.html" class=" ">Day2 单机并发缓存</a></li>
-            
-            <li><a href="/post/geecache-day3.html" class=" ">Day3 HTTP 服务端</a></li>
-            
-            <li><a href="/post/geecache-day4.html" class=" ">Day4 一致性哈希</a></li>
-            
-            <li><a href="/post/geecache-day5.html" class=" ">Day5 分布式节点</a></li>
-            
-            <li><a href="/post/geecache-day6.html" class=" ">Day6 防止缓存击穿</a></li>
-            
-            <li><a href="/post/geecache-day7.html" class=" ">Day7 使用 Protobuf 通信</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>ORM框架 - GeeORM</a>
-          <ul>
-            
-            <li><a href="/post/geeorm.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/geeorm-day1.html" class="active ">Day1 database/sql 基础</a></li>
-            
-            <li><a href="/post/geeorm-day2.html" class=" ">Day2 对象表结构映射</a></li>
-            
-            <li><a href="/post/geeorm-day3.html" class=" ">Day3 记录新增和查询</a></li>
-            
-            <li><a href="/post/geeorm-day4.html" class=" ">Day4 链式操作与更新删除</a></li>
-            
-            <li><a href="/post/geeorm-day5.html" class=" ">Day5 实现钩子</a></li>
-            
-            <li><a href="/post/geeorm-day6.html" class=" ">Day6 支持事务</a></li>
-            
-            <li><a href="/post/geeorm-day7.html" class=" ">Day7 数据库迁移</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>RPC框架 - GeeRPC</a>
-          <ul>
-            
-            <li><a href="/post/geerpc.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/geerpc-day1.html" class=" ">Day1 服务端与消息编码</a></li>
-            
-            <li><a href="/post/geerpc-day2.html" class=" ">Day2 高性能客户端</a></li>
-            
-            <li><a href="/post/geerpc-day3.html" class=" ">Day3 服务注册</a></li>
-            
-            <li><a href="/post/geerpc-day4.html" class=" ">Day4 超时处理</a></li>
-            
-            <li><a href="/post/geerpc-day5.html" class=" ">Day5 支持HTTP协议</a></li>
-            
-            <li><a href="/post/geerpc-day6.html" class=" ">Day6 负载均衡</a></li>
-            
-            <li><a href="/post/geerpc-day7.html" class=" ">Day7 服务发现与注册中心</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>7days-golang Q &amp; A</a>
-          <ul>
-            
-            <li><a href="/post/7days-golang-q1.html" class=" ">接口型函数</a></li>
-            
-          </ul>
-        </li>
-        
-      </ul>
-    </nav>
-  </aside>
-  <div class="gkt-book-page">
-    <div class="hidden-sm hidden-md hidden-lg gkt-book-menu-icon">
-      <label for="book-menu">
-        <svg class="float-left" name="book-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0V0z"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-      </label>
-      <strong class="float-right">七天用Go从零实现系列</strong>
-    </div>
-    <div class="u-arrow-wrapper hidden-xs">
-        
-        <a class="float-left" href="/post/cheat-sheet-sqlite.html"><i class="u-arrow-left"></i></a>
-        
-        
-        <a class="float-right" href="/post/geeorm-day2.html"><i class="u-arrow-right"></i></a>
-        
-    </div>
-    <article class="col-xs-12">
-      <h1>动手写ORM框架 - GeeORM第一天 database/sql 基础</h1>
-       
-      <div class="hidden-lg hidden-md hidden-sm series_links">
-        <p><strong> ORM框架 - GeeORM系列文章链接：</strong></p>
-        <ul>
-          
-          <li>
-            <a href="/post/geeorm.html">7天用Go从零实现ORM框架GeeORM</a>
-            <span class="post-item-date">(Mar 1, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/geeorm-day1.html">动手写ORM框架 - GeeORM第一天 database/sql 基础</a>
-            <span class="post-item-date">(Mar 7, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/geeorm-day2.html">动手写ORM框架 - GeeORM第二天 对象表结构映射</a>
-            <span class="post-item-date">(Mar 8, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/geeorm-day3.html">动手写ORM框架 - GeeORM第三天 记录新增和查询</a>
-            <span class="post-item-date">(Mar 8, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/geeorm-day4.html">动手写ORM框架 - GeeORM第四天 链式操作与更新删除</a>
-            <span class="post-item-date">(Mar 8, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/geeorm-day5.html">动手写ORM框架 - GeeORM第五天 实现钩子(Hooks)</a>
-            <span class="post-item-date">(Mar 8, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/geeorm-day6.html">动手写ORM框架 - GeeORM第六天 支持事务(Transaction)</a>
-            <span class="post-item-date">(Mar 8, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/geeorm-day7.html">动手写ORM框架 - GeeORM第七天 数据库迁移(Migrate)</a>
-            <span class="post-item-date">(Mar 8, 2020)</span>
-          </li>
-          
-        </ul>
-      </div>
-       
-      <blockquote>
-        <p>
-          源代码/数据集已上传到
-          <a href="https://github.com/geektutu/7days-golang" target="_blank" rel="noopener">Github - 7days-golang</a>
-        </p>
-      </blockquote>
-      
-      <div class="gkt-article-start"></div>
-      <p>本文是<a href="https://geektutu.com/post/geeorm.html">7天用Go从零实现ORM框架GeeORM</a>的第一篇。介绍了</p>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天用 Go语言/golang 从零实现 ORM 框架 GeeORM 教程(7 days implement golang object relational mapping framework from scratch tutorial)，动手写 ORM 框架，参照 gorm, xorm 的实现。介绍了 SQLite 的基础操作（连接数据库，创建表、增删记录等），使用 Go 标准库 database/sql 操作 SQLite 数据库，包括执行(Exec)，查询(Query, QueryRow)。"><title>动手写ORM框架 - GeeORM第一天 database/sql 基础 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.B88FlGyz.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-baseline gap-2"><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔<span class="text-accent">.</span></span><span class="hidden text-xs text-faint sm:inline">写书式技术博客</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/7days-golang" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天用Go从零实现系列</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Web 框架 Gee</span></div><ul><li><a href="/post/gee.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/gee-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 HTTP 基础</a></li><li><a href="/post/gee-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 上下文</a></li><li><a href="/post/gee-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 前缀树路由</a></li><li><a href="/post/gee-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 分组控制</a></li><li><a href="/post/gee-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 中间件</a></li><li><a href="/post/gee-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 模板 Template</a></li><li><a href="/post/gee-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 错误恢复</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">分布式缓存 GeeCache</span></div><ul><li><a href="/post/geecache.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/geecache-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 LRU 缓存淘汰策略</a></li><li><a href="/post/geecache-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 单机并发缓存</a></li><li><a href="/post/geecache-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 HTTP 服务端</a></li><li><a href="/post/geecache-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 一致性哈希</a></li><li><a href="/post/geecache-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 分布式节点</a></li><li><a href="/post/geecache-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 防止缓存击穿</a></li><li><a href="/post/geecache-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 使用 Protobuf 通信</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">ORM 框架 GeeORM</span></div><ul><li><a href="/post/geeorm.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/geeorm-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day1 database/sql 基础</a></li><li><a href="/post/geeorm-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 对象表结构映射</a></li><li><a href="/post/geeorm-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 记录新增和查询</a></li><li><a href="/post/geeorm-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 链式操作与更新删除</a></li><li><a href="/post/geeorm-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 实现钩子</a></li><li><a href="/post/geeorm-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 支持事务</a></li><li><a href="/post/geeorm-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 数据库迁移</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">RPC 框架 GeeRPC</span></div><ul><li><a href="/post/geerpc.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/geerpc-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 服务端与消息编码</a></li><li><a href="/post/geerpc-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 高性能客户端</a></li><li><a href="/post/geerpc-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 服务注册</a></li><li><a href="/post/geerpc-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 超时处理</a></li><li><a href="/post/geerpc-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 支持HTTP协议</a></li><li><a href="/post/geerpc-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 负载均衡</a></li><li><a href="/post/geerpc-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 服务发现与注册中心</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Q &amp; A</span></div><ul><li><a href="/post/7days-golang-q1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">接口型函数</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/7days-golang" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天用Go从零实现系列</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">动手写ORM框架 - GeeORM第一天 database/sql 基础</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2020-03-07">2020-03-07</time><span aria-hidden="true">·</span><span>约 8 分钟</span><a href="https://github.com/geektutu/7days-golang" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-golang" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-golang</a><span class="flex flex-wrap gap-2"><a href="/tags/Go" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Go</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#1-初识-sqlite" class="toc-link block text-muted" data-toc-depth="2">1 初识 SQLite</a></li><li style="padding-left:0rem"><a href="#2-databasesql-标准库" class="toc-link block text-muted" data-toc-depth="2">2 database/sql 标准库</a></li><li style="padding-left:0rem"><a href="#3-实现一个简单的-log-库" class="toc-link block text-muted" data-toc-depth="2">3 实现一个简单的 log 库</a></li><li style="padding-left:0rem"><a href="#4-核心结构-session" class="toc-link block text-muted" data-toc-depth="2">4 核心结构 Session</a></li><li style="padding-left:0rem"><a href="#5-核心结构-engine" class="toc-link block text-muted" data-toc-depth="2">5 核心结构 Engine</a></li><li style="padding-left:0rem"><a href="#6-测试" class="toc-link block text-muted" data-toc-depth="2">6 测试</a></li><li style="padding-left:0rem"><a href="#附-推荐阅读" class="toc-link block text-muted" data-toc-depth="2">附 推荐阅读</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><p>本文是<a href="https://geektutu.com/post/geeorm.html">7天用Go从零实现ORM框架GeeORM</a>的第一篇。介绍了</p>
 <ul>
 <li>SQLite 的基础操作（连接数据库，创建表、增删记录等）。</li>
 <li>使用 Go 语言标准库 database/sql 连接并操作 SQLite 数据库，并简单封装。<strong>代码约150行</strong></li>
 </ul>
-<h2 id="1-初识-SQLite"><a href="#1-初识-SQLite" class="headerlink" title="1 初识 SQLite"></a>1 初识 SQLite</h2><blockquote>
-<p>SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.<br>– <a target="_blank" rel="noopener" href="https://sqlite.org/index.html">SQLite 官网</a></p>
+<h2 id="1-初识-sqlite">1 初识 SQLite</h2>
+<blockquote>
+<p>SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.
+— <a href="https://sqlite.org/index.html">SQLite 官网</a></p>
 </blockquote>
 <p>SQLite 是一款轻量级的，遵守 ACID 事务原则的关系型数据库。SQLite 可以直接嵌入到代码中，不需要像 MySQL、PostgreSQL 需要启动独立的服务才能使用。SQLite 将数据存储在单一的磁盘文件中，使用起来非常方便。也非常适合初学者用来学习关系型数据的使用。GeeORM 的所有的开发和测试均基于 SQLite。</p>
 <p>在 Ubuntu 上，安装 SQLite 只需要一行命令，无需配置即可使用。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install sqlite3</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">apt-get</span><span style="color:#032F62"> install</span><span style="color:#032F62"> sqlite3</span></span></code></pre>
 <p>接下来，连接数据库(gee.db)，如若 gee.db 不存在，则会新建。如果连接成功，就进入到了 SQLite 的命令行模式，执行 <code>.help</code> 可以看到所有的帮助命令。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; sqlite3 gee.db</span><br><span class="line">SQLite version 3.22.0 2018-01-22 18:45:57</span><br><span class="line">Enter <span class="string">&quot;.help&quot;</span> <span class="keyword">for</span> usage hints.</span><br><span class="line">sqlite&gt;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#D73A49">></span><span style="color:#24292E"> sqlite3 gee.db</span></span>
+<span class="line"><span style="color:#6F42C1">SQLite</span><span style="color:#032F62"> version</span><span style="color:#005CC5"> 3.22.0</span><span style="color:#032F62"> 2018-01-22</span><span style="color:#032F62"> 18:45:57</span></span>
+<span class="line"><span style="color:#6F42C1">Enter</span><span style="color:#032F62"> ".help"</span><span style="color:#032F62"> for</span><span style="color:#032F62"> usage</span><span style="color:#032F62"> hints.</span></span>
+<span class="line"><span style="color:#6F42C1">sqlite</span><span style="color:#24292E">></span></span></code></pre>
 <p>使用 SQL 语句新建一张表 <code>User</code>，包含两个字段，字符串 Name 和 整型 Age。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlite&gt; CREATE TABLE User(Name text, Age <span class="built_in">integer</span>);</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">sqlite</span><span style="color:#24292E">> </span><span style="color:#032F62">CREATE</span><span style="color:#032F62"> TABLE</span><span style="color:#032F62"> User</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Name</span><span style="color:#032F62"> text,</span><span style="color:#032F62"> Age</span><span style="color:#032F62"> integer</span><span style="color:#24292E">);</span></span></code></pre>
 <p>插入两条数据</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlite&gt; INSERT INTO User(Name, Age) VALUES (<span class="string">&quot;Tom&quot;</span>, 18), (<span class="string">&quot;Jack&quot;</span>, 25);</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">sqlite</span><span style="color:#24292E">> </span><span style="color:#032F62">INSERT</span><span style="color:#032F62"> INTO</span><span style="color:#032F62"> User</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Name,</span><span style="color:#032F62"> Age</span><span style="color:#24292E">) </span><span style="color:#032F62">VALUES</span><span style="color:#24292E"> (</span><span style="color:#032F62">"Tom"</span><span style="color:#24292E">, </span><span style="color:#005CC5">18</span><span style="color:#24292E">), (</span><span style="color:#6F42C1">"Jack"</span><span style="color:#6F42C1">,</span><span style="color:#005CC5"> 25</span><span style="color:#24292E">);</span></span></code></pre>
 <p>执行简单的查询操作，在执行之前使用 <code>.head on</code> 打开显示列名的开关，这样查询结果看上去更直观。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sqlite&gt; .<span class="built_in">head</span> on</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查找 `Age &gt; 20` 的记录；</span></span><br><span class="line">sqlite&gt; SELECT * FROM User WHERE Age &gt; 20;</span><br><span class="line">Name|Age</span><br><span class="line">Jack|25</span><br><span class="line"></span><br><span class="line"><span class="comment"># 统计记录个数。</span></span><br><span class="line">sqlite&gt; SELECT COUNT(*) FROM User;</span><br><span class="line">COUNT(*)</span><br><span class="line">2</span><br></pre></td></tr></table></figure>
-
-<p>使用 <code>.table</code> 查看当前数据库中所有的表(table)，执行 <code>.schema &lt;table&gt;</code> 查看建表的 SQL 语句。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sqlite&gt; .table</span><br><span class="line">User</span><br><span class="line"></span><br><span class="line">sqlite&gt; .schema User</span><br><span class="line">CREATE TABLE User(Name text, Age <span class="built_in">integer</span>);</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">sqlite</span><span style="color:#24292E">> </span><span style="color:#032F62">.head</span><span style="color:#032F62"> on</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 查找 `Age > 20` 的记录；</span></span>
+<span class="line"><span style="color:#6F42C1">sqlite</span><span style="color:#24292E">> </span><span style="color:#032F62">SELECT</span><span style="color:#005CC5"> *</span><span style="color:#032F62"> FROM</span><span style="color:#032F62"> User</span><span style="color:#032F62"> WHERE</span><span style="color:#032F62"> Age</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 20</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6F42C1">Name</span><span style="color:#D73A49">|</span><span style="color:#6F42C1">Age</span></span>
+<span class="line"><span style="color:#6F42C1">Jack</span><span style="color:#D73A49">|</span><span style="color:#6F42C1">25</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 统计记录个数。</span></span>
+<span class="line"><span style="color:#6F42C1">sqlite</span><span style="color:#24292E">> </span><span style="color:#032F62">SELECT</span><span style="color:#032F62"> COUNT</span><span style="color:#24292E">(</span><span style="color:#D73A49">*</span><span style="color:#24292E">) </span><span style="color:#032F62">FROM</span><span style="color:#032F62"> User</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6F42C1">COUNT(*</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6F42C1">2</span></span></code></pre>
+<p>使用 <code>.table</code> 查看当前数据库中所有的表(table)，执行 <code>.schema &#x3C;table></code> 查看建表的 SQL 语句。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">sqlite</span><span style="color:#24292E">> </span><span style="color:#032F62">.table</span></span>
+<span class="line"><span style="color:#6F42C1">User</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">sqlite</span><span style="color:#24292E">> </span><span style="color:#032F62">.schema</span><span style="color:#032F62"> User</span></span>
+<span class="line"><span style="color:#6F42C1">CREATE</span><span style="color:#032F62"> TABLE</span><span style="color:#032F62"> User</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Name</span><span style="color:#032F62"> text,</span><span style="color:#032F62"> Age</span><span style="color:#032F62"> integer</span><span style="color:#24292E">);</span></span></code></pre>
 <p>SQLite 的使用暂时介绍这么多，了解了以上使用方法已经足够我们完成今天的任务了。如果想了解更多用法，可参考 <a href="https://geektutu.com/post/cheat-sheet-sqlite.html">SQLite 常用命令</a>。</p>
-<h2 id="2-database-sql-标准库"><a href="#2-database-sql-标准库" class="headerlink" title="2 database/sql 标准库"></a>2 database/sql 标准库</h2><p>Go 语言提供了标准库 <code>database/sql</code> 用于和数据库的交互，接下来我们写一个 Demo，看一看这个库的用法。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;database/sql&quot;</span></span><br><span class="line">	<span class="string">&quot;log&quot;</span></span><br><span class="line">	</span><br><span class="line">	_ <span class="string">&quot;github.com/mattn/go-sqlite3&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	db, _ := sql.Open(<span class="string">&quot;sqlite3&quot;</span>, <span class="string">&quot;gee.db&quot;</span>)</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; _ = db.Close() &#125;()</span><br><span class="line">	_, _ = db.Exec(<span class="string">&quot;DROP TABLE IF EXISTS User;&quot;</span>)</span><br><span class="line">	_, _ = db.Exec(<span class="string">&quot;CREATE TABLE User(Name text);&quot;</span>)</span><br><span class="line">	result, err := db.Exec(<span class="string">&quot;INSERT INTO User(`Name`) values (?), (?)&quot;</span>, <span class="string">&quot;Tom&quot;</span>, <span class="string">&quot;Sam&quot;</span>)</span><br><span class="line">	<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">		affected, _ := result.RowsAffected()</span><br><span class="line">		log.Println(affected)</span><br><span class="line">	&#125;</span><br><span class="line">	row := db.QueryRow(<span class="string">&quot;SELECT Name FROM User LIMIT 1&quot;</span>)</span><br><span class="line">	<span class="keyword">var</span> name <span class="type">string</span></span><br><span class="line">	<span class="keyword">if</span> err := row.Scan(&amp;name); err == <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Println(name)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h2 id="2-databasesql-标准库">2 database/sql 标准库</h2>
+<p>Go 语言提供了标准库 <code>database/sql</code> 用于和数据库的交互，接下来我们写一个 Demo，看一看这个库的用法。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">database/sql</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">log</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">	</span></span>
+<span class="line"><span style="color:#24292E">	_ </span><span style="color:#032F62">"</span><span style="color:#6F42C1">github.com/mattn/go-sqlite3</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	db, _ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> sql.</span><span style="color:#6F42C1">Open</span><span style="color:#24292E">(</span><span style="color:#032F62">"sqlite3"</span><span style="color:#24292E">, </span><span style="color:#032F62">"gee.db"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	defer</span><span style="color:#D73A49"> func</span><span style="color:#24292E">() { _ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> db.</span><span style="color:#6F42C1">Close</span><span style="color:#24292E">() }()</span></span>
+<span class="line"><span style="color:#24292E">	_, _ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> db.</span><span style="color:#6F42C1">Exec</span><span style="color:#24292E">(</span><span style="color:#032F62">"DROP TABLE IF EXISTS User;"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	_, _ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> db.</span><span style="color:#6F42C1">Exec</span><span style="color:#24292E">(</span><span style="color:#032F62">"CREATE TABLE User(Name text);"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	result, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> db.</span><span style="color:#6F42C1">Exec</span><span style="color:#24292E">(</span><span style="color:#032F62">"INSERT INTO User(`Name`) values (?), (?)"</span><span style="color:#24292E">, </span><span style="color:#032F62">"Tom"</span><span style="color:#24292E">, </span><span style="color:#032F62">"Sam"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		affected, _ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> result.</span><span style="color:#6F42C1">RowsAffected</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(affected)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">	row </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> db.</span><span style="color:#6F42C1">QueryRow</span><span style="color:#24292E">(</span><span style="color:#032F62">"SELECT Name FROM User LIMIT 1"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> name </span><span style="color:#D73A49">string</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> row.</span><span style="color:#6F42C1">Scan</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">name); err </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(name)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <blockquote>
-<p>go-sqlite3 依赖于 gcc，如果这份代码在 Windows 上运行的话，需要安装 <a target="_blank" rel="noopener" href="http://mingw.org/">mingw</a> 或其他包含有 gcc 编译器的工具包。</p>
+<p>go-sqlite3 依赖于 gcc，如果这份代码在 Windows 上运行的话，需要安装 <a href="http://mingw.org/">mingw</a> 或其他包含有 gcc 编译器的工具包。</p>
 </blockquote>
 <p>执行 <code>go run .</code>，输出如下。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; go run .</span><br><span class="line">2020/03/07 20:28:37 2</span><br><span class="line">2020/03/07 20:28:37 Tom</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#D73A49">></span><span style="color:#24292E"> go run </span><span style="color:#005CC5">.</span></span>
+<span class="line"><span style="color:#6F42C1">2020/03/07</span><span style="color:#032F62"> 20:28:37</span><span style="color:#005CC5"> 2</span></span>
+<span class="line"><span style="color:#6F42C1">2020/03/07</span><span style="color:#032F62"> 20:28:37</span><span style="color:#032F62"> Tom</span></span></code></pre>
 <ul>
-<li>使用 <code>sql.Open()</code> 连接数据库，第一个参数是驱动名称，import 语句 <code>_ &quot;github.com/mattn/go-sqlite3&quot;</code> 包导入时会注册 sqlite3 的驱动，第二个参数是数据库的名称，对于 SQLite 来说，也就是文件名，不存在会新建。返回一个 <code>sql.DB</code> 实例的指针。</li>
+<li>使用 <code>sql.Open()</code> 连接数据库，第一个参数是驱动名称，import 语句 <code>_ "github.com/mattn/go-sqlite3"</code> 包导入时会注册 sqlite3 的驱动，第二个参数是数据库的名称，对于 SQLite 来说，也就是文件名，不存在会新建。返回一个 <code>sql.DB</code> 实例的指针。</li>
 <li><code>Exec()</code> 用于执行 SQL 语句，如果是查询语句，不会返回相关的记录。所以查询语句通常使用 <code>Query()</code> 和 <code>QueryRow()</code>，前者可以返回多条记录，后者只返回一条记录。</li>
 <li><code>Exec()</code>、<code>Query()</code>、<code>QueryRow()</code> 接受1或多个入参，第一个入参是 SQL 语句，后面的入参是 SQL 语句中的占位符 <code>?</code> 对应的值，占位符一般用来防 SQL 注入。</li>
-<li><code>QueryRow()</code> 的返回值类型是 <code>*sql.Row</code>，<code>row.Scan()</code> 接受1或多个指针作为参数，可以获取对应列(column)的值，在这个示例中，只有 <code>Name</code> 一列，因此传入字符串指针 <code>&amp;name</code> 即可获取到查询的结果。</li>
+<li><code>QueryRow()</code> 的返回值类型是 <code>*sql.Row</code>，<code>row.Scan()</code> 接受1或多个指针作为参数，可以获取对应列(column)的值，在这个示例中，只有 <code>Name</code> 一列，因此传入字符串指针 <code>&#x26;name</code> 即可获取到查询的结果。</li>
 </ul>
 <p>掌握了基础的 SQL 语句和 Go 标准库 <code>database/sql</code> 的使用，可以开始实现 ORM 框架的雏形了。</p>
-<h2 id="3-实现一个简单的-log-库"><a href="#3-实现一个简单的-log-库" class="headerlink" title="3 实现一个简单的 log 库"></a>3 实现一个简单的 log 库</h2><p>开发一个框架/库并不容易，详细的日志能够帮助我们快速地定位问题。因此，在写核心代码之前，我们先用几十行代码实现一个简单的 log 库。</p>
+<h2 id="3-实现一个简单的-log-库">3 实现一个简单的 log 库</h2>
+<p>开发一个框架/库并不容易，详细的日志能够帮助我们快速地定位问题。因此，在写核心代码之前，我们先用几十行代码实现一个简单的 log 库。</p>
 <blockquote>
 <p>为什么不直接使用原生的 log 库呢？log 标准库没有日志分级，不打印文件和行号，这就意味着我们很难快速知道是哪个地方发生了错误。</p>
 </blockquote>
@@ -622,604 +99,303 @@
 <li>不同层级日志显示时使用不同的颜色区分。</li>
 <li>显示打印日志代码对应的文件名和行号。</li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go mod init geeorm</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">go</span><span style="color:#032F62"> mod</span><span style="color:#032F62"> init</span><span style="color:#032F62"> geeorm</span></span></code></pre>
 <p>首先创建一个名为 geeorm 的 module，并新建文件 log/log.go，用于放置和日志相关的代码。GeeORM 现在长这个样子：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">day1-database-sql/</span><br><span class="line">    |--<span class="built_in">log</span>/</span><br><span class="line">        |--log.go</span><br><span class="line">    |--go.mod</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">day1-database-sql/</span></span>
+<span class="line"><span style="color:#D73A49">    |</span><span style="color:#6F42C1">--log/</span></span>
+<span class="line"><span style="color:#D73A49">        |</span><span style="color:#6F42C1">--log.go</span></span>
+<span class="line"><span style="color:#D73A49">    |</span><span style="color:#6F42C1">--go.mod</span></span></code></pre>
 <p>第一步，创建 2 个日志实例分别用于打印 Info 和 Error 日志。</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/geektutu/7days-golang/tree/master/gee-orm/day1-database-sql/log">day1-database-sql/log/log.go</a></p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> log</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;io/ioutil&quot;</span></span><br><span class="line">	<span class="string">&quot;log&quot;</span></span><br><span class="line">	<span class="string">&quot;os&quot;</span></span><br><span class="line">	<span class="string">&quot;sync&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">	errorLog = log.New(os.Stdout, <span class="string">&quot;\033[31m[error]\033[0m &quot;</span>, log.LstdFlags|log.Lshortfile)</span><br><span class="line">	infoLog  = log.New(os.Stdout, <span class="string">&quot;\033[34m[info ]\033[0m &quot;</span>, log.LstdFlags|log.Lshortfile)</span><br><span class="line">	loggers  = []*log.Logger&#123;errorLog, infoLog&#125;</span><br><span class="line">	mu       sync.Mutex</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// log methods</span></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">	Error  = errorLog.Println</span><br><span class="line">	Errorf = errorLog.Printf</span><br><span class="line">	Info   = infoLog.Println</span><br><span class="line">	Infof  = infoLog.Printf</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
+<p><a href="https://github.com/geektutu/7days-golang/tree/master/gee-orm/day1-database-sql/log">day1-database-sql/log/log.go</a></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> log</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">io/ioutil</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">log</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">os</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">sync</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#24292E">	errorLog </span><span style="color:#D73A49">=</span><span style="color:#24292E"> log.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(os.Stdout, </span><span style="color:#032F62">"</span><span style="color:#005CC5">\033</span><span style="color:#032F62">[31m[error]</span><span style="color:#005CC5">\033</span><span style="color:#032F62">[0m "</span><span style="color:#24292E">, log.LstdFlags</span><span style="color:#D73A49">|</span><span style="color:#24292E">log.Lshortfile)</span></span>
+<span class="line"><span style="color:#24292E">	infoLog  </span><span style="color:#D73A49">=</span><span style="color:#24292E"> log.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(os.Stdout, </span><span style="color:#032F62">"</span><span style="color:#005CC5">\033</span><span style="color:#032F62">[34m[info ]</span><span style="color:#005CC5">\033</span><span style="color:#032F62">[0m "</span><span style="color:#24292E">, log.LstdFlags</span><span style="color:#D73A49">|</span><span style="color:#24292E">log.Lshortfile)</span></span>
+<span class="line"><span style="color:#24292E">	loggers  </span><span style="color:#D73A49">=</span><span style="color:#24292E"> []</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">log</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Logger</span><span style="color:#24292E">{errorLog, infoLog}</span></span>
+<span class="line"><span style="color:#24292E">	mu       </span><span style="color:#6F42C1">sync</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Mutex</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// log methods</span></span>
+<span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#24292E">	Error  </span><span style="color:#D73A49">=</span><span style="color:#24292E"> errorLog.Println</span></span>
+<span class="line"><span style="color:#24292E">	Errorf </span><span style="color:#D73A49">=</span><span style="color:#24292E"> errorLog.Printf</span></span>
+<span class="line"><span style="color:#24292E">	Info   </span><span style="color:#D73A49">=</span><span style="color:#24292E"> infoLog.Println</span></span>
+<span class="line"><span style="color:#24292E">	Infof  </span><span style="color:#D73A49">=</span><span style="color:#24292E"> infoLog.Printf</span></span>
+<span class="line"><span style="color:#24292E">)</span></span></code></pre>
 <ul>
 <li><code>[info ]</code> 颜色为蓝色，<code>[error]</code> 为红色。</li>
 <li>使用 <code>log.Lshortfile</code> 支持显示文件名和代码行号。</li>
 <li>暴露 <code>Error</code>，<code>Errorf</code>，<code>Info</code>，<code>Infof</code> 4个方法。</li>
 </ul>
 <p>第二步呢，支持设置日志的层级(InfoLevel, ErrorLevel, Disabled)。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// log levels</span></span><br><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	InfoLevel = <span class="literal">iota</span></span><br><span class="line">	ErrorLevel</span><br><span class="line">	Disabled</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// SetLevel controls log level</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SetLevel</span><span class="params">(level <span class="type">int</span>)</span></span> &#123;</span><br><span class="line">	mu.Lock()</span><br><span class="line">	<span class="keyword">defer</span> mu.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, logger := <span class="keyword">range</span> loggers &#123;</span><br><span class="line">		logger.SetOutput(os.Stdout)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ErrorLevel &lt; level &#123;</span><br><span class="line">		errorLog.SetOutput(ioutil.Discard)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> InfoLevel &lt; level &#123;</span><br><span class="line">		infoLog.SetOutput(ioutil.Discard)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// log levels</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#005CC5">	InfoLevel</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> iota</span></span>
+<span class="line"><span style="color:#005CC5">	ErrorLevel</span></span>
+<span class="line"><span style="color:#005CC5">	Disabled</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// SetLevel controls log level</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> SetLevel</span><span style="color:#24292E">(</span><span style="color:#E36209">level</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	mu.</span><span style="color:#6F42C1">Lock</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#D73A49">	defer</span><span style="color:#24292E"> mu.</span><span style="color:#6F42C1">Unlock</span><span style="color:#24292E">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> _, logger </span><span style="color:#D73A49">:=</span><span style="color:#D73A49"> range</span><span style="color:#24292E"> loggers {</span></span>
+<span class="line"><span style="color:#24292E">		logger.</span><span style="color:#6F42C1">SetOutput</span><span style="color:#24292E">(os.Stdout)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> ErrorLevel </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> level {</span></span>
+<span class="line"><span style="color:#24292E">		errorLog.</span><span style="color:#6F42C1">SetOutput</span><span style="color:#24292E">(ioutil.Discard)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> InfoLevel </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> level {</span></span>
+<span class="line"><span style="color:#24292E">		infoLog.</span><span style="color:#6F42C1">SetOutput</span><span style="color:#24292E">(ioutil.Discard)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>这一部分的实现非常简单，三个层级声明为三个常量，通过控制 <code>Output</code>，来控制日志是否打印。</li>
 <li>如果设置为 ErrorLevel，infoLog 的输出会被定向到 <code>ioutil.Discard</code>，即不打印该日志。</li>
 </ul>
 <p>至此呢，一个简单的支持分级的 log 库就实现完成了。</p>
-<h2 id="4-核心结构-Session"><a href="#4-核心结构-Session" class="headerlink" title="4 核心结构 Session"></a>4 核心结构 Session</h2><p>我们在根目录下新建一个文件夹 session，用于实现与数据库的交互。今天我们只实现直接调用 SQL 语句进行原生交互的部分，这部分代码实现在 <code>session/raw.go</code> 中。</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/geektutu/7days-golang/tree/master/gee-orm/day1-database-sql/session">day1-database-sql/session/raw.go</a></p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> session</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;database/sql&quot;</span></span><br><span class="line">	<span class="string">&quot;geeorm/log&quot;</span></span><br><span class="line">	<span class="string">&quot;strings&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Session <span class="keyword">struct</span> &#123;</span><br><span class="line">	db      *sql.DB</span><br><span class="line">	sql     strings.Builder</span><br><span class="line">	sqlVars []<span class="keyword">interface</span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">New</span><span class="params">(db *sql.DB)</span></span> *Session &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;Session&#123;db: db&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Session)</span></span> Clear() &#123;</span><br><span class="line">	s.sql.Reset()</span><br><span class="line">	s.sqlVars = <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Session)</span></span> DB() *sql.DB &#123;</span><br><span class="line">	<span class="keyword">return</span> s.db</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Session)</span></span> Raw(sql <span class="type">string</span>, values ...<span class="keyword">interface</span>&#123;&#125;) *Session &#123;</span><br><span class="line">	s.sql.WriteString(sql)</span><br><span class="line">	s.sql.WriteString(<span class="string">&quot; &quot;</span>)</span><br><span class="line">	s.sqlVars = <span class="built_in">append</span>(s.sqlVars, values...)</span><br><span class="line">	<span class="keyword">return</span> s</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h2 id="4-核心结构-session">4 核心结构 Session</h2>
+<p>我们在根目录下新建一个文件夹 session，用于实现与数据库的交互。今天我们只实现直接调用 SQL 语句进行原生交互的部分，这部分代码实现在 <code>session/raw.go</code> 中。</p>
+<p><a href="https://github.com/geektutu/7days-golang/tree/master/gee-orm/day1-database-sql/session">day1-database-sql/session/raw.go</a></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> session</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">database/sql</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">geeorm/log</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">strings</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Session</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	db      </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">sql</span><span style="color:#24292E">.</span><span style="color:#6F42C1">DB</span></span>
+<span class="line"><span style="color:#24292E">	sql     </span><span style="color:#6F42C1">strings</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Builder</span></span>
+<span class="line"><span style="color:#24292E">	sqlVars []</span><span style="color:#D73A49">interface</span><span style="color:#24292E">{}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> New</span><span style="color:#24292E">(</span><span style="color:#E36209">db</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">sql</span><span style="color:#24292E">.</span><span style="color:#6F42C1">DB</span><span style="color:#24292E">) </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Session</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#D73A49"> &#x26;</span><span style="color:#6F42C1">Session</span><span style="color:#24292E">{db: db}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">s </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Session</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Clear</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	s.sql.</span><span style="color:#6F42C1">Reset</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	s.sqlVars </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> nil</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">s </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Session</span><span style="color:#24292E">) </span><span style="color:#6F42C1">DB</span><span style="color:#24292E">() </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">sql</span><span style="color:#24292E">.</span><span style="color:#6F42C1">DB</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> s.db</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">s </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Session</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Raw</span><span style="color:#24292E">(</span><span style="color:#E36209">sql</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">values</span><span style="color:#D73A49"> ...interface</span><span style="color:#24292E">{}) </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Session</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	s.sql.</span><span style="color:#6F42C1">WriteString</span><span style="color:#24292E">(sql)</span></span>
+<span class="line"><span style="color:#24292E">	s.sql.</span><span style="color:#6F42C1">WriteString</span><span style="color:#24292E">(</span><span style="color:#032F62">" "</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	s.sqlVars </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> append</span><span style="color:#24292E">(s.sqlVars, values</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> s</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>Session 结构体目前只包含三个成员变量，第一个是 <code>db *sql.DB</code>，即使用 <code>sql.Open()</code> 方法连接数据库成功之后返回的指针。</li>
 <li>第二个和第三个成员变量用来拼接 SQL 语句和 SQL 语句中占位符的对应值。用户调用 <code>Raw()</code> 方法即可改变这两个变量的值。</li>
 </ul>
 <p>接下来呢，封装 <code>Exec()</code>、<code>Query()</code> 和 <code>QueryRow()</code> 三个原生方法。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Exec raw sql with sqlVars</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Session)</span></span> Exec() (result sql.Result, err <span class="type">error</span>) &#123;</span><br><span class="line">	<span class="keyword">defer</span> s.Clear()</span><br><span class="line">	log.Info(s.sql.String(), s.sqlVars)</span><br><span class="line">	<span class="keyword">if</span> result, err = s.DB().Exec(s.sql.String(), s.sqlVars...); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// QueryRow gets a record from db</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Session)</span></span> QueryRow() *sql.Row &#123;</span><br><span class="line">	<span class="keyword">defer</span> s.Clear()</span><br><span class="line">	log.Info(s.sql.String(), s.sqlVars)</span><br><span class="line">	<span class="keyword">return</span> s.DB().QueryRow(s.sql.String(), s.sqlVars...)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// QueryRows gets a list of records from db</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Session)</span></span> QueryRows() (rows *sql.Rows, err <span class="type">error</span>) &#123;</span><br><span class="line">	<span class="keyword">defer</span> s.Clear()</span><br><span class="line">	log.Info(s.sql.String(), s.sqlVars)</span><br><span class="line">	<span class="keyword">if</span> rows, err = s.DB().Query(s.sql.String(), s.sqlVars...); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// Exec raw sql with sqlVars</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">s </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Session</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Exec</span><span style="color:#24292E">() (</span><span style="color:#E36209">result</span><span style="color:#6F42C1"> sql</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Result</span><span style="color:#24292E">, </span><span style="color:#E36209">err</span><span style="color:#D73A49"> error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	defer</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">Clear</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	log.</span><span style="color:#6F42C1">Info</span><span style="color:#24292E">(s.sql.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(), s.sqlVars)</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> result, err </span><span style="color:#D73A49">=</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">DB</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Exec</span><span style="color:#24292E">(s.sql.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(), s.sqlVars</span><span style="color:#D73A49">...</span><span style="color:#24292E">); err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(err)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// QueryRow gets a record from db</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">s </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Session</span><span style="color:#24292E">) </span><span style="color:#6F42C1">QueryRow</span><span style="color:#24292E">() </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">sql</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Row</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	defer</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">Clear</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	log.</span><span style="color:#6F42C1">Info</span><span style="color:#24292E">(s.sql.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(), s.sqlVars)</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">DB</span><span style="color:#24292E">().</span><span style="color:#6F42C1">QueryRow</span><span style="color:#24292E">(s.sql.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(), s.sqlVars</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// QueryRows gets a list of records from db</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">s </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Session</span><span style="color:#24292E">) </span><span style="color:#6F42C1">QueryRows</span><span style="color:#24292E">() (</span><span style="color:#E36209">rows</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">sql</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Rows</span><span style="color:#24292E">, </span><span style="color:#E36209">err</span><span style="color:#D73A49"> error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	defer</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">Clear</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	log.</span><span style="color:#6F42C1">Info</span><span style="color:#24292E">(s.sql.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(), s.sqlVars)</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> rows, err </span><span style="color:#D73A49">=</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">DB</span><span style="color:#24292E">().</span><span style="color:#6F42C1">Query</span><span style="color:#24292E">(s.sql.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(), s.sqlVars</span><span style="color:#D73A49">...</span><span style="color:#24292E">); err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(err)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>封装有 2 个目的，一是统一打印日志（包括 执行的SQL 语句和错误日志）。</li>
 <li>二是执行完成后，清空 <code>(s *Session).sql</code> 和 <code>(s *Session).sqlVars</code> 两个变量。这样 Session 可以复用，开启一次会话，可以执行多次 SQL。</li>
 </ul>
-<h2 id="5-核心结构-Engine"><a href="#5-核心结构-Engine" class="headerlink" title="5 核心结构 Engine"></a>5 核心结构 Engine</h2><p>Session 负责与数据库的交互，那交互前的准备工作（比如连接/测试数据库），交互后的收尾工作（关闭连接）等就交给 Engine 来负责了。Engine 是 GeeORM 与用户交互的入口。代码位于根目录的 <code>geeorm.go</code>。</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/geektutu/7days-golang/tree/master/gee-orm/day1-database-sql">day1-database-sql/geeorm.go</a></p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> geeorm</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;database/sql&quot;</span></span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;geeorm/log&quot;</span></span><br><span class="line">	<span class="string">&quot;geeorm/session&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Engine <span class="keyword">struct</span> &#123;</span><br><span class="line">	db *sql.DB</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewEngine</span><span class="params">(driver, source <span class="type">string</span>)</span></span> (e *Engine, err <span class="type">error</span>) &#123;</span><br><span class="line">	db, err := sql.Open(driver, source)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// Send a ping to make sure the database connection is alive.</span></span><br><span class="line">	<span class="keyword">if</span> err = db.Ping(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	e = &amp;Engine&#123;db: db&#125;</span><br><span class="line">	log.Info(<span class="string">&quot;Connect database success&quot;</span>)</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(engine *Engine)</span></span> Close() &#123;</span><br><span class="line">	<span class="keyword">if</span> err := engine.db.Close(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Error(<span class="string">&quot;Failed to close database&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	log.Info(<span class="string">&quot;Close database success&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(engine *Engine)</span></span> NewSession() *session.Session &#123;</span><br><span class="line">	<span class="keyword">return</span> session.New(engine.db)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h2 id="5-核心结构-engine">5 核心结构 Engine</h2>
+<p>Session 负责与数据库的交互，那交互前的准备工作（比如连接/测试数据库），交互后的收尾工作（关闭连接）等就交给 Engine 来负责了。Engine 是 GeeORM 与用户交互的入口。代码位于根目录的 <code>geeorm.go</code>。</p>
+<p><a href="https://github.com/geektutu/7days-golang/tree/master/gee-orm/day1-database-sql">day1-database-sql/geeorm.go</a></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> geeorm</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">database/sql</span><span style="color:#032F62">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">geeorm/log</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">geeorm/session</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Engine</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	db </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">sql</span><span style="color:#24292E">.</span><span style="color:#6F42C1">DB</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> NewEngine</span><span style="color:#24292E">(</span><span style="color:#E36209">driver</span><span style="color:#24292E">, </span><span style="color:#E36209">source</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) (</span><span style="color:#E36209">e</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">Engine</span><span style="color:#24292E">, </span><span style="color:#E36209">err</span><span style="color:#D73A49"> error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	db, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> sql.</span><span style="color:#6F42C1">Open</span><span style="color:#24292E">(driver, source)</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(err)</span></span>
+<span class="line"><span style="color:#D73A49">		return</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#6A737D">	// Send a ping to make sure the database connection is alive.</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">=</span><span style="color:#24292E"> db.</span><span style="color:#6F42C1">Ping</span><span style="color:#24292E">(); err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(err)</span></span>
+<span class="line"><span style="color:#D73A49">		return</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">	e </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#6F42C1">Engine</span><span style="color:#24292E">{db: db}</span></span>
+<span class="line"><span style="color:#24292E">	log.</span><span style="color:#6F42C1">Info</span><span style="color:#24292E">(</span><span style="color:#032F62">"Connect database success"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	return</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">engine </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Engine</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Close</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> engine.db.</span><span style="color:#6F42C1">Close</span><span style="color:#24292E">(); err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Error</span><span style="color:#24292E">(</span><span style="color:#032F62">"Failed to close database"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">	log.</span><span style="color:#6F42C1">Info</span><span style="color:#24292E">(</span><span style="color:#032F62">"Close database success"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">engine </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Engine</span><span style="color:#24292E">) </span><span style="color:#6F42C1">NewSession</span><span style="color:#24292E">() </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">session</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Session</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> session.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(engine.db)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>Engine 的逻辑非常简单，最重要的方法是 <code>NewEngine</code>，<code>NewEngine</code> 主要做了两件事。</p>
 <ul>
 <li>连接数据库，返回 <code>*sql.DB</code>。</li>
 <li>调用 <code>db.Ping()</code>，检查数据库是否能够正常连接。</li>
 </ul>
 <p>另外呢，提供了 Engine 提供了 <code>NewSession()</code> 方法，这样可以通过 <code>Engine</code> 实例创建会话，进而与数据库进行交互了。到这一步，整个 GeeORM 的框架雏形已经出来了。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">day1-database-sql/</span><br><span class="line">    |--<span class="built_in">log</span>/          <span class="comment"># 日志</span></span><br><span class="line">        |--log.go</span><br><span class="line">    |--session/      <span class="comment"># 数据库交互</span></span><br><span class="line">        |--raw.go</span><br><span class="line">    |--geeorm.go     <span class="comment"># 用户交互</span></span><br><span class="line">    |--go.mod </span><br></pre></td></tr></table></figure>
-
-<h2 id="6-测试"><a href="#6-测试" class="headerlink" title="6 测试"></a>6 测试</h2><p>GeeORM 的单元测试是比较完备的，可以参考 <code>log_test.go</code>、<code>raw_test.go</code> 和 <code>geeorm_test.go</code> 等几个测试文件，在这里呢，就不一一讲解了。接下来呢，我们将 geeorm 视为第三方库来使用。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">day1-database-sql/</span></span>
+<span class="line"><span style="color:#D73A49">    |</span><span style="color:#6F42C1">--log/</span><span style="color:#6A737D">          # 日志</span></span>
+<span class="line"><span style="color:#D73A49">        |</span><span style="color:#6F42C1">--log.go</span></span>
+<span class="line"><span style="color:#D73A49">    |</span><span style="color:#6F42C1">--session/</span><span style="color:#6A737D">      # 数据库交互</span></span>
+<span class="line"><span style="color:#D73A49">        |</span><span style="color:#6F42C1">--raw.go</span></span>
+<span class="line"><span style="color:#D73A49">    |</span><span style="color:#6F42C1">--geeorm.go</span><span style="color:#6A737D">     # 用户交互</span></span>
+<span class="line"><span style="color:#D73A49">    |</span><span style="color:#6F42C1">--go.mod</span><span style="color:#24292E"> </span></span></code></pre>
+<h2 id="6-测试">6 测试</h2>
+<p>GeeORM 的单元测试是比较完备的，可以参考 <code>log_test.go</code>、<code>raw_test.go</code> 和 <code>geeorm_test.go</code> 等几个测试文件，在这里呢，就不一一讲解了。接下来呢，我们将 geeorm 视为第三方库来使用。</p>
 <p>在根目录下新建 cmd_test 目录放置测试代码，新建文件 main.go。</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/geektutu/7days-golang/tree/master/gee-orm/day1-database-sql/cmd_test">day1-database-sql/cmd_test/main.go</a></p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;geeorm&quot;</span></span><br><span class="line">	<span class="string">&quot;geeorm/log&quot;</span></span><br><span class="line"></span><br><span class="line">	_ <span class="string">&quot;github.com/mattn/go-sqlite3&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	engine, _ := geeorm.NewEngine(<span class="string">&quot;sqlite3&quot;</span>, <span class="string">&quot;gee.db&quot;</span>)</span><br><span class="line">	<span class="keyword">defer</span> engine.Close()</span><br><span class="line">	s := engine.NewSession()</span><br><span class="line">	_, _ = s.Raw(<span class="string">&quot;DROP TABLE IF EXISTS User;&quot;</span>).Exec()</span><br><span class="line">    _, _ = s.Raw(<span class="string">&quot;CREATE TABLE User(Name text);&quot;</span>).Exec()</span><br><span class="line">    _, _ = s.Raw(<span class="string">&quot;CREATE TABLE User(Name text);&quot;</span>).Exec()</span><br><span class="line">	result, _ := s.Raw(<span class="string">&quot;INSERT INTO User(`Name`) values (?), (?)&quot;</span>, <span class="string">&quot;Tom&quot;</span>, <span class="string">&quot;Sam&quot;</span>).Exec()</span><br><span class="line">	count, _ := result.RowsAffected()</span><br><span class="line">	fmt.Printf(<span class="string">&quot;Exec success, %d affected\n&quot;</span>, count)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<p><a href="https://github.com/geektutu/7days-golang/tree/master/gee-orm/day1-database-sql/cmd_test">day1-database-sql/cmd_test/main.go</a></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">geeorm</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">geeorm/log</span><span style="color:#032F62">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">	_ </span><span style="color:#032F62">"</span><span style="color:#6F42C1">github.com/mattn/go-sqlite3</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	engine, _ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> geeorm.</span><span style="color:#6F42C1">NewEngine</span><span style="color:#24292E">(</span><span style="color:#032F62">"sqlite3"</span><span style="color:#24292E">, </span><span style="color:#032F62">"gee.db"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	defer</span><span style="color:#24292E"> engine.</span><span style="color:#6F42C1">Close</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	s </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> engine.</span><span style="color:#6F42C1">NewSession</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	_, _ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">Raw</span><span style="color:#24292E">(</span><span style="color:#032F62">"DROP TABLE IF EXISTS User;"</span><span style="color:#24292E">).</span><span style="color:#6F42C1">Exec</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">    _, _ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">Raw</span><span style="color:#24292E">(</span><span style="color:#032F62">"CREATE TABLE User(Name text);"</span><span style="color:#24292E">).</span><span style="color:#6F42C1">Exec</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">    _, _ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">Raw</span><span style="color:#24292E">(</span><span style="color:#032F62">"CREATE TABLE User(Name text);"</span><span style="color:#24292E">).</span><span style="color:#6F42C1">Exec</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	result, _ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">Raw</span><span style="color:#24292E">(</span><span style="color:#032F62">"INSERT INTO User(`Name`) values (?), (?)"</span><span style="color:#24292E">, </span><span style="color:#032F62">"Tom"</span><span style="color:#24292E">, </span><span style="color:#032F62">"Sam"</span><span style="color:#24292E">).</span><span style="color:#6F42C1">Exec</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	count, _ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> result.</span><span style="color:#6F42C1">RowsAffected</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Printf</span><span style="color:#24292E">(</span><span style="color:#032F62">"Exec success, </span><span style="color:#005CC5">%d</span><span style="color:#032F62"> affected</span><span style="color:#005CC5">\n</span><span style="color:#032F62">"</span><span style="color:#24292E">, count)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>执行 <code>go run main.go</code>，将会看到如下的输出：</p>
-<p><img src="geeorm-day1/geeorm_log.png" alt="geeorm log"></p>
+<p><img alt="geeorm log" loading="lazy" decoding="async" width="750" height="208" src="/_astro/geeorm_log.B9l_DDmU_CVkU2.webp" srcset=""></p>
 <p>日志中出现了一行报错信息，<em>table User already exists</em>，因为我们在 main 函数中执行了两次创建表 <code>User</code> 的语句。可以看到，每一行日志均标明了报错的文件和行号，而且不同层级日志的颜色是不同的。</p>
-<h2 id="附-推荐阅读"><a href="#附-推荐阅读" class="headerlink" title="附 推荐阅读"></a>附 推荐阅读</h2><ul>
+<h2 id="附-推荐阅读">附 推荐阅读</h2>
+<ul>
 <li><a href="https://geektutu.com/post/quick-golang.html">Go 语言简明教程</a></li>
 <li><a href="https://geektutu.com/post/quick-go-test.html">Go Test 单元测试简明教程</a></li>
 <li><a href="https://geektutu.com/post/cheat-sheet-sqlite.html">SQLite 常用命令速查表</a></li>
-</ul>
+</ul></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geeorm.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">7天用Go从零实现ORM框架GeeORM</span></a><a href="/post/geeorm-day2.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">动手写ORM框架 - GeeORM第二天 对象表结构映射</span></a></nav><script>(function(){const bookId = "7days-golang";
+const slug = "geeorm-day1";
 
-      
-<script src="/js/qrious.min.js"></script>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "geeorm-day1";
+const title = "动手写ORM框架 - GeeORM第一天 database/sql 基础";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
 
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
 
-      <hr />
-      <p>
-        
-        <span class="float-right gkt-page-tips">last updated at 2026-02-23</span>
-      </p>
-    </article>
-    <!-- 赞赏 -->
-    <!--打赏-->
-
-<style>
-    #reward .reward-btn-wrapper {
-        width: 100px;
-        padding-top: 35px;
-        cursor: pointer;
-        margin: 0 auto;
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
     }
 
-    #reward .reward-btn {
-        padding: 2px 15px;
-        color: #fff;
-        background-color: #ea6f5a;
-        border-radius: 20px;
-    }
-
-    #reward .reward-code {
-        position: absolute;
-        top: -220px;
-        left: 50%;
-        display: none;
-        width: 360px;
-        height: 240px;
-        margin-left: -180px;
-        padding: 15px 20px;
-        border: 1px solid #e6e6e6;
-        background: #fff;
-        box-shadow: 0 1px 1px 1px #efefef;
-    }
-
-    #reward .reward-code:after,
-    #reward .reward-code:before {
-        position: absolute;
-        content: '';
-        border: 10px solid transparent
-    }
-
-    #reward .reward-code:after {
-        bottom: -19px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #fff
-    }
-
-    #reward .reward-code:before {
-        bottom: -20px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #e6e6e6
-    }
-
-    #reward .qr-code {
-        width: 50%;
-        float: left;
-        padding: 5px;
-    }
-
-    #reward .qr-code p {
-        margin-top: -6px;
-    }
-
-    #reward img {
-        transform: none;
-        -webkit-transform: none;
-        margin-left: 0;
-    }
-
-    #reward img[alt='i'] {
-        width: 20px;
-        height: 20px;
-        z-index: 2;
-        position: absolute;
-        margin: 65px 0 0 65px;
-    }
-
-    #reward img[alt="ali"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #0f9be0;
-    }
-
-    #reward img[alt="wechat"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #3db034;
-    }
-
-    #reward .reward-tip {
-        font-size: 1.2em;
-        margin-bottom: 0;
-        color: #ea6f5a;
-    }
-</style>
-<div id="reward" class="col-xs-12">
-    <div class="reward-btn-wrapper">
-        <div class="reward-btn text-center">赞赏支持</div>
-    </div>
-    <div class="reward-code text-center">
-        <p class="text-center reward-tip"><strong>请我吃胡萝卜 =^_^= </strong></p>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-ali" src="" alt="ali">
-            <p><small>支付宝</small></p>
-        </div>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-wechat" src="" alt="wechat">
-            <p><small>微信</small></p>
-        </div>
-    </div>
-</div>
-<script>
-    (function (window, document) {
-        var aliQr = new QRious({ value: 'HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8' });
-        var wechatQr = new QRious({ value: 'wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5' });
-        document.querySelector('#reward-ali').src = aliQr.toDataURL();
-        document.querySelector('#reward-wechat').src = wechatQr.toDataURL();
-
-        var rewardBtn = document.querySelector('#reward .reward-btn-wrapper');
-        var qrCode = document.querySelector('#reward .reward-code')
-        var activeFunc = function (e) {
-            qrCode.style.display = 'block';
-        }
-        var hideFunc = function (e) {
-            qrCode.style.display = 'none';
-        }
-
-        rewardBtn.addEventListener('mouseenter', activeFunc, false)
-        rewardBtn.addEventListener('mouseover', activeFunc, false)
-        rewardBtn.addEventListener('mouseleave', hideFunc, false)
-        qrCode.addEventListener('mouseenter', activeFunc, false)
-        qrCode.addEventListener('mouseover', activeFunc, false)
-        qrCode.addEventListener('mouseleave', hideFunc, false)
-    })(window, document);
-</script>
-
-    
-<div class="col-xs-12 text-center" style="margin-top: 30px;">
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://github.com/geektutu" title="Github"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/github.png" /></a>
-    
-    <a style="display:inline-block;" href="https://geektutu.com/feed.xml" title="RSS"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/rss.jpg" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie" title="知乎"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/zhihu.png" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://weibo.com/geektutu" title="微博"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/weibo.jpg" /></a>
-    
-</div>
-
-    <!-- 评论 -->
-    
-    <div class="col-xs-12">
-      
-<div class="col-xs-12 padding-0">
-    <div id="gitalk-container">
-        <div class="gt-container text-center" style="margin-top: 50px;">
-            <button class="gt-btn gt-btn-public"><span class="gt-btn-text">去 Github 评论</span></button>
-        </div>
-    </div>
-    <div id="gitalk-related"></div>
-</div>
-
-<link rel="stylesheet" href="/css/gitalk.css">
-
-
-<script src="/js/gitalk.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        function renderCommentUrl(data) {
-            var url = (data[window.location.pathname] || {}).url
-            url && getDom('#gitalk-container button').addEventListener('click', function (e) { window.open(url)})
-            url || (getDom('#gitalk-container').style.display = 'none')
-        }
-        const gitalk = new Gitalk({
-            clientID: 'c1fdd456a4caae5f7df0',
-            clientSecret: 'b2674451e21feae50520f99337ec15d2aebe7879',
-            accessToken: '513dc2f1e6df8c07a12fbf1547874f54679d9712',
-            repo: 'geektutu.github.io',
-            owner: 'geektutu',
-            admin: ['geektutu'],
-            id: window.location.pathname,
-            distractionFreeMode: false
-        });
-        fetch("https://api.github.com/user").then(function(resp){
-            gitalk.render('gitalk-container');
-        }).catch(function(e){
-            fetch('/tool/issues.json').then(function (r) { return r.json() }).then(renderCommentUrl).catch(function (e) { })
-        })
-        getDom('#gitalk-container').addEventListener('click', function (e) {
-            e && e.stopPropagation && e.stopPropagation();
-        });
-    })
-</script>
-<script>
-    window.addEventListener('load', function () {
-        function render(comments) {
-            var template = '<a href="${comment.url}?utm_source=gitalk" class="dis-item-url"><h3 class="dis-item-title">${comment.title}</h3>' +
-                '<p class="dis-item-des">${comment.count} 评论 ● ${comment.date}</p>' +
-                '<div class="dis-item-content"><img class="dis-item-img" src="${comment.icon}" alt="icon"><p><b><span class="dis-item-user">${comment.user}</span></b>&nbsp;——&nbsp;${comment.body}</p></div>' +
-                '</a>'
-
-            var wrapper = getDom('#gitalk-related');
-            comments = shuffle(comments);
-            comments.slice(0, 4).forEach(function (c) {
-                var div = document.createElement('div');
-                div.classList.add('dis-item');
-                div.innerHTML = template.replace("${comment.url}", c.url)
-                    .replace("${comment.title}", c.title)
-                    .replace("${comment.count}", c.count)
-                    .replace("${comment.date}", c.date)
-                    .replace("${comment.icon}", c.icon)
-                    .replace("${comment.user}", c.user)
-                    .replace("${comment.body}", c.body)
-                wrapper.appendChild(div)
-            })
-            var p = document.createElement('p')
-            p.innerHTML = '<a href="https://geektutu.com/post/blog-experience-7.html">Gitalk Plus</a>';
-            p.classList.add('dis-divide');
-            wrapper.appendChild(p);
-            wrapper.classList.add('dis-wrapper')
-        }
-        function shuffle(a) {
-            for (var i = a.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-        fetch('/tool/comments.json').then(function (r) { return r.json() }).then(render).catch(function (e) { })
-    })
-</script>
-
-    </div>
-    
-  </div>
-  <aside class="gkt-book-toc hidden-xs hidden-sm">
-    <div style="clear: both"></div>
-    <div class="gkt-sidebar-wrapper">
-      <!-- Table of Contents -->
-<div id="sidebar-toc">
-  <!-- TOC  -->
-  
-  
-  <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-%E5%88%9D%E8%AF%86-SQLite"><span class="toc-nav-text">1 初识 SQLite</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-database-sql-%E6%A0%87%E5%87%86%E5%BA%93"><span class="toc-nav-text">2 database&#x2F;sql 标准库</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84-log-%E5%BA%93"><span class="toc-nav-text">3 实现一个简单的 log 库</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-%E6%A0%B8%E5%BF%83%E7%BB%93%E6%9E%84-Session"><span class="toc-nav-text">4 核心结构 Session</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5-%E6%A0%B8%E5%BF%83%E7%BB%93%E6%9E%84-Engine"><span class="toc-nav-text">5 核心结构 Engine</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#6-%E6%B5%8B%E8%AF%95"><span class="toc-nav-text">6 测试</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%99%84-%E6%8E%A8%E8%8D%90%E9%98%85%E8%AF%BB"><span class="toc-nav-text">附 推荐阅读</span></a></li></ol>
-  
-</div>
-
-<script>
-  (function () {
-    var h2 = document.querySelectorAll('article h2');
-    var h3 = document.querySelectorAll('article h3');
-    var linkList = document.querySelectorAll('#sidebar-toc a');
-
-    function findLinkElement(name) {
-      for (var i = 0; i < linkList.length; i++) {
-        var items = linkList[i].href.split('#');
-        if (items && items[items.length - 1] === encodeURIComponent(name)) {
-          return i;
-        }
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
       }
-      return -1;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
     }
 
-    function activeLink(titleList) {
-      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      for (var i = titleList.length - 1; i >= 0; i--) {
-        if (scrollTop - titleList[i].offsetTop > 0) {
-          var index = findLinkElement(titleList[i].id);
-          index != -1 && linkList[index].classList.add('gkt-sidebar-active');
-          break;
-        }
-      }
-    }
-
-    window.addEventListener("scroll", function (e) {
-      [].slice.call(linkList).forEach(function (link) {
-        link.classList.remove('gkt-sidebar-active');
-      })
-      activeLink(h2);
-    })
-  })();
-</script>
-    </div>
-  </aside>
-</div>
-<script>
-    (function () {
-        function resizeUArrow() {
-            var s = getDom('.u-arrow-wrapper').style
-            var pc = getDom('.gkt-book-page')
-            s.left = getPosition(pc).x - 15 + 'px';
-            s.width = pc.clientWidth + 30 + 'px';
-        }
-        resizeUArrow()
-        window.addEventListener('resize', resizeUArrow);
-        var nav = getDom('.gkt-book-menu nav');
-        var key = 'gkt_book_七天用Go从零实现系列_' + parseInt(new Date().getTime()/1000/3600/24/7)
-        nav.scrollTo(0, localStorage.getItem(key) * 1)
-        nav.addEventListener('scroll', function(){ localStorage.setItem(key, nav.scrollTop) })
-    })();
-    (function(){
-      getDom(".gkt-book-menu-icon").addEventListener('click', function() {
-        var menu = getDom(".gkt-book-menu").classList
-        var article = getDom(".gkt-book-page").classList
-        if (menu.contains("gkt-book-menu-hidden")) {
-          menu.remove('gkt-book-menu-hidden')
-          article.add('gkt-book-menu-checked')
-        } else {
-          menu.add('gkt-book-menu-hidden')
-          article.remove('gkt-book-menu-checked')
-        }
-      })
-    })();
-</script>
-
-
-    
-
-</main>
-    </div>
-    <style>
-    img#go-top {
-        position: fixed;
-        bottom: 100px;
-        width: 50px;
-        cursor: pointer;
-        z-index: 9999;
-    }
-</style>
-<img id="go-top" src="/icon/top.png" class="hidden-xs" style="display: none" />
-<script>
-    (function () {
-        var goTop = document.getElementById('go-top');
-        var mainContainer = document.querySelector('.main-container');
-        
-        goTop.addEventListener('click', function () {
-            window.scroll(0, 0);
-        }, false);
-        window.addEventListener('scroll', function () {
-            var right = document.body.offsetWidth - mainContainer.getBoundingClientRect().right;
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            goTop.style.right = right + 10 + 'px'
-            scrollTop > 700 && (goTop.style.display = "block");
-            scrollTop <= 700 && (goTop.style.display = "none");
-        });
-    })();
-</script>
-    <style>
-    #geektutu-click-img-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        text-align: center;
-        width: 100%;
-        display: none;
-        z-index: 9999;
-    }
-
-    #geektutu-click-img-container img {
-        object-fit: contain;
-        background: #eaecef;
-        padding: 15px;
-        border-radius: 10px;
-        height: auto;
-        width: auto;
-        vertical-align: middle;
-    }
-</style>
-
-
-<div id="geektutu-click-img-container">
-    <img src="" alt="Big Image">
-</div>
-
-<script>
-    (function () {
-        var container = document.querySelector('#geektutu-click-img-container')
-        var targetImg = container.querySelector('img')
-        var imgs = document.querySelectorAll('article img');
-        targetImg.addEventListener('click', function (e) {
-            container.style.display = 'none';
-            e && e.stopPropagation && e.stopPropagation();
-        }, false);
-
-        for (var i = 0; i < imgs.length; ++i) {
-            var img = imgs[i];
-            img.addEventListener('click', (function (src, rate) {
-                return function (e) {
-                    e && e.stopPropagation && e.stopPropagation();
-                    if (window.innerWidth < 980) {
-                        return
-                    }
-                    targetImg.style.height = targetImg.style.width = 'auto';
-                    if (window.innerWidth / window.innerHeight > rate) {
-                        targetImg.style.height = (window.innerHeight - 20) + 'px';
-                    } else {
-                        targetImg.style.width = (window.innerWidth - 20) + 'px';
-                    }
-                    container.style.height = window.innerHeight + 'px'
-                    container.style.lineHeight = window.innerHeight + 'px'
-                    container.style.display = 'block';
-                    targetImg.src = src;
-                };
-            }(img.src, img.width / img.height)), false)
-        }
-    })();
-</script>
-    <!-- Footer -->
-    <!-- Footer -->
-<style>
-    footer {
-        width: 100%;
-        line-height: 1.5;
-        padding: 20px;
-    }
-
-    footer a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    .footer-hexo img {
-        height: 20px;
-        margin-bottom: -5px;
-    }
-
-    .footer-hexo a {
-        color: #337ab7;
-    }
-</style>
-<footer class="text-center col-xs-12">
-    <p>
-        <small>© 2026 - 极客兔兔 - </small>
-        <small>
-            <a target="_blank" rel="nofollow noopener" href="http://beian.miit.gov.cn/">沪ICP备18001798号-1</a>
-        </small>
-    </p>
-    <p class="footer-hexo">
-        <!-- 但若直接使用或修改主题，请务必保留这段声明 -->
-        <small>Powered by <a target="_blank" href="https://hexo.io">Hexo</a> | Theme
-            <a target="_blank" href="https://geektutu.com">Geektutu</a>
-            <a target="_blank" rel="noopener" href="https://github.com/geektutu/hexo-theme-geektutu">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIACIAUAMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQQFBwIDBgj/2gAIAQEAAAAA9KrHSgAYL5/z6zZGuJd12uugbhq3uKtmuRtix20IS7lTLAfAAAn/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oACAECEAAAAAAB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAxAAAAAAAf/EADEQAAICAQIEBQEGBwAAAAAAAAECAwQFAAYREhORBxQhUlQxQVFic5KxJDJCYYGC0f/aAAgBAQABPwCFHnjWUzuvN6hV4cANSRLGjO9yRVUcSzMoA7jVXJYe5N0a2dhmk9kc0bN2GvLN8mbuNeWb5M3ca8s3yZu415Y/Jm7jXlm+TN3H/NeVPyZu40vOk3TZywK8wJ+v3EHVM/wsI/Dq2lrxN3Nnca16eti8chSAIoMbzByhMwP14kHVfwIiSaF5c96J6kwwCOTnHsYk8uvCrdmQy1TI4rJuz3cZLyGR/wCd4+YoOf8AEpUjXitubLYPG4paFsUxcuiGe7yc5gTW3LW44szXmobsi3Dhmic2+Z4+vCVH9CpraPiQ+QvbgTJrPFBWd5YpWrmNIIEXiRO32Pqt4p7cnfHk18lFBdmEVW1LVdIZGOrniTt6plrWKaO69yCykDRxwF+LMAewB0Txtr+Sf31VI8tEPw62fZt7N3Humtbpzz13ucX6CGSWMSuzpLyD1eNgeUka3PuvHbaxq3biTMHfkiSNCS78CwU+3Xg7Vu3MhuTcU6cq3Zemn3Eh2dv8Lzcut+29x1atKbHYqLJUhLwyNMwiZ3j9yDWOxUOV3tgb+3No5LDx1pi9+aeIwRlNY6bc+Jv+IFGrhLxtXJZ7VKcw81diiAAEn0JOrkWZyNfbEr0tz27UGQgkuGzXdIIvyowq99bRxk9ffO/L81SZBPZgEEroQroIxxMZOgeNsfkn99QypHGqO4Vl9CDrN4LDZkwyzyyQ2IgRHZrzGCZVP1XnQglT9oOtw4LC7iqV6uRkZoYpxKFSQpzFRw4EjVRMfSrQ1qqwxQxKFjjTgFUD7BoWYR6iVe+mtxt9Zwf9teaj4AdccPu5tedX5A/VrzUR+sy/q1CwksF19VEfDj/cnQRW+qg66cfsXtrpx+xe2unH7F7a6cfsXtrpx+xe2unH7F7a6cfsXtoxx+xe2gAAOA1//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwB//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwB//9k="
-                    alt="Github Star">
-            </a>
-        </small>
-    </p>
-    
-    <p>
-        <small>
-            <span id="busuanzi_container_site_pv">👁<span id="busuanzi_value_site_pv"></span></span> &nbsp;
-            <span id="busuanzi_container_page_pv">📚<span id="busuanzi_value_page_pv"></span></span>
-        </small>
-    </p>
-    
-    
-
-</footer>
-
-
-<script>
-    window.addEventListener('load', function () {
-        globalAddScript('//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js');
-    })
-</script>
-
-<!-- Baidu Tongji -->
-
-<script>
-    window.addEventListener('load', function () {
-        var _hmt = _hmt || [];
-        globalAddScript('//hm.baidu.com/hm.js?1a0ec38c52c08db815b0046c2783b1aa')
-    })
-</script>
-
-
-
-<!-- baidu auto push for seo -->
-<script>
-    window.addEventListener('load', function () {
-        var src = 'http://push.zhanzhang.baidu.com/push.js'
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        globalAddScript(src);
-    })
-</script>
-
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-142641425-1');
-
-    window.addEventListener('load', function () {
-        globalAddScript('https://www.googletagmanager.com/gtag/js?id=UA-142641425-1');
-    });
-</script>
-
-
-    <script>
-        // 非本站网址，新开tab页签
-        (function () {
-            var stopBubble = function (e) {
-                e && e.stopPropagation && e.stopPropagation();
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
             }
-            var links = document.querySelectorAll('a');
-            [].slice.call(links).forEach(function (item) {
-                if (item.href && item.href.indexOf(window.location.host) === -1) {
-                    item.target = '_blank'
-                }
-                // 阻止冒泡，不触发彩蛋。
-                item.addEventListener('click', stopBubble, false);
-            });
-            var article = document.querySelector('article');
-            article && article.addEventListener('click', stopBubble, false)
-        })();
-    </script>
-    
-</body>
-
-</html>
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

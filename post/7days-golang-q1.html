@@ -1,1135 +1,205 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
-<!-- Head tag -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="referrer" content="no-referrer-when-downgrade">
-  
-  <meta name="baidu-site-verification" content="p7Pz3jlx4t" />
-  <meta name="google-site-verification" content="X31OY0d2sKImNbS2x8-OpITWRK4nn7nZCcXe3_hA9ew" />
-  <meta name="msvalidate.01" content="7E2AEE3378AC93764DEAB411177A21A1" />
-  <meta name="360-site-verification" content="1d1e81a1a48a1ed2e3308d7cb8e548e7" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- if page has tags, then add tags to keyword -->
-  
-  
-  <meta name="keywords" content="geektutu,jiketutu,Go语言,golang,python,Go,函数式接口,接口型函数,net/http">
-  <!-- page.description has higher priority -->
-  <meta name="description" content="Go 语言/golang 中函数式接口或接口型函数的实现与价值，什么是接口型函数，为什么不直接将函数作为参数，而是封装为一个接口。Go 语言标准库 net/http 中是如何使用接口型函数的。">
-  <link rel="shortcut icon" href="/img/icon.png">
-  <title>
-    
-    Go 接口型函数的使用场景 | 极客兔兔
-    
-  </title>
-
-  <link rel="canonical" href="https://geektutu.com/post/7days-golang-q1.html">
-  
-<link rel="stylesheet" href="/css/geektutu.css">
-
-  <!-- global function -->
-  <script>
-    window.globalAddScript = function (url, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = url;
-      onload && (s.onload = onload);
-      onerror && (s.onerror = onerror);
-      document.body.appendChild(s);
-    }
-    window.globalAddCss = function (url) {
-      var s = document.createElement('link');
-      s.rel = 'stylesheet';
-      s.href = url;
-      document.body.appendChild(s);
-    }
-    window.getPosition = function (ele) {
-      var x = 0, y = 0;
-      while (ele) {
-        x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-        y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-        ele = ele.offsetParent;
-      }
-      return { x: x, y: y };
-    }
-    window.getDom = function (str) { return document.querySelector(str) }
-  </script>
-  <!-- google ad -->
-  
-<meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/feed.xml" title="极客兔兔" type="application/rss+xml">
-</head>
-
-<body>
-    
-<style>
-    body {
-        background: white;
-    }
-    .gkt-header-placeholder, .gkt-header {
-        display: none;
-    }
-    .main-container {
-        width: 100%;
-        padding-top: 0;
-        max-width: 100%;
-    }
-</style>
-
-<header class="gkt-header col-xs-12 padding-0">
-    <div id="gkt-nav" class="gkt-header-container">
-        <a href="/" class="gkt-header-title float-left">
-            <img class="float-left" src="/img/icon.png" alt="">
-            <span>极客兔兔</span>
-        </a>
-        <nav class="gkt-header-nav text-right">
-            <ul>
-                <li><a class="hidden-xs" href="/feed.xml">订阅</a></li>
-                <li><a href="/series/">专题</a></li>
-                <li><a href="/archives/">归档</a></li>
-                <li><a href="/post/link.html">友链</a></li>
-                <li><a href="/post/about.html">关于</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="gkt-cate-nav" class="gkt-header-container hidden-xs">
-        
-        <nav class="gkt-header-nav float-left">
-            <ul>
-                
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/tensorflow-mnist-simplest.html">简明教程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tensorflow-mnist-simplest.html">TensorFlow 教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/pandas-dataframe-series.html">Pandas 数据处理</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tf2doc.html">TensorFlow2 文档</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-golang.html">Go 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-rust.html">Rust 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-python.html">Python 简明教程</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/blog-experience-1.html">杂谈 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/blog-experience-1.html">建站经历</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/2020.html">年终总结</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/qa-ml.html">面试 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-ml.html">机器学习面试题</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-golang.html">Go 语言面试题</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left active">
-                    <a class="float-left" href="/post/gee.html">从零实现 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/gee.html">Web框架 - Gee</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geecache.html">分布式缓存 - GeeCache</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geeorm.html">ORM框架 - GeeORM</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geerpc.html">RPC框架 - GeeRPC</a></li>
-                        
-                        <li class="gkt-sub-cate-name active"><a class="float-left"
-                                href="/post/7days-golang-q1.html">7days-golang Q &amp; A</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/box-tools.html">百宝箱 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/box-tools.html">工具</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/cheat-sheet-sqlite.html">SQLite 速查表</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/high-performance-go.html">高性能编程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/high-performance-go.html">序言</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-benchmark.html">性能分析</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-string-concat.html">常用数据结构</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-mutex.html">并发编程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-reduce-size.html">编译优化</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-gotchas-array-slice.html">语言陷阱</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-            </ul>
-        </nav>
-    </div>
-</header>
-<div class="gkt-header-placeholder" style="height: 44px"></div>
-<div class="gkt-header-placeholder hidden-xs" style="height: 44px"></div>
-<script>
-    (function () {
-        window.addEventListener('scroll', function () {
-            if (window.innerWidth < 768) {
-                return;
-            }
-            var nav = document.querySelector('#gkt-nav');
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            scrollTop > 50 && (nav.classList.add('hide'));
-            scrollTop <= 50 && (nav.classList.remove('hide'));
-        });
-        var cateNavs = document.querySelectorAll('#gkt-cate-nav>nav>ul>li');
-        [].slice.call(cateNavs).forEach(function (item) {
-            var sub = item.querySelector('.gkt-sub-cate');
-            if (!sub) return;
-            item.addEventListener('mouseenter', function (e) { sub.style.display = 'block'; }, false);
-            item.addEventListener('mouseleave', function (e) { sub.style.display = 'none'; }, false);
-        })
-    })();
-</script>
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Main Content -->
-<main class="col-xs-12 padding-0 markdown-it">
-    <!-- Post Container -->
-    
-    
-    <!-- Post Content -->
-<style>
-  .markdown-it article h1, .markdown-it article h2, .markdown-it article h3 {
-    padding-top: 5px;
-    margin-top: 0px;
-  }
-  .post-container {
-    padding: 0 !important;
-    width: 100%;
-  }
-  .post-container article {
-    padding: 0 15px !important;
-  }
-  .gkt-book {
-    max-width: 80rem;
-    margin: 1rem auto;
-    display: flex;
-  }
-  .gkt-book-title {
-    color: #343a40;
-    font-size: 1.2em;
-  }
-  .gkt-sidebar-wrapper {
-    position: fixed;
-    margin-top: 15px;
-  }
-  .gkt-book-menu {
-    flex: 0 0 16rem;
-    padding-left: 15px;
-    padding-top: 5px;
-    z-index: 999;
-  }
-  .gkt-book-menu a {
-    color: #343a40;
-  }
-  .gkt-book-menu a.active {
-    color: #337ab7;
-  }
-  .gkt-book-menu > nav {
-    position: fixed;
-    overflow: auto;
-    padding-right: 15px;
-    height: 95%;
-    font-size: 0.85em;
-    line-height: 2;
-    -ms-overflow-style: none;
-    overflow: -moz-scrollbars-none;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-    border-left: 1px solid #eee;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-thumb {
-      background-color: #c1c1c1;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar {
-    width: 5px !important;
-  }
-  .gkt-book-menu hr {
-    padding: 2px;
-  }
-  .gkt-book-menu > nav > ul {
-    padding-left: 0;
-  }
-  .gkt-book-menu > nav ul,
-  .gkt-book-toc ul,
-  .gkt-book-toc ol {
-    list-style: none !important;
-  }
-  @media (min-width: 992px) {
-    .gkt-book-page {
-      width: calc(100% - 32rem);
-    }
-  }
-  .gkt-book-page {
-    min-width: 20rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-  .gkt-page-tips {
-    color: #555;
-    margin-top: -10px;
-  }
-  .gkt-book-toc {
-    flex: 0 0 16rem;
-    font-size: 0.85em;
-  }
-  .gkt-book .series_links {
-    border: 1px solid #eaecef;
-    padding: 0 15px;
-    background-color: #fff8dc;
-    margin-bottom: 20px;
-    border-radius: 5px;
-  }
-  .gkt-book-menu-icon {
-    padding: 0 15px;
-    font-size: 16px;
-    overflow: hidden;
-    cursor: pointer;
-  }
-  @media (max-width: 767px) {
-    .gkt-book-menu-hidden {
-      margin-left: -16rem;
-    }
-  }
-  .gkt-book-menu-checked {
-    opacity: 0.4;
-    margin-right: -16rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-</style>
-<div class="gkt-book post-container">
-  <aside class="gkt-book-menu gkt-book-menu-hidden">
-    <nav>
-      
-      <h3 class="text-center">
-        <a class="gkt-book-title" href="/post/gee.html">七天用Go从零实现系列</a>
-      </h3>
-      
-      <ul class="col-xs-12 text-center">
-        <li><a href="/">极客兔兔</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://github.com/geektutu">Github</a></li>
-        
-        <li><a href="https://geektutu.com/feed.xml">RSS</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie">知乎</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://weibo.com/geektutu">微博</a></li>
-        
-      </ul>
-      
-      <hr />
-      
-      <ul>
-        
-        <li>
-          <a>Web框架 - Gee</a>
-          <ul>
-            
-            <li><a href="/post/gee.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/gee-day1.html" class=" ">Day1 HTTP 基础</a></li>
-            
-            <li><a href="/post/gee-day2.html" class=" ">Day2 上下文</a></li>
-            
-            <li><a href="/post/gee-day3.html" class=" ">Day3 前缀树路由</a></li>
-            
-            <li><a href="/post/gee-day4.html" class=" ">Day4 分组控制</a></li>
-            
-            <li><a href="/post/gee-day5.html" class=" ">Day5 中间件</a></li>
-            
-            <li><a href="/post/gee-day6.html" class=" ">Day6 模板 Template</a></li>
-            
-            <li><a href="/post/gee-day7.html" class=" ">Day7 错误恢复</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>分布式缓存 - GeeCache</a>
-          <ul>
-            
-            <li><a href="/post/geecache.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/geecache-day1.html" class=" ">Day1 LRU 缓存淘汰策略</a></li>
-            
-            <li><a href="/post/geecache-day2.html" class=" ">Day2 单机并发缓存</a></li>
-            
-            <li><a href="/post/geecache-day3.html" class=" ">Day3 HTTP 服务端</a></li>
-            
-            <li><a href="/post/geecache-day4.html" class=" ">Day4 一致性哈希</a></li>
-            
-            <li><a href="/post/geecache-day5.html" class=" ">Day5 分布式节点</a></li>
-            
-            <li><a href="/post/geecache-day6.html" class=" ">Day6 防止缓存击穿</a></li>
-            
-            <li><a href="/post/geecache-day7.html" class=" ">Day7 使用 Protobuf 通信</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>ORM框架 - GeeORM</a>
-          <ul>
-            
-            <li><a href="/post/geeorm.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/geeorm-day1.html" class=" ">Day1 database/sql 基础</a></li>
-            
-            <li><a href="/post/geeorm-day2.html" class=" ">Day2 对象表结构映射</a></li>
-            
-            <li><a href="/post/geeorm-day3.html" class=" ">Day3 记录新增和查询</a></li>
-            
-            <li><a href="/post/geeorm-day4.html" class=" ">Day4 链式操作与更新删除</a></li>
-            
-            <li><a href="/post/geeorm-day5.html" class=" ">Day5 实现钩子</a></li>
-            
-            <li><a href="/post/geeorm-day6.html" class=" ">Day6 支持事务</a></li>
-            
-            <li><a href="/post/geeorm-day7.html" class=" ">Day7 数据库迁移</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>RPC框架 - GeeRPC</a>
-          <ul>
-            
-            <li><a href="/post/geerpc.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/geerpc-day1.html" class=" ">Day1 服务端与消息编码</a></li>
-            
-            <li><a href="/post/geerpc-day2.html" class=" ">Day2 高性能客户端</a></li>
-            
-            <li><a href="/post/geerpc-day3.html" class=" ">Day3 服务注册</a></li>
-            
-            <li><a href="/post/geerpc-day4.html" class=" ">Day4 超时处理</a></li>
-            
-            <li><a href="/post/geerpc-day5.html" class=" ">Day5 支持HTTP协议</a></li>
-            
-            <li><a href="/post/geerpc-day6.html" class=" ">Day6 负载均衡</a></li>
-            
-            <li><a href="/post/geerpc-day7.html" class=" ">Day7 服务发现与注册中心</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>7days-golang Q &amp; A</a>
-          <ul>
-            
-            <li><a href="/post/7days-golang-q1.html" class="active ">接口型函数</a></li>
-            
-          </ul>
-        </li>
-        
-      </ul>
-    </nav>
-  </aside>
-  <div class="gkt-book-page">
-    <div class="hidden-sm hidden-md hidden-lg gkt-book-menu-icon">
-      <label for="book-menu">
-        <svg class="float-left" name="book-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0V0z"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-      </label>
-      <strong class="float-right">七天用Go从零实现系列</strong>
-    </div>
-    <div class="u-arrow-wrapper hidden-xs">
-        
-        <a class="float-left" href="/post/quick-python.html"><i class="u-arrow-left"></i></a>
-        
-        
-        <a class="float-right" href="/post/high-performance-go.html"><i class="u-arrow-right"></i></a>
-        
-    </div>
-    <article class="col-xs-12">
-      <h1>Go 接口型函数的使用场景</h1>
-       
-      <div class="hidden-lg hidden-md hidden-sm series_links">
-        <p><strong> 7days-golang Q &amp; A系列文章链接：</strong></p>
-        <ul>
-          
-          <li>
-            <a href="/post/7days-golang-q1.html">Go 接口型函数的使用场景</a>
-            <span class="post-item-date">(Oct 25, 2020)</span>
-          </li>
-          
-        </ul>
-      </div>
-       
-      <blockquote>
-        <p>
-          源代码/数据集已上传到
-          <a href="https://github.com/geektutu/7days-golang" target="_blank" rel="noopener">Github - 7days-golang</a>
-        </p>
-      </blockquote>
-      
-      <div class="gkt-article-start"></div>
-      <p><img src="7days-golang-q1/7days-golang-qa.jpg" alt="7days-golang 有价值的问题"></p>
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>在 <a href="https://geektutu.com/post/geecache-day2.html">动手写分布式缓存 - GeeCache第二天 单机并发缓存</a> 这篇文章中，有一个接口型函数的实现：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// A Getter loads data for a key.</span></span><br><span class="line"><span class="keyword">type</span> Getter <span class="keyword">interface</span> &#123;</span><br><span class="line">	Get(key <span class="type">string</span>) ([]<span class="type">byte</span>, <span class="type">error</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// A GetterFunc implements Getter with a function.</span></span><br><span class="line"><span class="keyword">type</span> GetterFunc <span class="function"><span class="keyword">func</span><span class="params">(key <span class="type">string</span>)</span></span> ([]<span class="type">byte</span>, <span class="type">error</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Get implements Getter interface function</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f GetterFunc)</span></span> Get(key <span class="type">string</span>) ([]<span class="type">byte</span>, <span class="type">error</span>) &#123;</span><br><span class="line">	<span class="keyword">return</span> f(key)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Go 语言/golang 中函数式接口或接口型函数的实现与价值，什么是接口型函数，为什么不直接将函数作为参数，而是封装为一个接口。Go 语言标准库 net/http 中是如何使用接口型函数的。"><title>Go 接口型函数的使用场景 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.B88FlGyz.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-baseline gap-2"><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔<span class="text-accent">.</span></span><span class="hidden text-xs text-faint sm:inline">写书式技术博客</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/7days-golang" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天用Go从零实现系列</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Web 框架 Gee</span></div><ul><li><a href="/post/gee.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/gee-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 HTTP 基础</a></li><li><a href="/post/gee-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 上下文</a></li><li><a href="/post/gee-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 前缀树路由</a></li><li><a href="/post/gee-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 分组控制</a></li><li><a href="/post/gee-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 中间件</a></li><li><a href="/post/gee-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 模板 Template</a></li><li><a href="/post/gee-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 错误恢复</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">分布式缓存 GeeCache</span></div><ul><li><a href="/post/geecache.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/geecache-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 LRU 缓存淘汰策略</a></li><li><a href="/post/geecache-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 单机并发缓存</a></li><li><a href="/post/geecache-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 HTTP 服务端</a></li><li><a href="/post/geecache-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 一致性哈希</a></li><li><a href="/post/geecache-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 分布式节点</a></li><li><a href="/post/geecache-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 防止缓存击穿</a></li><li><a href="/post/geecache-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 使用 Protobuf 通信</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">ORM 框架 GeeORM</span></div><ul><li><a href="/post/geeorm.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/geeorm-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 database/sql 基础</a></li><li><a href="/post/geeorm-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 对象表结构映射</a></li><li><a href="/post/geeorm-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 记录新增和查询</a></li><li><a href="/post/geeorm-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 链式操作与更新删除</a></li><li><a href="/post/geeorm-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 实现钩子</a></li><li><a href="/post/geeorm-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 支持事务</a></li><li><a href="/post/geeorm-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 数据库迁移</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">RPC 框架 GeeRPC</span></div><ul><li><a href="/post/geerpc.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/geerpc-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 服务端与消息编码</a></li><li><a href="/post/geerpc-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 高性能客户端</a></li><li><a href="/post/geerpc-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 服务注册</a></li><li><a href="/post/geerpc-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 超时处理</a></li><li><a href="/post/geerpc-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 支持HTTP协议</a></li><li><a href="/post/geerpc-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 负载均衡</a></li><li><a href="/post/geerpc-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 服务发现与注册中心</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Q &amp; A</span></div><ul><li><a href="/post/7days-golang-q1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">接口型函数</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/7days-golang" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天用Go从零实现系列</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">Go 接口型函数的使用场景</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2020-10-25">2020-10-25</time><span aria-hidden="true">·</span><span>约 4 分钟</span><a href="https://github.com/geektutu/7days-golang" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-golang" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-golang</a><span class="flex flex-wrap gap-2"><a href="/tags/Go" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Go</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#问题" class="toc-link block text-muted" data-toc-depth="2">问题</a></li><li style="padding-left:0rem"><a href="#价值" class="toc-link block text-muted" data-toc-depth="2">价值</a></li><li style="padding-left:0rem"><a href="#使用场景" class="toc-link block text-muted" data-toc-depth="2">使用场景</a></li><li style="padding-left:0rem"><a href="#其他语言类似特性" class="toc-link block text-muted" data-toc-depth="2">其他语言类似特性</a></li><li style="padding-left:0rem"><a href="#附-参考" class="toc-link block text-muted" data-toc-depth="2">附 参考</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><p><img alt="7days-golang 有价值的问题" loading="lazy" decoding="async" width="800" height="455" src="/_astro/7days-golang-qa.XjD59Ir8_oulUH.webp" srcset=""></p>
+<h2 id="问题">问题</h2>
+<p>在 <a href="https://geektutu.com/post/geecache-day2.html">动手写分布式缓存 - GeeCache第二天 单机并发缓存</a> 这篇文章中，有一个接口型函数的实现：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// A Getter loads data for a key.</span></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Getter</span><span style="color:#D73A49"> interface</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">	Get</span><span style="color:#24292E">(</span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) ([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">, </span><span style="color:#D73A49">error</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// A GetterFunc implements Getter with a function.</span></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> GetterFunc</span><span style="color:#D73A49"> func</span><span style="color:#24292E">(</span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) ([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">, </span><span style="color:#D73A49">error</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Get implements Getter interface function</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">f </span><span style="color:#6F42C1">GetterFunc</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) ([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">, </span><span style="color:#D73A49">error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#6F42C1"> f</span><span style="color:#24292E">(key)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>这里呢，定义了一个接口 <code>Getter</code>，只包含一个方法 <code>Get(key string) ([]byte, error)</code>，紧接着定义了一个函数类型 <code>GetterFunc</code>，GetterFunc 参数和返回值与 Getter 中 Get 方法是一致的。而且 GetterFunc 还定义了 Get 方式，并在 Get 方法中调用自己，这样就实现了接口 Getter。所以 GetterFunc 是一个实现了接口的函数类型，简称为接口型函数。</p>
 <p>这个接口型函数的实现就引起了好几个童鞋的关注。接口型函数只能应用于接口内部只定义了一个方法的情况，例如接口 Getter 内部有且只有一个方法 Get。既然只有一个方法，为什么还要多此一举，封装为一个接口呢？定义参数的时候，直接用 GetterFunc 这个函数类型不就好了，让用户直接传入一个函数作为参数，不更简单吗？</p>
 <p>所以呢，接口型函数的价值什么？</p>
-<h2 id="价值"><a href="#价值" class="headerlink" title="价值"></a>价值</h2><p>我们想象这么一个使用场景，<code>GetFromSource</code> 的作用是从某数据源获取结果，接口类型 Getter 是其中一个参数，代表某数据源：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GetFromSource</span><span class="params">(getter Getter, key <span class="type">string</span>)</span></span> []<span class="type">byte</span> &#123;</span><br><span class="line">	buf, err := getter.Get(key)</span><br><span class="line">	<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> buf</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h2 id="价值">价值</h2>
+<p>我们想象这么一个使用场景，<code>GetFromSource</code> 的作用是从某数据源获取结果，接口类型 Getter 是其中一个参数，代表某数据源：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> GetFromSource</span><span style="color:#24292E">(</span><span style="color:#E36209">getter</span><span style="color:#6F42C1"> Getter</span><span style="color:#24292E">, </span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) []</span><span style="color:#D73A49">byte</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	buf, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> getter.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(key)</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">		return</span><span style="color:#24292E"> buf</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#005CC5"> nil</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>我们可以有多种方式调用该函数：</p>
 <ul>
 <li>方式一：GetterFunc 类型的函数作为参数</li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">GetFromSource(GetterFunc(<span class="function"><span class="keyword">func</span><span class="params">(key <span class="type">string</span>)</span></span> ([]<span class="type">byte</span>, <span class="type">error</span>) &#123;</span><br><span class="line">	<span class="keyword">return</span> []<span class="type">byte</span>(key), <span class="literal">nil</span></span><br><span class="line">&#125;), <span class="string">&quot;hello&quot;</span>)</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6F42C1">GetFromSource</span><span style="color:#24292E">(</span><span style="color:#6F42C1">GetterFunc</span><span style="color:#24292E">(</span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) ([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">, </span><span style="color:#D73A49">error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> []</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(key), </span><span style="color:#005CC5">nil</span></span>
+<span class="line"><span style="color:#24292E">}), </span><span style="color:#032F62">"hello"</span><span style="color:#24292E">)</span></span></code></pre>
 <p>支持匿名函数，也支持普通的函数：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">test</span><span class="params">(key <span class="type">string</span>)</span></span> ([]<span class="type">byte</span>, <span class="type">error</span>) &#123;</span><br><span class="line">	<span class="keyword">return</span> []<span class="type">byte</span>(key), <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    GetFromSource(GetterFunc(test), <span class="string">&quot;hello&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> test</span><span style="color:#24292E">(</span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) ([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">, </span><span style="color:#D73A49">error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> []</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(key), </span><span style="color:#005CC5">nil</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#6F42C1">    GetFromSource</span><span style="color:#24292E">(</span><span style="color:#6F42C1">GetterFunc</span><span style="color:#24292E">(test), </span><span style="color:#032F62">"hello"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>将 test 强制类型转换为 GetterFunc，GetterFunc 实现了接口 Getter，是一个合法参数。这种方式适用于逻辑较为简单的场景。</p>
 <ul>
 <li>方式二：实现了 Getter 接口的结构体作为参数</li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> DB <span class="keyword">struct</span>&#123; url <span class="type">string</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> Query(sql <span class="type">string</span>, args ...<span class="type">string</span>) <span class="type">string</span> &#123;</span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">	<span class="keyword">return</span> <span class="string">&quot;hello&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> Get(key <span class="type">string</span>) ([]<span class="type">byte</span>, <span class="type">error</span>) &#123;</span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">	v := db.Query(<span class="string">&quot;SELECT NAME FROM TABLE WHEN NAME= ?&quot;</span>, key)</span><br><span class="line">	<span class="keyword">return</span> []<span class="type">byte</span>(v), <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	GetFromSource(<span class="built_in">new</span>(DB), <span class="string">&quot;hello&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> DB</span><span style="color:#D73A49"> struct</span><span style="color:#24292E">{ url </span><span style="color:#D73A49">string</span><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">db </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">DB</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Query</span><span style="color:#24292E">(</span><span style="color:#E36209">sql</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">args</span><span style="color:#D73A49"> ...</span><span style="color:#D73A49">string</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">	// ...</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#032F62"> "hello"</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">db </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">DB</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#E36209">key</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) ([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">, </span><span style="color:#D73A49">error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#6A737D">	// ...</span></span>
+<span class="line"><span style="color:#24292E">	v </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> db.</span><span style="color:#6F42C1">Query</span><span style="color:#24292E">(</span><span style="color:#032F62">"SELECT NAME FROM TABLE WHEN NAME= ?"</span><span style="color:#24292E">, key)</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> []</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(v), </span><span style="color:#005CC5">nil</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#6F42C1">	GetFromSource</span><span style="color:#24292E">(</span><span style="color:#6F42C1">new</span><span style="color:#24292E">(</span><span style="color:#6F42C1">DB</span><span style="color:#24292E">), </span><span style="color:#032F62">"hello"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>DB 实现了接口 Getter，也是一个合法参数。这种方式适用于逻辑较为复杂的场景，如果对数据库的操作需要很多信息，地址、用户名、密码，还有很多中间状态需要保持，比如超时、重连、加锁等等。这种情况下，更适合封装为一个结构体作为参数。</p>
 <p>这样，既能够将普通的函数类型（需类型转换）作为参数，也可以将结构体作为参数，使用更为灵活，可读性也更好，这就是接口型函数的价值。</p>
-<h2 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h2><p>这个特性在 groupcache 等大量的 Go 语言开源项目中被广泛使用，标准库中用得也不少，<code>net/http</code> 的 Handler 和 HandlerFunc 就是一个典型。</p>
+<h2 id="使用场景">使用场景</h2>
+<p>这个特性在 groupcache 等大量的 Go 语言开源项目中被广泛使用，标准库中用得也不少，<code>net/http</code> 的 Handler 和 HandlerFunc 就是一个典型。</p>
 <p>我们先看一下 Handler 的定义：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Handler <span class="keyword">interface</span> &#123;</span><br><span class="line">	ServeHTTP(ResponseWriter, *Request)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">type</span> HandlerFunc <span class="function"><span class="keyword">func</span><span class="params">(ResponseWriter, *Request)</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f HandlerFunc)</span></span> ServeHTTP(w ResponseWriter, r *Request) &#123;</span><br><span class="line">	f(w, r)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Handler</span><span style="color:#D73A49"> interface</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">	ServeHTTP</span><span style="color:#24292E">(</span><span style="color:#6F42C1">ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> HandlerFunc</span><span style="color:#D73A49"> func</span><span style="color:#24292E">(</span><span style="color:#6F42C1">ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">f </span><span style="color:#6F42C1">HandlerFunc</span><span style="color:#24292E">) </span><span style="color:#6F42C1">ServeHTTP</span><span style="color:#24292E">(</span><span style="color:#E36209">w</span><span style="color:#6F42C1"> ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#E36209">r</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#6F42C1">	f</span><span style="color:#24292E">(w, r)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <blockquote>
-<p>摘自 Go 语言源代码 <a target="_blank" rel="noopener" href="https://github.com/golang/go/blob/master/src/net/http/server.go">net/http/server.go</a></p>
+<p>摘自 Go 语言源代码 <a href="https://github.com/golang/go/blob/master/src/net/http/server.go">net/http/server.go</a></p>
 </blockquote>
 <p>我们可以 <code>http.Handle</code> 来映射请求路径和处理函数，Handle 的定义如下：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Handle</span><span class="params">(pattern <span class="type">string</span>, handler Handler)</span></span></span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Handle</span><span style="color:#24292E">(</span><span style="color:#E36209">pattern</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">handler</span><span style="color:#6F42C1"> Handler</span><span style="color:#24292E">)</span></span></code></pre>
 <p>第二个参数是即接口类型 Handler，我们可以这么用。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">home</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">	w.WriteHeader(http.StatusOK)</span><br><span class="line">	_, _ = w.Write([]<span class="type">byte</span>(<span class="string">&quot;hello, index page&quot;</span>))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	http.Handle(<span class="string">&quot;/home&quot;</span>, http.HandlerFunc(home))</span><br><span class="line">	_ = http.ListenAndServe(<span class="string">&quot;localhost:8000&quot;</span>, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> home</span><span style="color:#24292E">(</span><span style="color:#E36209">w</span><span style="color:#6F42C1"> http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#E36209">r</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	w.</span><span style="color:#6F42C1">WriteHeader</span><span style="color:#24292E">(http.StatusOK)</span></span>
+<span class="line"><span style="color:#24292E">	_, _ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> w.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(</span><span style="color:#032F62">"hello, index page"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	http.</span><span style="color:#6F42C1">Handle</span><span style="color:#24292E">(</span><span style="color:#032F62">"/home"</span><span style="color:#24292E">, http.</span><span style="color:#6F42C1">HandlerFunc</span><span style="color:#24292E">(home))</span></span>
+<span class="line"><span style="color:#24292E">	_ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> http.</span><span style="color:#6F42C1">ListenAndServe</span><span style="color:#24292E">(</span><span style="color:#032F62">"localhost:8000"</span><span style="color:#24292E">, </span><span style="color:#005CC5">nil</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>通常，我们还会使用另外一个函数 <code>http.HandleFunc</code>，HandleFunc 的定义如下：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">HandleFunc</span><span class="params">(pattern <span class="type">string</span>, handler <span class="keyword">func</span>(ResponseWriter, *Request)</span></span>)</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> HandleFunc</span><span style="color:#24292E">(</span><span style="color:#E36209">pattern</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">handler</span><span style="color:#D73A49"> func</span><span style="color:#24292E">(</span><span style="color:#6F42C1">ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">))</span></span></code></pre>
 <p>第二个参数是一个普通的函数类型，那可以直接将 home 传递给 HandleFunc：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	http.HandleFunc(<span class="string">&quot;/home&quot;</span>, home)</span><br><span class="line">	_ = http.ListenAndServe(<span class="string">&quot;localhost:8000&quot;</span>, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	http.</span><span style="color:#6F42C1">HandleFunc</span><span style="color:#24292E">(</span><span style="color:#032F62">"/home"</span><span style="color:#24292E">, home)</span></span>
+<span class="line"><span style="color:#24292E">	_ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> http.</span><span style="color:#6F42C1">ListenAndServe</span><span style="color:#24292E">(</span><span style="color:#032F62">"localhost:8000"</span><span style="color:#24292E">, </span><span style="color:#005CC5">nil</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>那如果我们看过 HandleFunc 的内部实现的话，就会知道两种写法是完全等价的，内部将第二种写法转换为了第一种写法。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(mux *ServeMux)</span></span> HandleFunc(pattern <span class="type">string</span>, handler <span class="function"><span class="keyword">func</span><span class="params">(ResponseWriter, *Request)</span></span>) &#123;</span><br><span class="line">	<span class="keyword">if</span> handler == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(<span class="string">&quot;http: nil handler&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	mux.Handle(pattern, HandlerFunc(handler))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">mux </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">ServeMux</span><span style="color:#24292E">) </span><span style="color:#6F42C1">HandleFunc</span><span style="color:#24292E">(</span><span style="color:#E36209">pattern</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">handler</span><span style="color:#D73A49"> func</span><span style="color:#24292E">(</span><span style="color:#6F42C1">ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">)) {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> handler </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">		panic</span><span style="color:#24292E">(</span><span style="color:#032F62">"http: nil handler"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">	mux.</span><span style="color:#6F42C1">Handle</span><span style="color:#24292E">(pattern, </span><span style="color:#6F42C1">HandlerFunc</span><span style="color:#24292E">(handler))</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>如果你仔细观察，会发现 <code>http.ListenAndServe</code> 的第二个参数也是接口类型 <code>Handler</code>，我们使用了标准库 <code>net/http</code> 内置的路由，因此呢，传入的值是 nil。那如果这个地方我们传入的是一个实现了 <code>Handler</code> 接口的结构体呢？就可以完全托管所有的 HTTP 请求，后续怎么路由，怎么处理，请求前后增加什么功能，都可以自定义了。慢慢地，就变成了一个功能丰富的 Web 框架了。如果你感兴趣呢，可以阅读 <a href="https://geektutu.com/post/gee.html">7天用Go从零实现Web框架Gee教程</a>。</p>
-<h2 id="其他语言类似特性"><a href="#其他语言类似特性" class="headerlink" title="其他语言类似特性"></a>其他语言类似特性</h2><p>如果有 Java 编程经验的同学可能比较有感触。Java 1.5 中是不支持直接传入函数的，参数要么是接口，要么是对象。举一个最简单的例子，列表自定义排序时，需要实现一个匿名的 Comparator 类，重写 compare 方法。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Collections.sort(list, <span class="keyword">new</span> <span class="title class_">Comparator</span>&lt;Integer&gt;()&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compare</span><span class="params">(Integer o1, Integer o2)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> o2 - o1;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
+<h2 id="其他语言类似特性">其他语言类似特性</h2>
+<p>如果有 Java 编程经验的同学可能比较有感触。Java 1.5 中是不支持直接传入函数的，参数要么是接口，要么是对象。举一个最简单的例子，列表自定义排序时，需要实现一个匿名的 Comparator 类，重写 compare 方法。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#24292E">Collections.</span><span style="color:#6F42C1">sort</span><span style="color:#24292E">(list, </span><span style="color:#D73A49">new</span><span style="color:#24292E"> Comparator&#x3C;</span><span style="color:#D73A49">Integer</span><span style="color:#24292E">>(){</span></span>
+<span class="line"><span style="color:#24292E">    @</span><span style="color:#D73A49">Override</span></span>
+<span class="line"><span style="color:#D73A49">    public</span><span style="color:#D73A49"> int</span><span style="color:#6F42C1"> compare</span><span style="color:#24292E">(Integer </span><span style="color:#E36209">o1</span><span style="color:#24292E">, Integer </span><span style="color:#E36209">o2</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> o2 </span><span style="color:#D73A49">-</span><span style="color:#24292E"> o1;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">});</span></span></code></pre>
 <p>Java 1.8 中引入了大量的函数式编程的特性，其中 lambda 表达式和函数式接口就是一个很好的简化 Java 写法的特性。Java 1.8 中，上述的例子可以简化为：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Collections.sort(list, (Integer o1, Integer o2) -&gt; o2 - o1 );</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#24292E">Collections.</span><span style="color:#6F42C1">sort</span><span style="color:#24292E">(list, (Integer o1, Integer o2) </span><span style="color:#D73A49">-></span><span style="color:#24292E"> o2 </span><span style="color:#D73A49">-</span><span style="color:#24292E"> o1 );</span></span></code></pre>
 <p>即从需要构造一个匿名对象简化为只需要一个 lambda 函数表达式，可以认为是面向对象与函数式编程的一种结合。同样地，这种写法只支持只定义了一个方法的接口类型。正是这种结合，可以达到实现相同代码，代码量更少的目的。</p>
-<h2 id="附-参考"><a href="#附-参考" class="headerlink" title="附 参考"></a>附 参考</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/geektutu/7days-golang/issues/24">7days-golang 有价值的问题讨论汇总贴</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/geektutu/blog/issues/64">GeeCache第二天 单机并发缓存 - Github 评论区</a></li>
-</ul>
+<h2 id="附-参考">附 参考</h2>
+<ul>
+<li><a href="https://github.com/geektutu/7days-golang/issues/24">7days-golang 有价值的问题讨论汇总贴</a></li>
+<li><a href="https://github.com/geektutu/blog/issues/64">GeeCache第二天 单机并发缓存 - Github 评论区</a></li>
+</ul></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geerpc-day7.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">动手写RPC框架 - GeeRPC第七天 服务发现与注册中心(registry)</span></a><span></span></nav><script>(function(){const bookId = "7days-golang";
+const slug = "7days-golang-q1";
 
-      
-<script src="/js/qrious.min.js"></script>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "7days-golang-q1";
+const title = "Go 接口型函数的使用场景";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
 
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
 
-      <hr />
-      <p>
-        
-        <span class="float-right gkt-page-tips">last updated at 2026-02-23</span>
-      </p>
-    </article>
-    <!-- 赞赏 -->
-    <!--打赏-->
-
-<style>
-    #reward .reward-btn-wrapper {
-        width: 100px;
-        padding-top: 35px;
-        cursor: pointer;
-        margin: 0 auto;
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
     }
 
-    #reward .reward-btn {
-        padding: 2px 15px;
-        color: #fff;
-        background-color: #ea6f5a;
-        border-radius: 20px;
-    }
-
-    #reward .reward-code {
-        position: absolute;
-        top: -220px;
-        left: 50%;
-        display: none;
-        width: 360px;
-        height: 240px;
-        margin-left: -180px;
-        padding: 15px 20px;
-        border: 1px solid #e6e6e6;
-        background: #fff;
-        box-shadow: 0 1px 1px 1px #efefef;
-    }
-
-    #reward .reward-code:after,
-    #reward .reward-code:before {
-        position: absolute;
-        content: '';
-        border: 10px solid transparent
-    }
-
-    #reward .reward-code:after {
-        bottom: -19px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #fff
-    }
-
-    #reward .reward-code:before {
-        bottom: -20px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #e6e6e6
-    }
-
-    #reward .qr-code {
-        width: 50%;
-        float: left;
-        padding: 5px;
-    }
-
-    #reward .qr-code p {
-        margin-top: -6px;
-    }
-
-    #reward img {
-        transform: none;
-        -webkit-transform: none;
-        margin-left: 0;
-    }
-
-    #reward img[alt='i'] {
-        width: 20px;
-        height: 20px;
-        z-index: 2;
-        position: absolute;
-        margin: 65px 0 0 65px;
-    }
-
-    #reward img[alt="ali"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #0f9be0;
-    }
-
-    #reward img[alt="wechat"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #3db034;
-    }
-
-    #reward .reward-tip {
-        font-size: 1.2em;
-        margin-bottom: 0;
-        color: #ea6f5a;
-    }
-</style>
-<div id="reward" class="col-xs-12">
-    <div class="reward-btn-wrapper">
-        <div class="reward-btn text-center">赞赏支持</div>
-    </div>
-    <div class="reward-code text-center">
-        <p class="text-center reward-tip"><strong>请我吃胡萝卜 =^_^= </strong></p>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-ali" src="" alt="ali">
-            <p><small>支付宝</small></p>
-        </div>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-wechat" src="" alt="wechat">
-            <p><small>微信</small></p>
-        </div>
-    </div>
-</div>
-<script>
-    (function (window, document) {
-        var aliQr = new QRious({ value: 'HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8' });
-        var wechatQr = new QRious({ value: 'wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5' });
-        document.querySelector('#reward-ali').src = aliQr.toDataURL();
-        document.querySelector('#reward-wechat').src = wechatQr.toDataURL();
-
-        var rewardBtn = document.querySelector('#reward .reward-btn-wrapper');
-        var qrCode = document.querySelector('#reward .reward-code')
-        var activeFunc = function (e) {
-            qrCode.style.display = 'block';
-        }
-        var hideFunc = function (e) {
-            qrCode.style.display = 'none';
-        }
-
-        rewardBtn.addEventListener('mouseenter', activeFunc, false)
-        rewardBtn.addEventListener('mouseover', activeFunc, false)
-        rewardBtn.addEventListener('mouseleave', hideFunc, false)
-        qrCode.addEventListener('mouseenter', activeFunc, false)
-        qrCode.addEventListener('mouseover', activeFunc, false)
-        qrCode.addEventListener('mouseleave', hideFunc, false)
-    })(window, document);
-</script>
-
-    
-<div class="col-xs-12 text-center" style="margin-top: 30px;">
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://github.com/geektutu" title="Github"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/github.png" /></a>
-    
-    <a style="display:inline-block;" href="https://geektutu.com/feed.xml" title="RSS"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/rss.jpg" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie" title="知乎"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/zhihu.png" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://weibo.com/geektutu" title="微博"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/weibo.jpg" /></a>
-    
-</div>
-
-    <!-- 评论 -->
-    
-    <div class="col-xs-12">
-      
-<div class="col-xs-12 padding-0">
-    <div id="gitalk-container">
-        <div class="gt-container text-center" style="margin-top: 50px;">
-            <button class="gt-btn gt-btn-public"><span class="gt-btn-text">去 Github 评论</span></button>
-        </div>
-    </div>
-    <div id="gitalk-related"></div>
-</div>
-
-<link rel="stylesheet" href="/css/gitalk.css">
-
-
-<script src="/js/gitalk.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        function renderCommentUrl(data) {
-            var url = (data[window.location.pathname] || {}).url
-            url && getDom('#gitalk-container button').addEventListener('click', function (e) { window.open(url)})
-            url || (getDom('#gitalk-container').style.display = 'none')
-        }
-        const gitalk = new Gitalk({
-            clientID: 'c1fdd456a4caae5f7df0',
-            clientSecret: 'b2674451e21feae50520f99337ec15d2aebe7879',
-            accessToken: '513dc2f1e6df8c07a12fbf1547874f54679d9712',
-            repo: 'geektutu.github.io',
-            owner: 'geektutu',
-            admin: ['geektutu'],
-            id: window.location.pathname,
-            distractionFreeMode: false
-        });
-        fetch("https://api.github.com/user").then(function(resp){
-            gitalk.render('gitalk-container');
-        }).catch(function(e){
-            fetch('/tool/issues.json').then(function (r) { return r.json() }).then(renderCommentUrl).catch(function (e) { })
-        })
-        getDom('#gitalk-container').addEventListener('click', function (e) {
-            e && e.stopPropagation && e.stopPropagation();
-        });
-    })
-</script>
-<script>
-    window.addEventListener('load', function () {
-        function render(comments) {
-            var template = '<a href="${comment.url}?utm_source=gitalk" class="dis-item-url"><h3 class="dis-item-title">${comment.title}</h3>' +
-                '<p class="dis-item-des">${comment.count} 评论 ● ${comment.date}</p>' +
-                '<div class="dis-item-content"><img class="dis-item-img" src="${comment.icon}" alt="icon"><p><b><span class="dis-item-user">${comment.user}</span></b>&nbsp;——&nbsp;${comment.body}</p></div>' +
-                '</a>'
-
-            var wrapper = getDom('#gitalk-related');
-            comments = shuffle(comments);
-            comments.slice(0, 4).forEach(function (c) {
-                var div = document.createElement('div');
-                div.classList.add('dis-item');
-                div.innerHTML = template.replace("${comment.url}", c.url)
-                    .replace("${comment.title}", c.title)
-                    .replace("${comment.count}", c.count)
-                    .replace("${comment.date}", c.date)
-                    .replace("${comment.icon}", c.icon)
-                    .replace("${comment.user}", c.user)
-                    .replace("${comment.body}", c.body)
-                wrapper.appendChild(div)
-            })
-            var p = document.createElement('p')
-            p.innerHTML = '<a href="https://geektutu.com/post/blog-experience-7.html">Gitalk Plus</a>';
-            p.classList.add('dis-divide');
-            wrapper.appendChild(p);
-            wrapper.classList.add('dis-wrapper')
-        }
-        function shuffle(a) {
-            for (var i = a.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-        fetch('/tool/comments.json').then(function (r) { return r.json() }).then(render).catch(function (e) { })
-    })
-</script>
-
-    </div>
-    
-  </div>
-  <aside class="gkt-book-toc hidden-xs hidden-sm">
-    <div style="clear: both"></div>
-    <div class="gkt-sidebar-wrapper">
-      <!-- Table of Contents -->
-<div id="sidebar-toc">
-  <!-- TOC  -->
-  
-  
-  <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%97%AE%E9%A2%98"><span class="toc-nav-text">问题</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E4%BB%B7%E5%80%BC"><span class="toc-nav-text">价值</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-nav-text">使用场景</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E5%85%B6%E4%BB%96%E8%AF%AD%E8%A8%80%E7%B1%BB%E4%BC%BC%E7%89%B9%E6%80%A7"><span class="toc-nav-text">其他语言类似特性</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%99%84-%E5%8F%82%E8%80%83"><span class="toc-nav-text">附 参考</span></a></li></ol>
-  
-</div>
-
-<script>
-  (function () {
-    var h2 = document.querySelectorAll('article h2');
-    var h3 = document.querySelectorAll('article h3');
-    var linkList = document.querySelectorAll('#sidebar-toc a');
-
-    function findLinkElement(name) {
-      for (var i = 0; i < linkList.length; i++) {
-        var items = linkList[i].href.split('#');
-        if (items && items[items.length - 1] === encodeURIComponent(name)) {
-          return i;
-        }
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
       }
-      return -1;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
     }
 
-    function activeLink(titleList) {
-      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      for (var i = titleList.length - 1; i >= 0; i--) {
-        if (scrollTop - titleList[i].offsetTop > 0) {
-          var index = findLinkElement(titleList[i].id);
-          index != -1 && linkList[index].classList.add('gkt-sidebar-active');
-          break;
-        }
-      }
-    }
-
-    window.addEventListener("scroll", function (e) {
-      [].slice.call(linkList).forEach(function (link) {
-        link.classList.remove('gkt-sidebar-active');
-      })
-      activeLink(h2);
-    })
-  })();
-</script>
-    </div>
-  </aside>
-</div>
-<script>
-    (function () {
-        function resizeUArrow() {
-            var s = getDom('.u-arrow-wrapper').style
-            var pc = getDom('.gkt-book-page')
-            s.left = getPosition(pc).x - 15 + 'px';
-            s.width = pc.clientWidth + 30 + 'px';
-        }
-        resizeUArrow()
-        window.addEventListener('resize', resizeUArrow);
-        var nav = getDom('.gkt-book-menu nav');
-        var key = 'gkt_book_七天用Go从零实现系列_' + parseInt(new Date().getTime()/1000/3600/24/7)
-        nav.scrollTo(0, localStorage.getItem(key) * 1)
-        nav.addEventListener('scroll', function(){ localStorage.setItem(key, nav.scrollTop) })
-    })();
-    (function(){
-      getDom(".gkt-book-menu-icon").addEventListener('click', function() {
-        var menu = getDom(".gkt-book-menu").classList
-        var article = getDom(".gkt-book-page").classList
-        if (menu.contains("gkt-book-menu-hidden")) {
-          menu.remove('gkt-book-menu-hidden')
-          article.add('gkt-book-menu-checked')
-        } else {
-          menu.add('gkt-book-menu-hidden')
-          article.remove('gkt-book-menu-checked')
-        }
-      })
-    })();
-</script>
-
-
-    
-
-</main>
-    </div>
-    <style>
-    img#go-top {
-        position: fixed;
-        bottom: 100px;
-        width: 50px;
-        cursor: pointer;
-        z-index: 9999;
-    }
-</style>
-<img id="go-top" src="/icon/top.png" class="hidden-xs" style="display: none" />
-<script>
-    (function () {
-        var goTop = document.getElementById('go-top');
-        var mainContainer = document.querySelector('.main-container');
-        
-        goTop.addEventListener('click', function () {
-            window.scroll(0, 0);
-        }, false);
-        window.addEventListener('scroll', function () {
-            var right = document.body.offsetWidth - mainContainer.getBoundingClientRect().right;
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            goTop.style.right = right + 10 + 'px'
-            scrollTop > 700 && (goTop.style.display = "block");
-            scrollTop <= 700 && (goTop.style.display = "none");
-        });
-    })();
-</script>
-    <style>
-    #geektutu-click-img-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        text-align: center;
-        width: 100%;
-        display: none;
-        z-index: 9999;
-    }
-
-    #geektutu-click-img-container img {
-        object-fit: contain;
-        background: #eaecef;
-        padding: 15px;
-        border-radius: 10px;
-        height: auto;
-        width: auto;
-        vertical-align: middle;
-    }
-</style>
-
-
-<div id="geektutu-click-img-container">
-    <img src="" alt="Big Image">
-</div>
-
-<script>
-    (function () {
-        var container = document.querySelector('#geektutu-click-img-container')
-        var targetImg = container.querySelector('img')
-        var imgs = document.querySelectorAll('article img');
-        targetImg.addEventListener('click', function (e) {
-            container.style.display = 'none';
-            e && e.stopPropagation && e.stopPropagation();
-        }, false);
-
-        for (var i = 0; i < imgs.length; ++i) {
-            var img = imgs[i];
-            img.addEventListener('click', (function (src, rate) {
-                return function (e) {
-                    e && e.stopPropagation && e.stopPropagation();
-                    if (window.innerWidth < 980) {
-                        return
-                    }
-                    targetImg.style.height = targetImg.style.width = 'auto';
-                    if (window.innerWidth / window.innerHeight > rate) {
-                        targetImg.style.height = (window.innerHeight - 20) + 'px';
-                    } else {
-                        targetImg.style.width = (window.innerWidth - 20) + 'px';
-                    }
-                    container.style.height = window.innerHeight + 'px'
-                    container.style.lineHeight = window.innerHeight + 'px'
-                    container.style.display = 'block';
-                    targetImg.src = src;
-                };
-            }(img.src, img.width / img.height)), false)
-        }
-    })();
-</script>
-    <!-- Footer -->
-    <!-- Footer -->
-<style>
-    footer {
-        width: 100%;
-        line-height: 1.5;
-        padding: 20px;
-    }
-
-    footer a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    .footer-hexo img {
-        height: 20px;
-        margin-bottom: -5px;
-    }
-
-    .footer-hexo a {
-        color: #337ab7;
-    }
-</style>
-<footer class="text-center col-xs-12">
-    <p>
-        <small>© 2026 - 极客兔兔 - </small>
-        <small>
-            <a target="_blank" rel="nofollow noopener" href="http://beian.miit.gov.cn/">沪ICP备18001798号-1</a>
-        </small>
-    </p>
-    <p class="footer-hexo">
-        <!-- 但若直接使用或修改主题，请务必保留这段声明 -->
-        <small>Powered by <a target="_blank" href="https://hexo.io">Hexo</a> | Theme
-            <a target="_blank" href="https://geektutu.com">Geektutu</a>
-            <a target="_blank" rel="noopener" href="https://github.com/geektutu/hexo-theme-geektutu">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIACIAUAMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQQFBwIDBgj/2gAIAQEAAAAA9KrHSgAYL5/z6zZGuJd12uugbhq3uKtmuRtix20IS7lTLAfAAAn/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oACAECEAAAAAAB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAxAAAAAAAf/EADEQAAICAQIEBQEGBwAAAAAAAAECAwQFAAYREhORBxQhUlQxQVFic5KxJDJCYYGC0f/aAAgBAQABPwCFHnjWUzuvN6hV4cANSRLGjO9yRVUcSzMoA7jVXJYe5N0a2dhmk9kc0bN2GvLN8mbuNeWb5M3ca8s3yZu415Y/Jm7jXlm+TN3H/NeVPyZu40vOk3TZywK8wJ+v3EHVM/wsI/Dq2lrxN3Nnca16eti8chSAIoMbzByhMwP14kHVfwIiSaF5c96J6kwwCOTnHsYk8uvCrdmQy1TI4rJuz3cZLyGR/wCd4+YoOf8AEpUjXitubLYPG4paFsUxcuiGe7yc5gTW3LW44szXmobsi3Dhmic2+Z4+vCVH9CpraPiQ+QvbgTJrPFBWd5YpWrmNIIEXiRO32Pqt4p7cnfHk18lFBdmEVW1LVdIZGOrniTt6plrWKaO69yCykDRxwF+LMAewB0Txtr+Sf31VI8tEPw62fZt7N3Humtbpzz13ucX6CGSWMSuzpLyD1eNgeUka3PuvHbaxq3biTMHfkiSNCS78CwU+3Xg7Vu3MhuTcU6cq3Zemn3Eh2dv8Lzcut+29x1atKbHYqLJUhLwyNMwiZ3j9yDWOxUOV3tgb+3No5LDx1pi9+aeIwRlNY6bc+Jv+IFGrhLxtXJZ7VKcw81diiAAEn0JOrkWZyNfbEr0tz27UGQgkuGzXdIIvyowq99bRxk9ffO/L81SZBPZgEEroQroIxxMZOgeNsfkn99QypHGqO4Vl9CDrN4LDZkwyzyyQ2IgRHZrzGCZVP1XnQglT9oOtw4LC7iqV6uRkZoYpxKFSQpzFRw4EjVRMfSrQ1qqwxQxKFjjTgFUD7BoWYR6iVe+mtxt9Zwf9teaj4AdccPu5tedX5A/VrzUR+sy/q1CwksF19VEfDj/cnQRW+qg66cfsXtrpx+xe2unH7F7a6cfsXtrpx+xe2unH7F7a6cfsXtoxx+xe2gAAOA1//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwB//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwB//9k="
-                    alt="Github Star">
-            </a>
-        </small>
-    </p>
-    
-    <p>
-        <small>
-            <span id="busuanzi_container_site_pv">👁<span id="busuanzi_value_site_pv"></span></span> &nbsp;
-            <span id="busuanzi_container_page_pv">📚<span id="busuanzi_value_page_pv"></span></span>
-        </small>
-    </p>
-    
-    
-
-</footer>
-
-
-<script>
-    window.addEventListener('load', function () {
-        globalAddScript('//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js');
-    })
-</script>
-
-<!-- Baidu Tongji -->
-
-<script>
-    window.addEventListener('load', function () {
-        var _hmt = _hmt || [];
-        globalAddScript('//hm.baidu.com/hm.js?1a0ec38c52c08db815b0046c2783b1aa')
-    })
-</script>
-
-
-
-<!-- baidu auto push for seo -->
-<script>
-    window.addEventListener('load', function () {
-        var src = 'http://push.zhanzhang.baidu.com/push.js'
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        globalAddScript(src);
-    })
-</script>
-
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-142641425-1');
-
-    window.addEventListener('load', function () {
-        globalAddScript('https://www.googletagmanager.com/gtag/js?id=UA-142641425-1');
-    });
-</script>
-
-
-    <script>
-        // 非本站网址，新开tab页签
-        (function () {
-            var stopBubble = function (e) {
-                e && e.stopPropagation && e.stopPropagation();
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
             }
-            var links = document.querySelectorAll('a');
-            [].slice.call(links).forEach(function (item) {
-                if (item.href && item.href.indexOf(window.location.host) === -1) {
-                    item.target = '_blank'
-                }
-                // 阻止冒泡，不触发彩蛋。
-                item.addEventListener('click', stopBubble, false);
-            });
-            var article = document.querySelector('article');
-            article && article.addEventListener('click', stopBubble, false)
-        })();
-    </script>
-    
-</body>
-
-</html>
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

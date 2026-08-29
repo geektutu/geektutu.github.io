@@ -1,1168 +1,285 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
-<!-- Head tag -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="referrer" content="no-referrer-when-downgrade">
-  
-  <meta name="baidu-site-verification" content="p7Pz3jlx4t" />
-  <meta name="google-site-verification" content="X31OY0d2sKImNbS2x8-OpITWRK4nn7nZCcXe3_hA9ew" />
-  <meta name="msvalidate.01" content="7E2AEE3378AC93764DEAB411177A21A1" />
-  <meta name="360-site-verification" content="1d1e81a1a48a1ed2e3308d7cb8e548e7" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- if page has tags, then add tags to keyword -->
-  
-  
-  <meta name="keywords" content="geektutu,jiketutu,Go语言,golang,python,Go,Go语言,从零实现Web框架,动手写Web框架,Panic,Recover">
-  <!-- page.description has higher priority -->
-  <meta name="description" content="7天用 Go语言 从零实现Web框架教程(7 days implement golang web framework from scratch tutorial)，用 Go语言/golang 动手写Web框架，从零实现一个Web框架，以 Gin 为原型从零设计一个Web框架。本文介绍了如何为Web框架增加错误处理机制。">
-  <link rel="shortcut icon" href="/img/icon.png">
-  <title>
-    
-    Go语言动手写Web框架 - Gee第七天 错误恢复(Panic Recover) | 极客兔兔
-    
-  </title>
-
-  <link rel="canonical" href="https://geektutu.com/post/gee-day7.html">
-  
-<link rel="stylesheet" href="/css/geektutu.css">
-
-  <!-- global function -->
-  <script>
-    window.globalAddScript = function (url, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = url;
-      onload && (s.onload = onload);
-      onerror && (s.onerror = onerror);
-      document.body.appendChild(s);
-    }
-    window.globalAddCss = function (url) {
-      var s = document.createElement('link');
-      s.rel = 'stylesheet';
-      s.href = url;
-      document.body.appendChild(s);
-    }
-    window.getPosition = function (ele) {
-      var x = 0, y = 0;
-      while (ele) {
-        x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-        y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-        ele = ele.offsetParent;
-      }
-      return { x: x, y: y };
-    }
-    window.getDom = function (str) { return document.querySelector(str) }
-  </script>
-  <!-- google ad -->
-  
-<meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/feed.xml" title="极客兔兔" type="application/rss+xml">
-</head>
-
-<body>
-    
-<style>
-    body {
-        background: white;
-    }
-    .gkt-header-placeholder, .gkt-header {
-        display: none;
-    }
-    .main-container {
-        width: 100%;
-        padding-top: 0;
-        max-width: 100%;
-    }
-</style>
-
-<header class="gkt-header col-xs-12 padding-0">
-    <div id="gkt-nav" class="gkt-header-container">
-        <a href="/" class="gkt-header-title float-left">
-            <img class="float-left" src="/img/icon.png" alt="">
-            <span>极客兔兔</span>
-        </a>
-        <nav class="gkt-header-nav text-right">
-            <ul>
-                <li><a class="hidden-xs" href="/feed.xml">订阅</a></li>
-                <li><a href="/series/">专题</a></li>
-                <li><a href="/archives/">归档</a></li>
-                <li><a href="/post/link.html">友链</a></li>
-                <li><a href="/post/about.html">关于</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="gkt-cate-nav" class="gkt-header-container hidden-xs">
-        
-        <nav class="gkt-header-nav float-left">
-            <ul>
-                
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/tensorflow-mnist-simplest.html">简明教程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tensorflow-mnist-simplest.html">TensorFlow 教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/pandas-dataframe-series.html">Pandas 数据处理</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tf2doc.html">TensorFlow2 文档</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-golang.html">Go 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-rust.html">Rust 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-python.html">Python 简明教程</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/blog-experience-1.html">杂谈 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/blog-experience-1.html">建站经历</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/2020.html">年终总结</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/qa-ml.html">面试 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-ml.html">机器学习面试题</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-golang.html">Go 语言面试题</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left active">
-                    <a class="float-left" href="/post/gee.html">从零实现 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name active"><a class="float-left"
-                                href="/post/gee.html">Web框架 - Gee</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geecache.html">分布式缓存 - GeeCache</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geeorm.html">ORM框架 - GeeORM</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geerpc.html">RPC框架 - GeeRPC</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/7days-golang-q1.html">7days-golang Q &amp; A</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/box-tools.html">百宝箱 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/box-tools.html">工具</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/cheat-sheet-sqlite.html">SQLite 速查表</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/high-performance-go.html">高性能编程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/high-performance-go.html">序言</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-benchmark.html">性能分析</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-string-concat.html">常用数据结构</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-mutex.html">并发编程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-reduce-size.html">编译优化</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-gotchas-array-slice.html">语言陷阱</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-            </ul>
-        </nav>
-    </div>
-</header>
-<div class="gkt-header-placeholder" style="height: 44px"></div>
-<div class="gkt-header-placeholder hidden-xs" style="height: 44px"></div>
-<script>
-    (function () {
-        window.addEventListener('scroll', function () {
-            if (window.innerWidth < 768) {
-                return;
-            }
-            var nav = document.querySelector('#gkt-nav');
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            scrollTop > 50 && (nav.classList.add('hide'));
-            scrollTop <= 50 && (nav.classList.remove('hide'));
-        });
-        var cateNavs = document.querySelectorAll('#gkt-cate-nav>nav>ul>li');
-        [].slice.call(cateNavs).forEach(function (item) {
-            var sub = item.querySelector('.gkt-sub-cate');
-            if (!sub) return;
-            item.addEventListener('mouseenter', function (e) { sub.style.display = 'block'; }, false);
-            item.addEventListener('mouseleave', function (e) { sub.style.display = 'none'; }, false);
-        })
-    })();
-</script>
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Main Content -->
-<main class="col-xs-12 padding-0 markdown-it">
-    <!-- Post Container -->
-    
-    
-    <!-- Post Content -->
-<style>
-  .markdown-it article h1, .markdown-it article h2, .markdown-it article h3 {
-    padding-top: 5px;
-    margin-top: 0px;
-  }
-  .post-container {
-    padding: 0 !important;
-    width: 100%;
-  }
-  .post-container article {
-    padding: 0 15px !important;
-  }
-  .gkt-book {
-    max-width: 80rem;
-    margin: 1rem auto;
-    display: flex;
-  }
-  .gkt-book-title {
-    color: #343a40;
-    font-size: 1.2em;
-  }
-  .gkt-sidebar-wrapper {
-    position: fixed;
-    margin-top: 15px;
-  }
-  .gkt-book-menu {
-    flex: 0 0 16rem;
-    padding-left: 15px;
-    padding-top: 5px;
-    z-index: 999;
-  }
-  .gkt-book-menu a {
-    color: #343a40;
-  }
-  .gkt-book-menu a.active {
-    color: #337ab7;
-  }
-  .gkt-book-menu > nav {
-    position: fixed;
-    overflow: auto;
-    padding-right: 15px;
-    height: 95%;
-    font-size: 0.85em;
-    line-height: 2;
-    -ms-overflow-style: none;
-    overflow: -moz-scrollbars-none;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-    border-left: 1px solid #eee;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-thumb {
-      background-color: #c1c1c1;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar {
-    width: 5px !important;
-  }
-  .gkt-book-menu hr {
-    padding: 2px;
-  }
-  .gkt-book-menu > nav > ul {
-    padding-left: 0;
-  }
-  .gkt-book-menu > nav ul,
-  .gkt-book-toc ul,
-  .gkt-book-toc ol {
-    list-style: none !important;
-  }
-  @media (min-width: 992px) {
-    .gkt-book-page {
-      width: calc(100% - 32rem);
-    }
-  }
-  .gkt-book-page {
-    min-width: 20rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-  .gkt-page-tips {
-    color: #555;
-    margin-top: -10px;
-  }
-  .gkt-book-toc {
-    flex: 0 0 16rem;
-    font-size: 0.85em;
-  }
-  .gkt-book .series_links {
-    border: 1px solid #eaecef;
-    padding: 0 15px;
-    background-color: #fff8dc;
-    margin-bottom: 20px;
-    border-radius: 5px;
-  }
-  .gkt-book-menu-icon {
-    padding: 0 15px;
-    font-size: 16px;
-    overflow: hidden;
-    cursor: pointer;
-  }
-  @media (max-width: 767px) {
-    .gkt-book-menu-hidden {
-      margin-left: -16rem;
-    }
-  }
-  .gkt-book-menu-checked {
-    opacity: 0.4;
-    margin-right: -16rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-</style>
-<div class="gkt-book post-container">
-  <aside class="gkt-book-menu gkt-book-menu-hidden">
-    <nav>
-      
-      <h3 class="text-center">
-        <a class="gkt-book-title" href="/post/gee.html">七天用Go从零实现系列</a>
-      </h3>
-      
-      <ul class="col-xs-12 text-center">
-        <li><a href="/">极客兔兔</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://github.com/geektutu">Github</a></li>
-        
-        <li><a href="https://geektutu.com/feed.xml">RSS</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie">知乎</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://weibo.com/geektutu">微博</a></li>
-        
-      </ul>
-      
-      <hr />
-      
-      <ul>
-        
-        <li>
-          <a>Web框架 - Gee</a>
-          <ul>
-            
-            <li><a href="/post/gee.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/gee-day1.html" class=" ">Day1 HTTP 基础</a></li>
-            
-            <li><a href="/post/gee-day2.html" class=" ">Day2 上下文</a></li>
-            
-            <li><a href="/post/gee-day3.html" class=" ">Day3 前缀树路由</a></li>
-            
-            <li><a href="/post/gee-day4.html" class=" ">Day4 分组控制</a></li>
-            
-            <li><a href="/post/gee-day5.html" class=" ">Day5 中间件</a></li>
-            
-            <li><a href="/post/gee-day6.html" class=" ">Day6 模板 Template</a></li>
-            
-            <li><a href="/post/gee-day7.html" class="active ">Day7 错误恢复</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>分布式缓存 - GeeCache</a>
-          <ul>
-            
-            <li><a href="/post/geecache.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/geecache-day1.html" class=" ">Day1 LRU 缓存淘汰策略</a></li>
-            
-            <li><a href="/post/geecache-day2.html" class=" ">Day2 单机并发缓存</a></li>
-            
-            <li><a href="/post/geecache-day3.html" class=" ">Day3 HTTP 服务端</a></li>
-            
-            <li><a href="/post/geecache-day4.html" class=" ">Day4 一致性哈希</a></li>
-            
-            <li><a href="/post/geecache-day5.html" class=" ">Day5 分布式节点</a></li>
-            
-            <li><a href="/post/geecache-day6.html" class=" ">Day6 防止缓存击穿</a></li>
-            
-            <li><a href="/post/geecache-day7.html" class=" ">Day7 使用 Protobuf 通信</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>ORM框架 - GeeORM</a>
-          <ul>
-            
-            <li><a href="/post/geeorm.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/geeorm-day1.html" class=" ">Day1 database/sql 基础</a></li>
-            
-            <li><a href="/post/geeorm-day2.html" class=" ">Day2 对象表结构映射</a></li>
-            
-            <li><a href="/post/geeorm-day3.html" class=" ">Day3 记录新增和查询</a></li>
-            
-            <li><a href="/post/geeorm-day4.html" class=" ">Day4 链式操作与更新删除</a></li>
-            
-            <li><a href="/post/geeorm-day5.html" class=" ">Day5 实现钩子</a></li>
-            
-            <li><a href="/post/geeorm-day6.html" class=" ">Day6 支持事务</a></li>
-            
-            <li><a href="/post/geeorm-day7.html" class=" ">Day7 数据库迁移</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>RPC框架 - GeeRPC</a>
-          <ul>
-            
-            <li><a href="/post/geerpc.html" class=" ">Day0 序言</a></li>
-            
-            <li><a href="/post/geerpc-day1.html" class=" ">Day1 服务端与消息编码</a></li>
-            
-            <li><a href="/post/geerpc-day2.html" class=" ">Day2 高性能客户端</a></li>
-            
-            <li><a href="/post/geerpc-day3.html" class=" ">Day3 服务注册</a></li>
-            
-            <li><a href="/post/geerpc-day4.html" class=" ">Day4 超时处理</a></li>
-            
-            <li><a href="/post/geerpc-day5.html" class=" ">Day5 支持HTTP协议</a></li>
-            
-            <li><a href="/post/geerpc-day6.html" class=" ">Day6 负载均衡</a></li>
-            
-            <li><a href="/post/geerpc-day7.html" class=" ">Day7 服务发现与注册中心</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>7days-golang Q &amp; A</a>
-          <ul>
-            
-            <li><a href="/post/7days-golang-q1.html" class=" ">接口型函数</a></li>
-            
-          </ul>
-        </li>
-        
-      </ul>
-    </nav>
-  </aside>
-  <div class="gkt-book-page">
-    <div class="hidden-sm hidden-md hidden-lg gkt-book-menu-icon">
-      <label for="book-menu">
-        <svg class="float-left" name="book-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0V0z"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-      </label>
-      <strong class="float-right">七天用Go从零实现系列</strong>
-    </div>
-    <div class="u-arrow-wrapper hidden-xs">
-        
-        <a class="float-left" href="/post/awesome-config.html"><i class="u-arrow-left"></i></a>
-        
-        
-        <a class="float-right" href="/post/quick-go-protobuf.html"><i class="u-arrow-right"></i></a>
-        
-    </div>
-    <article class="col-xs-12">
-      <h1>Go语言动手写Web框架 - Gee第七天 错误恢复(Panic Recover)</h1>
-       
-      <div class="hidden-lg hidden-md hidden-sm series_links">
-        <p><strong> Web框架 - Gee系列文章链接：</strong></p>
-        <ul>
-          
-          <li>
-            <a href="/post/gee.html">7天用Go从零实现Web框架Gee教程</a>
-            <span class="post-item-date">(Aug 11, 2019)</span>
-          </li>
-          
-          <li>
-            <a href="/post/gee-day1.html">Go语言动手写Web框架 - Gee第一天 http.Handler</a>
-            <span class="post-item-date">(Aug 12, 2019)</span>
-          </li>
-          
-          <li>
-            <a href="/post/gee-day2.html">Go语言动手写Web框架 - Gee第二天 上下文Context</a>
-            <span class="post-item-date">(Aug 19, 2019)</span>
-          </li>
-          
-          <li>
-            <a href="/post/gee-day3.html">Go语言动手写Web框架 - Gee第三天 前缀树路由Router</a>
-            <span class="post-item-date">(Aug 28, 2019)</span>
-          </li>
-          
-          <li>
-            <a href="/post/gee-day4.html">Go语言动手写Web框架 - Gee第四天 分组控制Group</a>
-            <span class="post-item-date">(Sep 1, 2019)</span>
-          </li>
-          
-          <li>
-            <a href="/post/gee-day5.html">Go语言动手写Web框架 - Gee第五天 中间件Middleware</a>
-            <span class="post-item-date">(Sep 1, 2019)</span>
-          </li>
-          
-          <li>
-            <a href="/post/gee-day6.html">Go语言动手写Web框架 - Gee第六天 模板(HTML Template)</a>
-            <span class="post-item-date">(Sep 8, 2019)</span>
-          </li>
-          
-          <li>
-            <a href="/post/gee-day7.html">Go语言动手写Web框架 - Gee第七天 错误恢复(Panic Recover)</a>
-            <span class="post-item-date">(Jan 9, 2020)</span>
-          </li>
-          
-        </ul>
-      </div>
-       
-      <blockquote>
-        <p>
-          源代码/数据集已上传到
-          <a href="https://github.com/geektutu/7days-golang" target="_blank" rel="noopener">Github - 7days-golang</a>
-        </p>
-      </blockquote>
-      
-      <div class="gkt-article-start"></div>
-      <p>本文是<a href="https://geektutu.com/post/gee.html">7天用Go从零实现Web框架Gee教程系列</a>的第七篇。</p>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天用 Go语言 从零实现Web框架教程(7 days implement golang web framework from scratch tutorial)，用 Go语言/golang 动手写Web框架，从零实现一个Web框架，以 Gin 为原型从零设计一个Web框架。本文介绍了如何为Web框架增加错误处理机制。"><title>Go语言动手写Web框架 - Gee第七天 错误恢复(Panic Recover) · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.B88FlGyz.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-baseline gap-2"><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔<span class="text-accent">.</span></span><span class="hidden text-xs text-faint sm:inline">写书式技术博客</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/7days-golang" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天用Go从零实现系列</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Web 框架 Gee</span></div><ul><li><a href="/post/gee.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/gee-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 HTTP 基础</a></li><li><a href="/post/gee-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 上下文</a></li><li><a href="/post/gee-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 前缀树路由</a></li><li><a href="/post/gee-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 分组控制</a></li><li><a href="/post/gee-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 中间件</a></li><li><a href="/post/gee-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 模板 Template</a></li><li><a href="/post/gee-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day7 错误恢复</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">分布式缓存 GeeCache</span></div><ul><li><a href="/post/geecache.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/geecache-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 LRU 缓存淘汰策略</a></li><li><a href="/post/geecache-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 单机并发缓存</a></li><li><a href="/post/geecache-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 HTTP 服务端</a></li><li><a href="/post/geecache-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 一致性哈希</a></li><li><a href="/post/geecache-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 分布式节点</a></li><li><a href="/post/geecache-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 防止缓存击穿</a></li><li><a href="/post/geecache-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 使用 Protobuf 通信</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">ORM 框架 GeeORM</span></div><ul><li><a href="/post/geeorm.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/geeorm-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 database/sql 基础</a></li><li><a href="/post/geeorm-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 对象表结构映射</a></li><li><a href="/post/geeorm-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 记录新增和查询</a></li><li><a href="/post/geeorm-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 链式操作与更新删除</a></li><li><a href="/post/geeorm-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 实现钩子</a></li><li><a href="/post/geeorm-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 支持事务</a></li><li><a href="/post/geeorm-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 数据库迁移</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">RPC 框架 GeeRPC</span></div><ul><li><a href="/post/geerpc.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day0 序言</a></li><li><a href="/post/geerpc-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 服务端与消息编码</a></li><li><a href="/post/geerpc-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 高性能客户端</a></li><li><a href="/post/geerpc-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 服务注册</a></li><li><a href="/post/geerpc-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 超时处理</a></li><li><a href="/post/geerpc-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 支持HTTP协议</a></li><li><a href="/post/geerpc-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 负载均衡</a></li><li><a href="/post/geerpc-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 服务发现与注册中心</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Q &amp; A</span></div><ul><li><a href="/post/7days-golang-q1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">接口型函数</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/7days-golang" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天用Go从零实现系列</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">Go语言动手写Web框架 - Gee第七天 错误恢复(Panic Recover)</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2020-01-09">2020-01-09</time><span aria-hidden="true">·</span><span>约 5 分钟</span><a href="https://github.com/geektutu/7days-golang" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-golang" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-golang</a><span class="flex flex-wrap gap-2"><a href="/tags/Go" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Go</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#panic" class="toc-link block text-muted" data-toc-depth="2">panic</a></li><li style="padding-left:0rem"><a href="#defer" class="toc-link block text-muted" data-toc-depth="2">defer</a></li><li style="padding-left:0rem"><a href="#recover" class="toc-link block text-muted" data-toc-depth="2">recover</a></li><li style="padding-left:0rem"><a href="#gee-的错误处理机制" class="toc-link block text-muted" data-toc-depth="2">Gee 的错误处理机制</a></li><li style="padding-left:0rem"><a href="#使用-demo" class="toc-link block text-muted" data-toc-depth="2">使用 Demo</a></li><li style="padding-left:0rem"><a href="#参考" class="toc-link block text-muted" data-toc-depth="2">参考</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><p>本文是<a href="https://geektutu.com/post/gee.html">7天用Go从零实现Web框架Gee教程系列</a>的第七篇。</p>
 <ul>
 <li>实现错误处理机制。</li>
 </ul>
-<h2 id="panic"><a href="#panic" class="headerlink" title="panic"></a>panic</h2><p>Go 语言中，比较常见的错误处理方法是返回 error，由调用者决定后续如何处理。但是如果是无法恢复的错误，可以手动触发 panic，当然如果在程序运行过程中出现了类似于数组越界的错误，panic 也会被触发。panic 会中止当前执行的程序，退出。</p>
+<h2 id="panic">panic</h2>
+<p>Go 语言中，比较常见的错误处理方法是返回 error，由调用者决定后续如何处理。但是如果是无法恢复的错误，可以手动触发 panic，当然如果在程序运行过程中出现了类似于数组越界的错误，panic 也会被触发。panic 会中止当前执行的程序，退出。</p>
 <p>下面是主动触发的例子：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// hello.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	fmt.Println(<span class="string">&quot;before panic&quot;</span>)</span><br><span class="line">	<span class="built_in">panic</span>(<span class="string">&quot;crash&quot;</span>)</span><br><span class="line">	fmt.Println(<span class="string">&quot;after panic&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ go run hello.go</span><br><span class="line"></span><br><span class="line">before panic</span><br><span class="line">panic: crash</span><br><span class="line"></span><br><span class="line">goroutine 1 [running]:</span><br><span class="line">main.main()</span><br><span class="line">        ~/go_demo/hello/hello.go:7 +0x95</span><br><span class="line"><span class="built_in">exit</span> status 2</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// hello.go</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"before panic"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6F42C1">	panic</span><span style="color:#24292E">(</span><span style="color:#032F62">"crash"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"after panic"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> run</span><span style="color:#032F62"> hello.go</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">before</span><span style="color:#032F62"> panic</span></span>
+<span class="line"><span style="color:#6F42C1">panic:</span><span style="color:#032F62"> crash</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">goroutine</span><span style="color:#005CC5"> 1</span><span style="color:#24292E"> [running]:</span></span>
+<span class="line"><span style="color:#6F42C1">main.main</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#6F42C1">        ~/go_demo/hello/hello.go:7</span><span style="color:#032F62"> +0x95</span></span>
+<span class="line"><span style="color:#005CC5">exit</span><span style="color:#032F62"> status</span><span style="color:#005CC5"> 2</span></span></code></pre>
 <p>下面是数组越界触发的 panic</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// hello.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	arr := []<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">	fmt.Println(arr[<span class="number">4</span>])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ go run hello.go</span><br><span class="line">panic: runtime error: index out of range [4] with length 3</span><br></pre></td></tr></table></figure>
-
-<h2 id="defer"><a href="#defer" class="headerlink" title="defer"></a>defer</h2><p>panic 会导致程序被中止，但是在退出前，会先处理完当前协程上已经defer 的任务，执行完成后再退出。效果类似于 java 语言的 <code>try...catch</code>。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// hello.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">&quot;defer func&quot;</span>)</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	arr := []<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">	fmt.Println(arr[<span class="number">4</span>])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="keyword">go</span> run hello.<span class="keyword">go</span> </span><br><span class="line"><span class="keyword">defer</span> <span class="function"><span class="keyword">func</span></span></span><br><span class="line"><span class="built_in">panic</span>: runtime <span class="type">error</span>: index out of <span class="keyword">range</span> [<span class="number">4</span>] with length <span class="number">3</span></span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// hello.go</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	arr </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> []</span><span style="color:#D73A49">int</span><span style="color:#24292E">{</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(arr[</span><span style="color:#005CC5">4</span><span style="color:#24292E">])</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> run</span><span style="color:#032F62"> hello.go</span></span>
+<span class="line"><span style="color:#6F42C1">panic:</span><span style="color:#032F62"> runtime</span><span style="color:#032F62"> error:</span><span style="color:#032F62"> index</span><span style="color:#032F62"> out</span><span style="color:#032F62"> of</span><span style="color:#032F62"> range</span><span style="color:#24292E"> [4] with length 3</span></span></code></pre>
+<h2 id="defer">defer</h2>
+<p>panic 会导致程序被中止，但是在退出前，会先处理完当前协程上已经defer 的任务，执行完成后再退出。效果类似于 java 语言的 <code>try...catch</code>。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// hello.go</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	defer</span><span style="color:#D73A49"> func</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">		fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"defer func"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">	arr </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> []</span><span style="color:#D73A49">int</span><span style="color:#24292E">{</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(arr[</span><span style="color:#005CC5">4</span><span style="color:#24292E">])</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">$ </span><span style="color:#D73A49">go</span><span style="color:#24292E"> run hello.</span><span style="color:#D73A49">go</span><span style="color:#24292E"> </span></span>
+<span class="line"><span style="color:#D73A49">defer</span><span style="color:#D73A49"> func</span></span>
+<span class="line"><span style="color:#24292E">panic: runtime </span><span style="color:#D73A49">error</span><span style="color:#24292E">: index out of </span><span style="color:#D73A49">range</span><span style="color:#24292E"> [</span><span style="color:#005CC5">4</span><span style="color:#24292E">] with length </span><span style="color:#005CC5">3</span></span></code></pre>
 <p>可以 defer 多个任务，在同一个函数中 defer 多个任务，会逆序执行。即先执行最后 defer 的任务。</p>
 <p>在这里，defer 的任务执行完成之后，panic 还会继续被抛出，导致程序非正常结束。</p>
-<h2 id="recover"><a href="#recover" class="headerlink" title="recover"></a>recover</h2><p>Go 语言还提供了 recover 函数，可以避免因为 panic 发生而导致整个程序终止，recover 函数只在 defer 中生效。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// hello.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">test_recover</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">&quot;defer func&quot;</span>)</span><br><span class="line">		<span class="keyword">if</span> err := <span class="built_in">recover</span>(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			fmt.Println(<span class="string">&quot;recover success&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	arr := []<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">	fmt.Println(arr[<span class="number">4</span>])</span><br><span class="line">	fmt.Println(<span class="string">&quot;after panic&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	test_recover()</span><br><span class="line">	fmt.Println(<span class="string">&quot;after recover&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="keyword">go</span> run hello.<span class="keyword">go</span> </span><br><span class="line"><span class="keyword">defer</span> <span class="function"><span class="keyword">func</span></span></span><br><span class="line"><span class="built_in">recover</span> success</span><br><span class="line">after <span class="built_in">recover</span></span><br></pre></td></tr></table></figure>
-
+<h2 id="recover">recover</h2>
+<p>Go 语言还提供了 recover 函数，可以避免因为 panic 发生而导致整个程序终止，recover 函数只在 defer 中生效。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// hello.go</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> test_recover</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	defer</span><span style="color:#D73A49"> func</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">		fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"defer func"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">		if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> recover</span><span style="color:#24292E">(); err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">			fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"recover success"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#24292E">	}()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">	arr </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> []</span><span style="color:#D73A49">int</span><span style="color:#24292E">{</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(arr[</span><span style="color:#005CC5">4</span><span style="color:#24292E">])</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"after panic"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#6F42C1">	test_recover</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"after recover"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">$ </span><span style="color:#D73A49">go</span><span style="color:#24292E"> run hello.</span><span style="color:#D73A49">go</span><span style="color:#24292E"> </span></span>
+<span class="line"><span style="color:#D73A49">defer</span><span style="color:#D73A49"> func</span></span>
+<span class="line"><span style="color:#24292E">recover success</span></span>
+<span class="line"><span style="color:#24292E">after recover</span></span></code></pre>
 <p>我们可以看到，recover 捕获了 panic，程序正常结束。<em>test_recover()</em> 中的 <em>after panic</em> 没有打印，这是正确的，当 panic 被触发时，控制权就被交给了 defer 。就像在 java 中，<code>try</code>代码块中发生了异常，控制权交给了 <code>catch</code>，接下来执行 catch 代码块中的代码。而在 <em>main()</em> 中打印了 <em>after recover</em>，说明程序已经恢复正常，继续往下执行直到结束。</p>
-<h2 id="Gee-的错误处理机制"><a href="#Gee-的错误处理机制" class="headerlink" title="Gee 的错误处理机制"></a>Gee 的错误处理机制</h2><p>对一个 Web 框架而言，错误处理机制是非常必要的。可能是框架本身没有完备的测试，导致在某些情况下出现空指针异常等情况。也有可能用户不正确的参数，触发了某些异常，例如数组越界，空指针等。如果因为这些原因导致系统宕机，必然是不可接受的。</p>
+<h2 id="gee-的错误处理机制">Gee 的错误处理机制</h2>
+<p>对一个 Web 框架而言，错误处理机制是非常必要的。可能是框架本身没有完备的测试，导致在某些情况下出现空指针异常等情况。也有可能用户不正确的参数，触发了某些异常，例如数组越界，空指针等。如果因为这些原因导致系统宕机，必然是不可接受的。</p>
 <p>我们在<a href="https://geektutu.com/post/gee-day6.html">第六天</a>实现的框架并没有加入异常处理机制，如果代码中存在会触发 panic 的 BUG，很容易宕掉。</p>
 <p>例如下面的代码：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	r := gee.New()</span><br><span class="line">	r.GET(<span class="string">&quot;/panic&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gee.Context)</span></span> &#123;</span><br><span class="line">		names := []<span class="type">string</span>&#123;<span class="string">&quot;geektutu&quot;</span>&#125;</span><br><span class="line">		c.String(http.StatusOK, names[<span class="number">100</span>])</span><br><span class="line">	&#125;)</span><br><span class="line">	r.Run(<span class="string">&quot;:9999&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在上面的代码中，我们为 gee 注册了路由 <code>/panic</code>，而这个路由的处理函数内部存在数组越界 <code>names[100]</code>，如果访问 <em>localhost:9999/panic</em>，Web 服务就会宕掉。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	r </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> gee.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	r.</span><span style="color:#6F42C1">GET</span><span style="color:#24292E">(</span><span style="color:#032F62">"/panic"</span><span style="color:#24292E">, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gee</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">		names </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span><span style="color:#032F62">"geektutu"</span><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#24292E">		c.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(http.StatusOK, names[</span><span style="color:#005CC5">100</span><span style="color:#24292E">])</span></span>
+<span class="line"><span style="color:#24292E">	})</span></span>
+<span class="line"><span style="color:#24292E">	r.</span><span style="color:#6F42C1">Run</span><span style="color:#24292E">(</span><span style="color:#032F62">":9999"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>在上面的代码中，我们为 gee 注册了路由 <code>/panic</code>，而这个路由的处理函数内部存在数组越界 <code>names[100]</code>，如果访问 <em>localhost</em></p><div></div><em>/panic</em>，Web 服务就会宕掉。<p></p>
 <p>今天，我们将在 gee 中添加一个非常简单的错误处理机制，即在此类错误发生时，向用户返回 <em>Internal Server Error</em>，并且在日志中打印必要的错误信息，方便进行错误定位。</p>
 <p>我们之前实现了中间件机制，错误处理也可以作为一个中间件，增强 gee 框架的能力。</p>
 <p>新增文件 <strong>gee/recovery.go</strong>，在这个文件中实现中间件 <code>Recovery</code>。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Recovery</span><span class="params">()</span></span> HandlerFunc &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(c *Context)</span></span> &#123;</span><br><span class="line">		<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			<span class="keyword">if</span> err := <span class="built_in">recover</span>(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				message := fmt.Sprintf(<span class="string">&quot;%s&quot;</span>, err)</span><br><span class="line">				log.Printf(<span class="string">&quot;%s\n\n&quot;</span>, trace(message))</span><br><span class="line">				c.Fail(http.StatusInternalServerError, <span class="string">&quot;Internal Server Error&quot;</span>)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line"></span><br><span class="line">		c.Next()</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><code>Recovery</code> 的实现非常简单，使用 defer 挂载上错误恢复的函数，在这个函数中调用 *recover()*，捕获 panic，并且将堆栈信息打印在日志中，向用户返回 <em>Internal Server Error</em>。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Recovery</span><span style="color:#24292E">() </span><span style="color:#6F42C1">HandlerFunc</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#D73A49"> func</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">		defer</span><span style="color:#D73A49"> func</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> recover</span><span style="color:#24292E">(); err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">				message </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> fmt.</span><span style="color:#6F42C1">Sprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%s</span><span style="color:#032F62">"</span><span style="color:#24292E">, err)</span></span>
+<span class="line"><span style="color:#24292E">				log.</span><span style="color:#6F42C1">Printf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%s\n\n</span><span style="color:#032F62">"</span><span style="color:#24292E">, </span><span style="color:#6F42C1">trace</span><span style="color:#24292E">(message))</span></span>
+<span class="line"><span style="color:#24292E">				c.</span><span style="color:#6F42C1">Fail</span><span style="color:#24292E">(http.StatusInternalServerError, </span><span style="color:#032F62">"Internal Server Error"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">			}</span></span>
+<span class="line"><span style="color:#24292E">		}()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">		c.</span><span style="color:#6F42C1">Next</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>Recovery</code> 的实现非常简单，使用 defer 挂载上错误恢复的函数，在这个函数中调用 <em>recover()</em>，捕获 panic，并且将堆栈信息打印在日志中，向用户返回 <em>Internal Server Error</em>。</p>
 <p>你可能注意到，这里有一个 <em>trace()</em> 函数，这个函数是用来获取触发 panic 的堆栈信息，完整代码如下：</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/geektutu/7days-golang/tree/master/gee-web/day7-panic-recover">day7-panic-recover/gee/recovery.go</a></p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> gee</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;log&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;runtime&quot;</span></span><br><span class="line">	<span class="string">&quot;strings&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// print stack trace for debug</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">trace</span><span class="params">(message <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	<span class="keyword">var</span> pcs [<span class="number">32</span>]<span class="type">uintptr</span></span><br><span class="line">	n := runtime.Callers(<span class="number">3</span>, pcs[:]) <span class="comment">// skip first 3 caller</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> str strings.Builder</span><br><span class="line">	str.WriteString(message + <span class="string">&quot;\nTraceback:&quot;</span>)</span><br><span class="line">	<span class="keyword">for</span> _, pc := <span class="keyword">range</span> pcs[:n] &#123;</span><br><span class="line">		fn := runtime.FuncForPC(pc)</span><br><span class="line">		file, line := fn.FileLine(pc)</span><br><span class="line">		str.WriteString(fmt.Sprintf(<span class="string">&quot;\n\t%s:%d&quot;</span>, file, line))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> str.String()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Recovery</span><span class="params">()</span></span> HandlerFunc &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(c *Context)</span></span> &#123;</span><br><span class="line">		<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">			<span class="keyword">if</span> err := <span class="built_in">recover</span>(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				message := fmt.Sprintf(<span class="string">&quot;%s&quot;</span>, err)</span><br><span class="line">				log.Printf(<span class="string">&quot;%s\n\n&quot;</span>, trace(message))</span><br><span class="line">				c.Fail(http.StatusInternalServerError, <span class="string">&quot;Internal Server Error&quot;</span>)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;()</span><br><span class="line"></span><br><span class="line">		c.Next()</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<p><a href="https://github.com/geektutu/7days-golang/tree/master/gee-web/day7-panic-recover">day7-panic-recover/gee/recovery.go</a></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> gee</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">fmt</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">log</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">net/http</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">runtime</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">strings</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// print stack trace for debug</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> trace</span><span style="color:#24292E">(</span><span style="color:#E36209">message</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> pcs [</span><span style="color:#005CC5">32</span><span style="color:#24292E">]</span><span style="color:#D73A49">uintptr</span></span>
+<span class="line"><span style="color:#24292E">	n </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> runtime.</span><span style="color:#6F42C1">Callers</span><span style="color:#24292E">(</span><span style="color:#005CC5">3</span><span style="color:#24292E">, pcs[:]) </span><span style="color:#6A737D">// skip first 3 caller</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> str </span><span style="color:#6F42C1">strings</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Builder</span></span>
+<span class="line"><span style="color:#24292E">	str.</span><span style="color:#6F42C1">WriteString</span><span style="color:#24292E">(message </span><span style="color:#D73A49">+</span><span style="color:#032F62"> "</span><span style="color:#005CC5">\n</span><span style="color:#032F62">Traceback:"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> _, pc </span><span style="color:#D73A49">:=</span><span style="color:#D73A49"> range</span><span style="color:#24292E"> pcs[:n] {</span></span>
+<span class="line"><span style="color:#24292E">		fn </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> runtime.</span><span style="color:#6F42C1">FuncForPC</span><span style="color:#24292E">(pc)</span></span>
+<span class="line"><span style="color:#24292E">		file, line </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> fn.</span><span style="color:#6F42C1">FileLine</span><span style="color:#24292E">(pc)</span></span>
+<span class="line"><span style="color:#24292E">		str.</span><span style="color:#6F42C1">WriteString</span><span style="color:#24292E">(fmt.</span><span style="color:#6F42C1">Sprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">\n\t%s</span><span style="color:#032F62">:</span><span style="color:#005CC5">%d</span><span style="color:#032F62">"</span><span style="color:#24292E">, file, line))</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> str.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Recovery</span><span style="color:#24292E">() </span><span style="color:#6F42C1">HandlerFunc</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#D73A49"> func</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">		defer</span><span style="color:#D73A49"> func</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> recover</span><span style="color:#24292E">(); err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">				message </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> fmt.</span><span style="color:#6F42C1">Sprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%s</span><span style="color:#032F62">"</span><span style="color:#24292E">, err)</span></span>
+<span class="line"><span style="color:#24292E">				log.</span><span style="color:#6F42C1">Printf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%s\n\n</span><span style="color:#032F62">"</span><span style="color:#24292E">, </span><span style="color:#6F42C1">trace</span><span style="color:#24292E">(message))</span></span>
+<span class="line"><span style="color:#24292E">				c.</span><span style="color:#6F42C1">Fail</span><span style="color:#24292E">(http.StatusInternalServerError, </span><span style="color:#032F62">"Internal Server Error"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">			}</span></span>
+<span class="line"><span style="color:#24292E">		}()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">		c.</span><span style="color:#6F42C1">Next</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>在 <em>trace()</em> 中，调用了 <code>runtime.Callers(3, pcs[:])</code>，Callers 用来返回调用栈的程序计数器, 第 0 个 Caller 是 Callers 本身，第 1 个是上一层 trace，第 2 个是再上一层的 <code>defer func</code>。因此，为了日志简洁一点，我们跳过了前 3 个 Caller。</p>
 <p>接下来，通过 <code>runtime.FuncForPC(pc)</code> 获取对应的函数，在通过 <code>fn.FileLine(pc)</code> 获取到调用该函数的文件名和行号，打印在日志中。</p>
 <p>至此，gee 框架的错误处理机制就完成了。</p>
-<h2 id="使用-Demo"><a href="#使用-Demo" class="headerlink" title="使用 Demo"></a>使用 Demo</h2><p><a target="_blank" rel="noopener" href="https://github.com/geektutu/7days-golang/tree/master/gee-web/day7-panic-recover">day7-panic-recover/main.go</a></p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;gee&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	r := gee.Default()</span><br><span class="line">	r.GET(<span class="string">&quot;/&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gee.Context)</span></span> &#123;</span><br><span class="line">		c.String(http.StatusOK, <span class="string">&quot;Hello Geektutu\n&quot;</span>)</span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="comment">// index out of range for testing Recovery()</span></span><br><span class="line">	r.GET(<span class="string">&quot;/panic&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gee.Context)</span></span> &#123;</span><br><span class="line">		names := []<span class="type">string</span>&#123;<span class="string">&quot;geektutu&quot;</span>&#125;</span><br><span class="line">		c.String(http.StatusOK, names[<span class="number">100</span>])</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	r.Run(<span class="string">&quot;:9999&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h2 id="使用-demo">使用 Demo</h2>
+<p><a href="https://github.com/geektutu/7days-golang/tree/master/gee-web/day7-panic-recover">day7-panic-recover/main.go</a></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">net/http</span><span style="color:#032F62">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">gee</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	r </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> gee.</span><span style="color:#6F42C1">Default</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	r.</span><span style="color:#6F42C1">GET</span><span style="color:#24292E">(</span><span style="color:#032F62">"/"</span><span style="color:#24292E">, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gee</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">		c.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(http.StatusOK, </span><span style="color:#032F62">"Hello Geektutu</span><span style="color:#005CC5">\n</span><span style="color:#032F62">"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	})</span></span>
+<span class="line"><span style="color:#6A737D">	// index out of range for testing Recovery()</span></span>
+<span class="line"><span style="color:#24292E">	r.</span><span style="color:#6F42C1">GET</span><span style="color:#24292E">(</span><span style="color:#032F62">"/panic"</span><span style="color:#24292E">, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">gee</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Context</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">		names </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> []</span><span style="color:#D73A49">string</span><span style="color:#24292E">{</span><span style="color:#032F62">"geektutu"</span><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#24292E">		c.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(http.StatusOK, names[</span><span style="color:#005CC5">100</span><span style="color:#24292E">])</span></span>
+<span class="line"><span style="color:#24292E">	})</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">	r.</span><span style="color:#6F42C1">Run</span><span style="color:#24292E">(</span><span style="color:#032F62">":9999"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>接下来进行测试，先访问主页，访问一个有BUG的 <code>/panic</code>，服务正常返回。接下来我们再一次成功访问了主页，说明服务完全运转正常。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ curl <span class="string">&quot;http://localhost:9999&quot;</span></span><br><span class="line">Hello Geektutu</span><br><span class="line">$ curl <span class="string">&quot;http://localhost:9999/panic&quot;</span></span><br><span class="line">&#123;<span class="string">&quot;message&quot;</span>:<span class="string">&quot;Internal Server Error&quot;</span>&#125;</span><br><span class="line">$ curl <span class="string">&quot;http://localhost:9999&quot;</span></span><br><span class="line">Hello Geektutu</span><br></pre></td></tr></table></figure>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> curl</span><span style="color:#032F62"> "http://localhost:9999"</span></span>
+<span class="line"><span style="color:#6F42C1">Hello</span><span style="color:#032F62"> Geektutu</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> curl</span><span style="color:#032F62"> "http://localhost:9999/panic"</span></span>
+<span class="line"><span style="color:#24292E">{</span><span style="color:#6F42C1">"message"</span><span style="color:#005CC5">:</span><span style="color:#6F42C1">"Internal Server Error"</span><span style="color:#6F42C1">}</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> curl</span><span style="color:#032F62"> "http://localhost:9999"</span></span>
+<span class="line"><span style="color:#6F42C1">Hello</span><span style="color:#032F62"> Geektutu</span></span></code></pre>
+<p>我们可以在后台日志中看到如下内容，引发错误的原因和堆栈信息都被打印了出来，通过日志，我们可以很容易地知道，在<em>day7-panic-recover/main.go</em></p><div></div> 的地方出现了 <code>index out of range</code> 错误。<p></p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">2020/01/09</span><span style="color:#032F62"> 01:00:10</span><span style="color:#032F62"> Route</span><span style="color:#032F62">  GET</span><span style="color:#032F62"> -</span><span style="color:#032F62"> /</span></span>
+<span class="line"><span style="color:#6F42C1">2020/01/09</span><span style="color:#032F62"> 01:00:10</span><span style="color:#032F62"> Route</span><span style="color:#032F62">  GET</span><span style="color:#032F62"> -</span><span style="color:#032F62"> /panic</span></span>
+<span class="line"><span style="color:#6F42C1">2020/01/09</span><span style="color:#032F62"> 01:00:22</span><span style="color:#24292E"> [200] / in 25.364µs</span></span>
+<span class="line"><span style="color:#6F42C1">2020/01/09</span><span style="color:#032F62"> 01:00:32</span><span style="color:#032F62"> runtime</span><span style="color:#032F62"> error:</span><span style="color:#032F62"> index</span><span style="color:#032F62"> out</span><span style="color:#032F62"> of</span><span style="color:#032F62"> range</span></span>
+<span class="line"><span style="color:#6F42C1">Traceback:</span></span>
+<span class="line"><span style="color:#6F42C1">        /usr/local/Cellar/go/1.12.5/libexec/src/runtime/panic.go:523</span></span>
+<span class="line"><span style="color:#6F42C1">        /usr/local/Cellar/go/1.12.5/libexec/src/runtime/panic.go:44</span></span>
+<span class="line"><span style="color:#6F42C1">        /tmp/7days-golang/day7-panic-recover/main.go:47</span></span>
+<span class="line"><span style="color:#6F42C1">        /tmp/7days-golang/day7-panic-recover/gee/context.go:41</span></span>
+<span class="line"><span style="color:#6F42C1">        /tmp/7days-golang/day7-panic-recover/gee/recovery.go:37</span></span>
+<span class="line"><span style="color:#6F42C1">        /tmp/7days-golang/day7-panic-recover/gee/context.go:41</span></span>
+<span class="line"><span style="color:#6F42C1">        /tmp/7days-golang/day7-panic-recover/gee/logger.go:15</span></span>
+<span class="line"><span style="color:#6F42C1">        /tmp/7days-golang/day7-panic-recover/gee/context.go:41</span></span>
+<span class="line"><span style="color:#6F42C1">        /tmp/7days-golang/day7-panic-recover/gee/router.go:99</span></span>
+<span class="line"><span style="color:#6F42C1">        /tmp/7days-golang/day7-panic-recover/gee/gee.go:130</span></span>
+<span class="line"><span style="color:#6F42C1">        /usr/local/Cellar/go/1.12.5/libexec/src/net/http/server.go:2775</span></span>
+<span class="line"><span style="color:#6F42C1">        /usr/local/Cellar/go/1.12.5/libexec/src/net/http/server.go:1879</span></span>
+<span class="line"><span style="color:#6F42C1">        /usr/local/Cellar/go/1.12.5/libexec/src/runtime/asm_amd64.s:1338</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">2020/01/09</span><span style="color:#032F62"> 01:00:32</span><span style="color:#24292E"> [500] /panic in 395.846µs</span></span>
+<span class="line"><span style="color:#6F42C1">2020/01/09</span><span style="color:#032F62"> 01:00:38</span><span style="color:#24292E"> [200] / in 6.985µs</span></span></code></pre>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://golang.org/pkg/runtime/">Package runtime - golang.org</a></li>
+<li><a href="https://stackoverflow.com/questions/35212985/is-it-possible-get-information-about-caller-function-in-golang">Is it possible get information about caller function in Golang? - StackOverflow</a></li>
+</ul></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/gee-day6.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">Go语言动手写Web框架 - Gee第六天 模板(HTML Template)</span></a><a href="/post/geecache.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">7天用Go从零实现分布式缓存GeeCache</span></a></nav><script>(function(){const bookId = "7days-golang";
+const slug = "gee-day7";
 
-<p>我们可以在后台日志中看到如下内容，引发错误的原因和堆栈信息都被打印了出来，通过日志，我们可以很容易地知道，在<em>day7-panic-recover/main.go:47</em> 的地方出现了 <code>index out of range</code> 错误。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">2020/01/09 01:00:10 Route  GET - /</span><br><span class="line">2020/01/09 01:00:10 Route  GET - /panic</span><br><span class="line">2020/01/09 01:00:22 [200] / <span class="keyword">in</span> 25.364µs</span><br><span class="line">2020/01/09 01:00:32 runtime error: index out of range</span><br><span class="line">Traceback:</span><br><span class="line">        /usr/local/Cellar/go/1.12.5/libexec/src/runtime/panic.go:523</span><br><span class="line">        /usr/local/Cellar/go/1.12.5/libexec/src/runtime/panic.go:44</span><br><span class="line">        /tmp/7days-golang/day7-panic-recover/main.go:47</span><br><span class="line">        /tmp/7days-golang/day7-panic-recover/gee/context.go:41</span><br><span class="line">        /tmp/7days-golang/day7-panic-recover/gee/recovery.go:37</span><br><span class="line">        /tmp/7days-golang/day7-panic-recover/gee/context.go:41</span><br><span class="line">        /tmp/7days-golang/day7-panic-recover/gee/logger.go:15</span><br><span class="line">        /tmp/7days-golang/day7-panic-recover/gee/context.go:41</span><br><span class="line">        /tmp/7days-golang/day7-panic-recover/gee/router.go:99</span><br><span class="line">        /tmp/7days-golang/day7-panic-recover/gee/gee.go:130</span><br><span class="line">        /usr/local/Cellar/go/1.12.5/libexec/src/net/http/server.go:2775</span><br><span class="line">        /usr/local/Cellar/go/1.12.5/libexec/src/net/http/server.go:1879</span><br><span class="line">        /usr/local/Cellar/go/1.12.5/libexec/src/runtime/asm_amd64.s:1338</span><br><span class="line"></span><br><span class="line">2020/01/09 01:00:32 [500] /panic <span class="keyword">in</span> 395.846µs</span><br><span class="line">2020/01/09 01:00:38 [200] / <span class="keyword">in</span> 6.985µs</span><br></pre></td></tr></table></figure>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "gee-day7";
+const title = "Go语言动手写Web框架 - Gee第七天 错误恢复(Panic Recover)";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
 
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://golang.org/pkg/runtime/">Package runtime - golang.org</a></li>
-<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/35212985/is-it-possible-get-information-about-caller-function-in-golang">Is it possible get information about caller function in Golang? - StackOverflow</a></li>
-</ul>
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
 
-      
-<script src="/js/qrious.min.js"></script>
-
-
-      <hr />
-      <p>
-        
-        <span class="float-right gkt-page-tips">last updated at 2026-02-23</span>
-      </p>
-    </article>
-    <!-- 赞赏 -->
-    <!--打赏-->
-
-<style>
-    #reward .reward-btn-wrapper {
-        width: 100px;
-        padding-top: 35px;
-        cursor: pointer;
-        margin: 0 auto;
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
     }
 
-    #reward .reward-btn {
-        padding: 2px 15px;
-        color: #fff;
-        background-color: #ea6f5a;
-        border-radius: 20px;
-    }
-
-    #reward .reward-code {
-        position: absolute;
-        top: -220px;
-        left: 50%;
-        display: none;
-        width: 360px;
-        height: 240px;
-        margin-left: -180px;
-        padding: 15px 20px;
-        border: 1px solid #e6e6e6;
-        background: #fff;
-        box-shadow: 0 1px 1px 1px #efefef;
-    }
-
-    #reward .reward-code:after,
-    #reward .reward-code:before {
-        position: absolute;
-        content: '';
-        border: 10px solid transparent
-    }
-
-    #reward .reward-code:after {
-        bottom: -19px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #fff
-    }
-
-    #reward .reward-code:before {
-        bottom: -20px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #e6e6e6
-    }
-
-    #reward .qr-code {
-        width: 50%;
-        float: left;
-        padding: 5px;
-    }
-
-    #reward .qr-code p {
-        margin-top: -6px;
-    }
-
-    #reward img {
-        transform: none;
-        -webkit-transform: none;
-        margin-left: 0;
-    }
-
-    #reward img[alt='i'] {
-        width: 20px;
-        height: 20px;
-        z-index: 2;
-        position: absolute;
-        margin: 65px 0 0 65px;
-    }
-
-    #reward img[alt="ali"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #0f9be0;
-    }
-
-    #reward img[alt="wechat"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #3db034;
-    }
-
-    #reward .reward-tip {
-        font-size: 1.2em;
-        margin-bottom: 0;
-        color: #ea6f5a;
-    }
-</style>
-<div id="reward" class="col-xs-12">
-    <div class="reward-btn-wrapper">
-        <div class="reward-btn text-center">赞赏支持</div>
-    </div>
-    <div class="reward-code text-center">
-        <p class="text-center reward-tip"><strong>请我吃胡萝卜 =^_^= </strong></p>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-ali" src="" alt="ali">
-            <p><small>支付宝</small></p>
-        </div>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-wechat" src="" alt="wechat">
-            <p><small>微信</small></p>
-        </div>
-    </div>
-</div>
-<script>
-    (function (window, document) {
-        var aliQr = new QRious({ value: 'HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8' });
-        var wechatQr = new QRious({ value: 'wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5' });
-        document.querySelector('#reward-ali').src = aliQr.toDataURL();
-        document.querySelector('#reward-wechat').src = wechatQr.toDataURL();
-
-        var rewardBtn = document.querySelector('#reward .reward-btn-wrapper');
-        var qrCode = document.querySelector('#reward .reward-code')
-        var activeFunc = function (e) {
-            qrCode.style.display = 'block';
-        }
-        var hideFunc = function (e) {
-            qrCode.style.display = 'none';
-        }
-
-        rewardBtn.addEventListener('mouseenter', activeFunc, false)
-        rewardBtn.addEventListener('mouseover', activeFunc, false)
-        rewardBtn.addEventListener('mouseleave', hideFunc, false)
-        qrCode.addEventListener('mouseenter', activeFunc, false)
-        qrCode.addEventListener('mouseover', activeFunc, false)
-        qrCode.addEventListener('mouseleave', hideFunc, false)
-    })(window, document);
-</script>
-
-    
-<div class="col-xs-12 text-center" style="margin-top: 30px;">
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://github.com/geektutu" title="Github"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/github.png" /></a>
-    
-    <a style="display:inline-block;" href="https://geektutu.com/feed.xml" title="RSS"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/rss.jpg" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie" title="知乎"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/zhihu.png" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://weibo.com/geektutu" title="微博"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/weibo.jpg" /></a>
-    
-</div>
-
-    <!-- 评论 -->
-    
-    <div class="col-xs-12">
-      
-<div class="col-xs-12 padding-0">
-    <div id="gitalk-container">
-        <div class="gt-container text-center" style="margin-top: 50px;">
-            <button class="gt-btn gt-btn-public"><span class="gt-btn-text">去 Github 评论</span></button>
-        </div>
-    </div>
-    <div id="gitalk-related"></div>
-</div>
-
-<link rel="stylesheet" href="/css/gitalk.css">
-
-
-<script src="/js/gitalk.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        function renderCommentUrl(data) {
-            var url = (data[window.location.pathname] || {}).url
-            url && getDom('#gitalk-container button').addEventListener('click', function (e) { window.open(url)})
-            url || (getDom('#gitalk-container').style.display = 'none')
-        }
-        const gitalk = new Gitalk({
-            clientID: 'c1fdd456a4caae5f7df0',
-            clientSecret: 'b2674451e21feae50520f99337ec15d2aebe7879',
-            accessToken: '513dc2f1e6df8c07a12fbf1547874f54679d9712',
-            repo: 'geektutu.github.io',
-            owner: 'geektutu',
-            admin: ['geektutu'],
-            id: window.location.pathname,
-            distractionFreeMode: false
-        });
-        fetch("https://api.github.com/user").then(function(resp){
-            gitalk.render('gitalk-container');
-        }).catch(function(e){
-            fetch('/tool/issues.json').then(function (r) { return r.json() }).then(renderCommentUrl).catch(function (e) { })
-        })
-        getDom('#gitalk-container').addEventListener('click', function (e) {
-            e && e.stopPropagation && e.stopPropagation();
-        });
-    })
-</script>
-<script>
-    window.addEventListener('load', function () {
-        function render(comments) {
-            var template = '<a href="${comment.url}?utm_source=gitalk" class="dis-item-url"><h3 class="dis-item-title">${comment.title}</h3>' +
-                '<p class="dis-item-des">${comment.count} 评论 ● ${comment.date}</p>' +
-                '<div class="dis-item-content"><img class="dis-item-img" src="${comment.icon}" alt="icon"><p><b><span class="dis-item-user">${comment.user}</span></b>&nbsp;——&nbsp;${comment.body}</p></div>' +
-                '</a>'
-
-            var wrapper = getDom('#gitalk-related');
-            comments = shuffle(comments);
-            comments.slice(0, 4).forEach(function (c) {
-                var div = document.createElement('div');
-                div.classList.add('dis-item');
-                div.innerHTML = template.replace("${comment.url}", c.url)
-                    .replace("${comment.title}", c.title)
-                    .replace("${comment.count}", c.count)
-                    .replace("${comment.date}", c.date)
-                    .replace("${comment.icon}", c.icon)
-                    .replace("${comment.user}", c.user)
-                    .replace("${comment.body}", c.body)
-                wrapper.appendChild(div)
-            })
-            var p = document.createElement('p')
-            p.innerHTML = '<a href="https://geektutu.com/post/blog-experience-7.html">Gitalk Plus</a>';
-            p.classList.add('dis-divide');
-            wrapper.appendChild(p);
-            wrapper.classList.add('dis-wrapper')
-        }
-        function shuffle(a) {
-            for (var i = a.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-        fetch('/tool/comments.json').then(function (r) { return r.json() }).then(render).catch(function (e) { })
-    })
-</script>
-
-    </div>
-    
-  </div>
-  <aside class="gkt-book-toc hidden-xs hidden-sm">
-    <div style="clear: both"></div>
-    <div class="gkt-sidebar-wrapper">
-      <!-- Table of Contents -->
-<div id="sidebar-toc">
-  <!-- TOC  -->
-  
-  
-  <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#panic"><span class="toc-nav-text">panic</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#defer"><span class="toc-nav-text">defer</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#recover"><span class="toc-nav-text">recover</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Gee-%E7%9A%84%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6"><span class="toc-nav-text">Gee 的错误处理机制</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E4%BD%BF%E7%94%A8-Demo"><span class="toc-nav-text">使用 Demo</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E5%8F%82%E8%80%83"><span class="toc-nav-text">参考</span></a></li></ol>
-  
-</div>
-
-<script>
-  (function () {
-    var h2 = document.querySelectorAll('article h2');
-    var h3 = document.querySelectorAll('article h3');
-    var linkList = document.querySelectorAll('#sidebar-toc a');
-
-    function findLinkElement(name) {
-      for (var i = 0; i < linkList.length; i++) {
-        var items = linkList[i].href.split('#');
-        if (items && items[items.length - 1] === encodeURIComponent(name)) {
-          return i;
-        }
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
       }
-      return -1;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
     }
 
-    function activeLink(titleList) {
-      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      for (var i = titleList.length - 1; i >= 0; i--) {
-        if (scrollTop - titleList[i].offsetTop > 0) {
-          var index = findLinkElement(titleList[i].id);
-          index != -1 && linkList[index].classList.add('gkt-sidebar-active');
-          break;
-        }
-      }
-    }
-
-    window.addEventListener("scroll", function (e) {
-      [].slice.call(linkList).forEach(function (link) {
-        link.classList.remove('gkt-sidebar-active');
-      })
-      activeLink(h2);
-    })
-  })();
-</script>
-    </div>
-  </aside>
-</div>
-<script>
-    (function () {
-        function resizeUArrow() {
-            var s = getDom('.u-arrow-wrapper').style
-            var pc = getDom('.gkt-book-page')
-            s.left = getPosition(pc).x - 15 + 'px';
-            s.width = pc.clientWidth + 30 + 'px';
-        }
-        resizeUArrow()
-        window.addEventListener('resize', resizeUArrow);
-        var nav = getDom('.gkt-book-menu nav');
-        var key = 'gkt_book_七天用Go从零实现系列_' + parseInt(new Date().getTime()/1000/3600/24/7)
-        nav.scrollTo(0, localStorage.getItem(key) * 1)
-        nav.addEventListener('scroll', function(){ localStorage.setItem(key, nav.scrollTop) })
-    })();
-    (function(){
-      getDom(".gkt-book-menu-icon").addEventListener('click', function() {
-        var menu = getDom(".gkt-book-menu").classList
-        var article = getDom(".gkt-book-page").classList
-        if (menu.contains("gkt-book-menu-hidden")) {
-          menu.remove('gkt-book-menu-hidden')
-          article.add('gkt-book-menu-checked')
-        } else {
-          menu.add('gkt-book-menu-hidden')
-          article.remove('gkt-book-menu-checked')
-        }
-      })
-    })();
-</script>
-
-
-    
-
-</main>
-    </div>
-    <style>
-    img#go-top {
-        position: fixed;
-        bottom: 100px;
-        width: 50px;
-        cursor: pointer;
-        z-index: 9999;
-    }
-</style>
-<img id="go-top" src="/icon/top.png" class="hidden-xs" style="display: none" />
-<script>
-    (function () {
-        var goTop = document.getElementById('go-top');
-        var mainContainer = document.querySelector('.main-container');
-        
-        goTop.addEventListener('click', function () {
-            window.scroll(0, 0);
-        }, false);
-        window.addEventListener('scroll', function () {
-            var right = document.body.offsetWidth - mainContainer.getBoundingClientRect().right;
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            goTop.style.right = right + 10 + 'px'
-            scrollTop > 700 && (goTop.style.display = "block");
-            scrollTop <= 700 && (goTop.style.display = "none");
-        });
-    })();
-</script>
-    <style>
-    #geektutu-click-img-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        text-align: center;
-        width: 100%;
-        display: none;
-        z-index: 9999;
-    }
-
-    #geektutu-click-img-container img {
-        object-fit: contain;
-        background: #eaecef;
-        padding: 15px;
-        border-radius: 10px;
-        height: auto;
-        width: auto;
-        vertical-align: middle;
-    }
-</style>
-
-
-<div id="geektutu-click-img-container">
-    <img src="" alt="Big Image">
-</div>
-
-<script>
-    (function () {
-        var container = document.querySelector('#geektutu-click-img-container')
-        var targetImg = container.querySelector('img')
-        var imgs = document.querySelectorAll('article img');
-        targetImg.addEventListener('click', function (e) {
-            container.style.display = 'none';
-            e && e.stopPropagation && e.stopPropagation();
-        }, false);
-
-        for (var i = 0; i < imgs.length; ++i) {
-            var img = imgs[i];
-            img.addEventListener('click', (function (src, rate) {
-                return function (e) {
-                    e && e.stopPropagation && e.stopPropagation();
-                    if (window.innerWidth < 980) {
-                        return
-                    }
-                    targetImg.style.height = targetImg.style.width = 'auto';
-                    if (window.innerWidth / window.innerHeight > rate) {
-                        targetImg.style.height = (window.innerHeight - 20) + 'px';
-                    } else {
-                        targetImg.style.width = (window.innerWidth - 20) + 'px';
-                    }
-                    container.style.height = window.innerHeight + 'px'
-                    container.style.lineHeight = window.innerHeight + 'px'
-                    container.style.display = 'block';
-                    targetImg.src = src;
-                };
-            }(img.src, img.width / img.height)), false)
-        }
-    })();
-</script>
-    <!-- Footer -->
-    <!-- Footer -->
-<style>
-    footer {
-        width: 100%;
-        line-height: 1.5;
-        padding: 20px;
-    }
-
-    footer a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    .footer-hexo img {
-        height: 20px;
-        margin-bottom: -5px;
-    }
-
-    .footer-hexo a {
-        color: #337ab7;
-    }
-</style>
-<footer class="text-center col-xs-12">
-    <p>
-        <small>© 2026 - 极客兔兔 - </small>
-        <small>
-            <a target="_blank" rel="nofollow noopener" href="http://beian.miit.gov.cn/">沪ICP备18001798号-1</a>
-        </small>
-    </p>
-    <p class="footer-hexo">
-        <!-- 但若直接使用或修改主题，请务必保留这段声明 -->
-        <small>Powered by <a target="_blank" href="https://hexo.io">Hexo</a> | Theme
-            <a target="_blank" href="https://geektutu.com">Geektutu</a>
-            <a target="_blank" rel="noopener" href="https://github.com/geektutu/hexo-theme-geektutu">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIACIAUAMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQQFBwIDBgj/2gAIAQEAAAAA9KrHSgAYL5/z6zZGuJd12uugbhq3uKtmuRtix20IS7lTLAfAAAn/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oACAECEAAAAAAB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAxAAAAAAAf/EADEQAAICAQIEBQEGBwAAAAAAAAECAwQFAAYREhORBxQhUlQxQVFic5KxJDJCYYGC0f/aAAgBAQABPwCFHnjWUzuvN6hV4cANSRLGjO9yRVUcSzMoA7jVXJYe5N0a2dhmk9kc0bN2GvLN8mbuNeWb5M3ca8s3yZu415Y/Jm7jXlm+TN3H/NeVPyZu40vOk3TZywK8wJ+v3EHVM/wsI/Dq2lrxN3Nnca16eti8chSAIoMbzByhMwP14kHVfwIiSaF5c96J6kwwCOTnHsYk8uvCrdmQy1TI4rJuz3cZLyGR/wCd4+YoOf8AEpUjXitubLYPG4paFsUxcuiGe7yc5gTW3LW44szXmobsi3Dhmic2+Z4+vCVH9CpraPiQ+QvbgTJrPFBWd5YpWrmNIIEXiRO32Pqt4p7cnfHk18lFBdmEVW1LVdIZGOrniTt6plrWKaO69yCykDRxwF+LMAewB0Txtr+Sf31VI8tEPw62fZt7N3Humtbpzz13ucX6CGSWMSuzpLyD1eNgeUka3PuvHbaxq3biTMHfkiSNCS78CwU+3Xg7Vu3MhuTcU6cq3Zemn3Eh2dv8Lzcut+29x1atKbHYqLJUhLwyNMwiZ3j9yDWOxUOV3tgb+3No5LDx1pi9+aeIwRlNY6bc+Jv+IFGrhLxtXJZ7VKcw81diiAAEn0JOrkWZyNfbEr0tz27UGQgkuGzXdIIvyowq99bRxk9ffO/L81SZBPZgEEroQroIxxMZOgeNsfkn99QypHGqO4Vl9CDrN4LDZkwyzyyQ2IgRHZrzGCZVP1XnQglT9oOtw4LC7iqV6uRkZoYpxKFSQpzFRw4EjVRMfSrQ1qqwxQxKFjjTgFUD7BoWYR6iVe+mtxt9Zwf9teaj4AdccPu5tedX5A/VrzUR+sy/q1CwksF19VEfDj/cnQRW+qg66cfsXtrpx+xe2unH7F7a6cfsXtrpx+xe2unH7F7a6cfsXtoxx+xe2gAAOA1//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwB//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwB//9k="
-                    alt="Github Star">
-            </a>
-        </small>
-    </p>
-    
-    <p>
-        <small>
-            <span id="busuanzi_container_site_pv">👁<span id="busuanzi_value_site_pv"></span></span> &nbsp;
-            <span id="busuanzi_container_page_pv">📚<span id="busuanzi_value_page_pv"></span></span>
-        </small>
-    </p>
-    
-    
-
-</footer>
-
-
-<script>
-    window.addEventListener('load', function () {
-        globalAddScript('//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js');
-    })
-</script>
-
-<!-- Baidu Tongji -->
-
-<script>
-    window.addEventListener('load', function () {
-        var _hmt = _hmt || [];
-        globalAddScript('//hm.baidu.com/hm.js?1a0ec38c52c08db815b0046c2783b1aa')
-    })
-</script>
-
-
-
-<!-- baidu auto push for seo -->
-<script>
-    window.addEventListener('load', function () {
-        var src = 'http://push.zhanzhang.baidu.com/push.js'
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        globalAddScript(src);
-    })
-</script>
-
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-142641425-1');
-
-    window.addEventListener('load', function () {
-        globalAddScript('https://www.googletagmanager.com/gtag/js?id=UA-142641425-1');
-    });
-</script>
-
-
-    <script>
-        // 非本站网址，新开tab页签
-        (function () {
-            var stopBubble = function (e) {
-                e && e.stopPropagation && e.stopPropagation();
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
             }
-            var links = document.querySelectorAll('a');
-            [].slice.call(links).forEach(function (item) {
-                if (item.href && item.href.indexOf(window.location.host) === -1) {
-                    item.target = '_blank'
-                }
-                // 阻止冒泡，不触发彩蛋。
-                item.addEventListener('click', stopBubble, false);
-            });
-            var article = document.querySelector('article');
-            article && article.addEventListener('click', stopBubble, false)
-        })();
-    </script>
-    
-</body>
-
-</html>
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

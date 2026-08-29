@@ -1,293 +1,17 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
-<!-- Head tag -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="referrer" content="no-referrer-when-downgrade">
-  
-  <meta name="baidu-site-verification" content="p7Pz3jlx4t" />
-  <meta name="google-site-verification" content="X31OY0d2sKImNbS2x8-OpITWRK4nn7nZCcXe3_hA9ew" />
-  <meta name="msvalidate.01" content="7E2AEE3378AC93764DEAB411177A21A1" />
-  <meta name="360-site-verification" content="1d1e81a1a48a1ed2e3308d7cb8e548e7" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- if page has tags, then add tags to keyword -->
-  
-  
-  <meta name="keywords" content="geektutu,jiketutu,Go语言,golang,python,机器学习,">
-  <!-- page.description has higher priority -->
-  <meta name="description" content="机器学习(machine learning)/深度学习(deep learning)/面试笔试题(interview questions)，吴恩达(Andrew Ng)机器学习课程(machine learning course)课后习题，CMU 考试题和答案。">
-  <link rel="shortcut icon" href="/img/icon.png">
-  <title>
-    
-    机器学习笔试面试题 1-10 | 极客面试 | 极客兔兔
-    
-  </title>
-
-  <link rel="canonical" href="https://geektutu.com/post/qa-ml-1.html">
-  
-<link rel="stylesheet" href="/css/geektutu.css">
-
-  <!-- global function -->
-  <script>
-    window.globalAddScript = function (url, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = url;
-      onload && (s.onload = onload);
-      onerror && (s.onerror = onerror);
-      document.body.appendChild(s);
-    }
-    window.globalAddCss = function (url) {
-      var s = document.createElement('link');
-      s.rel = 'stylesheet';
-      s.href = url;
-      document.body.appendChild(s);
-    }
-    window.getPosition = function (ele) {
-      var x = 0, y = 0;
-      while (ele) {
-        x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-        y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-        ele = ele.offsetParent;
-      }
-      return { x: x, y: y };
-    }
-    window.getDom = function (str) { return document.querySelector(str) }
-  </script>
-  <!-- google ad -->
-  
-<meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/feed.xml" title="极客兔兔" type="application/rss+xml">
-</head>
-
-<body>
-    
-<header class="gkt-header col-xs-12 padding-0">
-    <div id="gkt-nav" class="gkt-header-container">
-        <a href="/" class="gkt-header-title float-left">
-            <img class="float-left" src="/img/icon.png" alt="">
-            <span>极客兔兔</span>
-        </a>
-        <nav class="gkt-header-nav text-right">
-            <ul>
-                <li><a class="hidden-xs" href="/feed.xml">订阅</a></li>
-                <li><a href="/series/">专题</a></li>
-                <li><a href="/archives/">归档</a></li>
-                <li><a href="/post/link.html">友链</a></li>
-                <li><a href="/post/about.html">关于</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="gkt-cate-nav" class="gkt-header-container hidden-xs">
-        
-        <nav class="gkt-header-nav float-left">
-            <ul>
-                
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/tensorflow-mnist-simplest.html">简明教程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tensorflow-mnist-simplest.html">TensorFlow 教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/pandas-dataframe-series.html">Pandas 数据处理</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tf2doc.html">TensorFlow2 文档</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-golang.html">Go 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-rust.html">Rust 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-python.html">Python 简明教程</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/blog-experience-1.html">杂谈 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/blog-experience-1.html">建站经历</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/2020.html">年终总结</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left active">
-                    <a class="float-left" href="/post/qa-ml.html">面试 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name active"><a class="float-left"
-                                href="/post/qa-ml.html">机器学习面试题</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-golang.html">Go 语言面试题</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/gee.html">从零实现 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/gee.html">Web框架 - Gee</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geecache.html">分布式缓存 - GeeCache</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geeorm.html">ORM框架 - GeeORM</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geerpc.html">RPC框架 - GeeRPC</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/7days-golang-q1.html">7days-golang Q &amp; A</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/box-tools.html">百宝箱 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/box-tools.html">工具</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/cheat-sheet-sqlite.html">SQLite 速查表</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/high-performance-go.html">高性能编程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/high-performance-go.html">序言</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-benchmark.html">性能分析</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-string-concat.html">常用数据结构</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-mutex.html">并发编程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-reduce-size.html">编译优化</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-gotchas-array-slice.html">语言陷阱</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-            </ul>
-        </nav>
-    </div>
-</header>
-<div class="gkt-header-placeholder" style="height: 44px"></div>
-<div class="gkt-header-placeholder hidden-xs" style="height: 44px"></div>
-<script>
-    (function () {
-        window.addEventListener('scroll', function () {
-            if (window.innerWidth < 768) {
-                return;
-            }
-            var nav = document.querySelector('#gkt-nav');
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            scrollTop > 50 && (nav.classList.add('hide'));
-            scrollTop <= 50 && (nav.classList.remove('hide'));
-        });
-        var cateNavs = document.querySelectorAll('#gkt-cate-nav>nav>ul>li');
-        [].slice.call(cateNavs).forEach(function (item) {
-            var sub = item.querySelector('.gkt-sub-cate');
-            if (!sub) return;
-            item.addEventListener('mouseenter', function (e) { sub.style.display = 'block'; }, false);
-            item.addEventListener('mouseleave', function (e) { sub.style.display = 'none'; }, false);
-        })
-    })();
-</script>
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Main Content -->
-<main class="col-xs-12 padding-0 markdown-it">
-    <!-- Post Container -->
-    
-    
-    <!-- Post Content -->
-<div class="float-left post-container box-shadow">
-    <div class="u-arrow-wrapper hidden-xs">
-        
-        <a class="float-left" href="/post/qa-ml.html"><i class="u-arrow-left"></i></a>
-        
-        
-        <a class="float-right" href="/post/qa-ml-2.html"><i class="u-arrow-right"></i></a>
-        
-    </div>
-    <article class="col-xs-12">
-        <h1> 机器学习笔试面试题 1-10 </h1>
-        
-        
-        <div class="hidden-lg hidden-md series_links">
-            <p> <strong> 机器学习面试题系列文章链接：</strong></p>
-            <ul>
-                
-                <li>
-                    <a href="/post/qa-ml.html">机器学习笔试面试题汇总</a>
-                    <span class="post-item-date">(Aug 3, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/qa-ml-1.html">机器学习笔试面试题 1-10</a>
-                    <span class="post-item-date">(Aug 4, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/qa-ml-2.html">机器学习笔试面试题 11-20</a>
-                    <span class="post-item-date">(Aug 6, 2019)</span>
-                </li>
-                
-            </ul>
-        </div>
-        
-        
-        <blockquote>
-            <p>源代码/数据集已上传到
-                <a href="https://github.com/geektutu/interview-questions" target="_blank" rel="noopener">Github - interview-questions</a>
-            </p>
-        </blockquote>
-        
-        <div class="gkt-article-start"></div>
-        <p style="color:red">声明：所有习题系博主花费大量精力整理，请尊重劳动成果，禁止转载。</p>
-
-<p><strong>机器学习(machine learning)深度学习(deep learning)</strong><br><strong>面试笔试题(interview questions)/课程课后考试习题解答</strong><br><strong><a href="https://geektutu.com/post/qa-ml.html">机器学习笔试面试题汇总</a>，<a target="_blank" rel="noopener" href="https://github.com/geektutu/interview-questions">Github</a></strong></p>
-<h2 id="Q1-决策树"><a href="#Q1-决策树" class="headerlink" title="Q1 决策树"></a>Q1 决策树</h2><p>使用决策树分类时，如果输入的某个特征的值是连续的，通常使用二分法对连续属性离散化，即根据是否大于/小于某个阈值进行划分。如果采用多路划分，每个出现的值都划分为一个分支，这种方式的最大问题是：</p>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="机器学习(machine learning)/深度学习(deep learning)/面试笔试题(interview questions)，吴恩达(Andrew Ng)机器学习课程(machine learning course)课后习题，CMU 考试题和答案。"><title>机器学习笔试面试题 1-10 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.B88FlGyz.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-baseline gap-2"><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔<span class="text-accent">.</span></span><span class="hidden text-xs text-faint sm:inline">写书式技术博客</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/interview-questions" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">极客面试</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Go 语言面试题</span></div><ul><li><a href="/post/qa-golang.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言笔试面试题汇总</a></li><li><a href="/post/qa-golang-1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言笔试面试题(基础语法)</a></li><li><a href="/post/qa-golang-2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言笔试面试题(实现原理)</a></li><li><a href="/post/qa-golang-3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言笔试面试题(并发编程)</a></li><li><a href="/post/qa-golang-c1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言笔试面试题(代码输出)</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">机器学习面试题</span></div><ul><li><a href="/post/qa-ml.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习笔试面试题汇总</a></li><li><a href="/post/qa-ml-1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">机器学习笔试面试题 1-10</a></li><li><a href="/post/qa-ml-2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习笔试面试题 11-20</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">机器学习 · 工程实践题</span></div><ul><li><a href="/post/qa-ml-q1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 1：如何处理特征向量的缺失值</a></li><li><a href="/post/qa-ml-q2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 2：请简要说说一个完整机器学习项目的流程</a></li><li><a href="/post/qa-ml-q3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 3：某超市研究销售记录发现买啤酒的人很大概率也会买尿布，这属于数据挖掘的哪类问题?</a></li><li><a href="/post/qa-ml-q4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 4：余弦相似与欧氏距离有什么区别和联系</a></li><li><a href="/post/qa-ml-q5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 5：下面哪个不属于数据的属性类别</a></li><li><a href="/post/qa-ml-q6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 6：监督学习和无监督学习</a></li><li><a href="/post/qa-ml-q7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 7：熵是为消除不确定性所需要获得的信息量，投掷均匀正六面体骰子的熵是</a></li><li><a href="/post/qa-ml-q8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 8：数据清洗与特征处理</a></li><li><a href="/post/qa-ml-q9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 9：猜测这种划分最可能是什么聚类算法的结果</a></li><li><a href="/post/qa-ml-q10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 10：支持向量机(SVM)中的支持向量是什么意思</a></li><li><a href="/post/qa-ml-q11.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 11：精确率(precision)和召回率(recall)</a></li><li><a href="/post/qa-ml-q12.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 12：数据挖掘中如何判断关联规则有效性</a></li><li><a href="/post/qa-ml-q13.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 13：朴素贝叶斯分类某个类别概率为0怎么办</a></li><li><a href="/post/qa-ml-q14.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">机器学习面试题 14：决策树</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/interview-questions" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 极客面试</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">机器学习笔试面试题 1-10</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2019-08-04">2019-08-04</time><span aria-hidden="true">·</span><span>约 3 分钟</span><a href="https://github.com/geektutu/interview-questions" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/interview-questions" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/interview-questions</a><span class="flex flex-wrap gap-2"><a href="/tags/机器学习" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#机器学习</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#q1-决策树" class="toc-link block text-muted" data-toc-depth="2">Q1 决策树</a></li><li style="padding-left:0rem"><a href="#q2-朴素贝叶斯" class="toc-link block text-muted" data-toc-depth="2">Q2 朴素贝叶斯</a></li><li style="padding-left:0rem"><a href="#q3-神经网络" class="toc-link block text-muted" data-toc-depth="2">Q3 神经网络</a></li><li style="padding-left:0rem"><a href="#q4-回归" class="toc-link block text-muted" data-toc-depth="2">Q4 回归</a></li><li style="padding-left:0rem"><a href="#q5-特征缩放" class="toc-link block text-muted" data-toc-depth="2">Q5 特征缩放</a></li><li style="padding-left:0rem"><a href="#q6-svm" class="toc-link block text-muted" data-toc-depth="2">Q6 SVM</a></li><li style="padding-left:0rem"><a href="#q7-过拟合" class="toc-link block text-muted" data-toc-depth="2">Q7 过拟合</a></li><li style="padding-left:0rem"><a href="#q8-误差" class="toc-link block text-muted" data-toc-depth="2">Q8 误差</a></li><li style="padding-left:0rem"><a href="#q9-交叉验证" class="toc-link block text-muted" data-toc-depth="2">Q9 交叉验证</a></li><li style="padding-left:0rem"><a href="#q10-类别不平衡" class="toc-link block text-muted" data-toc-depth="2">Q10 类别不平衡</a></li><li style="padding-left:0rem"><a href="#附题目主要来源" class="toc-link block text-muted" data-toc-depth="2">附：题目主要来源</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><p style="color:red">声明：所有习题系博主花费大量精力整理，请尊重劳动成果，禁止转载。</p>
+<p><strong>机器学习(machine learning)深度学习(deep learning)</strong>
+<strong>面试笔试题(interview questions)/课程课后考试习题解答</strong>
+<strong><a href="https://geektutu.com/post/qa-ml.html">机器学习笔试面试题汇总</a>，<a href="https://github.com/geektutu/interview-questions">Github</a></strong></p>
+<h2 id="q1-决策树">Q1 决策树</h2>
+<p>使用决策树分类时，如果输入的某个特征的值是连续的，通常使用二分法对连续属性离散化，即根据是否大于/小于某个阈值进行划分。如果采用多路划分，每个出现的值都划分为一个分支，这种方式的最大问题是：</p>
 <ul>
 <li>A 计算量太大</li>
 <li>B 训练集和测试集表现都很差</li>
@@ -297,23 +21,22 @@
 <details>
 <summary>答案</summary>
 <div>
-
-<p><strong>C</strong> 连续值通常采用二分法，离散特征通常采用多路划分的方法，但分支数不宜过多。<br>连续特征每个值都划分为一个分支，容易过拟合，泛化能力差，导致训练集表现好，测试集表现差。</p>
+<p><strong>C</strong> 连续值通常采用二分法，离散特征通常采用多路划分的方法，但分支数不宜过多。
+连续特征每个值都划分为一个分支，容易过拟合，泛化能力差，导致训练集表现好，测试集表现差。</p>
 </div>
 </details>
-
-<h2 id="Q2-朴素贝叶斯"><a href="#Q2-朴素贝叶斯" class="headerlink" title="Q2 朴素贝叶斯"></a>Q2 朴素贝叶斯</h2><p>输入属性是 A, B, C，输出属性是 Y。若使用朴素贝叶斯分类(Naive Bayes Classifier)，下面哪张图能表示朴素贝叶斯分类的假设。</p>
-<p><img src="qa-ml-1/nbc.jpg" alt="Naive Bayes Classifier"></p>
+<h2 id="q2-朴素贝叶斯">Q2 朴素贝叶斯</h2>
+<p>输入属性是 A, B, C，输出属性是 Y。若使用朴素贝叶斯分类(Naive Bayes Classifier)，下面哪张图能表示朴素贝叶斯分类的假设。</p>
+<p><img alt="Naive Bayes Classifier" loading="lazy" decoding="async" width="500" height="328" src="/_astro/nbc.BIaRco11_1tc8oA.webp" srcset=""></p>
 <details>
 <summary>答案</summary>
 <div>
-
 <p><strong>C</strong> 朴素贝叶斯分类器是机器学习一个特别质朴而深刻的模型：当要根据多个特征而非一个特征对数据进行分类时，假设这些特征相互独立，然后利用条件概率乘法法则得到每一个分类的概率，选择概率最大的那个作为输出。</p>
 <p>回顾一下贝叶斯公式 P(Y|A,B,C) = P(A,B,C|Y) * P(Y) / P(A,B,C)，如果需要求在A,B,C条件下Y的概率，则需要知道先验概率P(A,B,C)和P(Y)，和在Y条件下，A,B,C的概率。</p>
 </div>
 </details>
-
-<h2 id="Q3-神经网络"><a href="#Q3-神经网络" class="headerlink" title="Q3 神经网络"></a>Q3 神经网络</h2><p>对神经网络(neural network)而言，哪一项对过拟合(overfitting)和欠拟合(underfitting)影响最大。</p>
+<h2 id="q3-神经网络">Q3 神经网络</h2>
+<p>对神经网络(neural network)而言，哪一项对过拟合(overfitting)和欠拟合(underfitting)影响最大。</p>
 <ul>
 <li>A 隐藏层节点(hidden nodes)数量</li>
 <li>B 学习速率(learning rate)</li>
@@ -323,12 +46,11 @@
 <details>
 <summary>答案</summary>
 <div>
-
 <p><strong>A</strong> 过拟合和欠拟合与神经网络的复杂程度有关，模型越大越容易过拟合。隐藏层节点数量直接决定了模型的大小与复杂程度。</p>
 </div>
 </details>
-
-<h2 id="Q4-回归"><a href="#Q4-回归" class="headerlink" title="Q4 回归"></a>Q4 回归</h2><p>对多项式回归(polynomial regression)而言，哪一项对过拟合(overfitting)和欠拟合(underfitting)影响最大。</p>
+<h2 id="q4-回归">Q4 回归</h2>
+<p>对多项式回归(polynomial regression)而言，哪一项对过拟合(overfitting)和欠拟合(underfitting)影响最大。</p>
 <ul>
 <li>A 多项式的度(polynomial degree)</li>
 <li>B 是否通过矩阵求逆/梯度下降学习权重</li>
@@ -338,12 +60,11 @@
 <details>
 <summary>答案</summary>
 <div>
-
 <p><strong>A</strong> 多拟合/欠拟合与模型复杂度有关，和模型复杂度最相关的是多项式的度。举一个极端的例子，度为1，则是线性回归，y=kx+b，一条直线分类，很容易欠拟合。那度比较大时，则能表示更为复杂的曲线，容易过拟合。</p>
 </div>
 </details>
-
-<h2 id="Q5-特征缩放"><a href="#Q5-特征缩放" class="headerlink" title="Q5 特征缩放"></a>Q5 特征缩放</h2><p>特征缩放(feature scaling)的作用？</p>
+<h2 id="q5-特征缩放">Q5 特征缩放</h2>
+<p>特征缩放(feature scaling)的作用？</p>
 <ul>
 <li>A 降低每次迭代计算成本加速梯度下降</li>
 <li>B 防止陷入局部最优</li>
@@ -353,75 +74,75 @@
 <details>
 <summary>答案</summary>
 <div>
-
 <p><strong>D</strong> 如果某个特征比其他特征值大得多，则需要付出额外的迭代成本。因此训练前，进行特征缩放可以避免额外的迭代，快速达到预期效果。最常用的方法，比如归一化。将所有的特征的值缩放到0-1之间。</p>
 </div>
 </details>
-
-<h2 id="Q6-SVM"><a href="#Q6-SVM" class="headerlink" title="Q6 SVM"></a>Q6 SVM</h2><p>在下面的二元标签数据集上训练线性支持向量机(Support Vector Machine, SVM)模型</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">+：(-1, 1), (1, -1), (-1, -1)</span><br><span class="line">-：(1, 1), (2, 0), (2, 1)</span><br></pre></td></tr></table></figure>
-
+<h2 id="q6-svm">Q6 SVM</h2>
+<p>在下面的二元标签数据集上训练线性支持向量机(Support Vector Machine, SVM)模型</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">+：(-1,</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">), (</span><span style="color:#6F42C1">1,</span><span style="color:#005CC5"> -1</span><span style="color:#24292E">), (</span><span style="color:#6F42C1">-1,</span><span style="color:#005CC5"> -1</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6F42C1">-：(1,</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">), (</span><span style="color:#6F42C1">2,</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">), (</span><span style="color:#6F42C1">2,</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">)</span></span></code></pre>
 <p>请问，这个模型中的支持向量是哪些？</p>
 <ul>
-<li>A (-1, 1), (1, 1), (2, 1) </li>
-<li>B (-1, 1), (-1, -1), (2, 1) </li>
+<li>A (-1, 1), (1, 1), (2, 1)</li>
+<li>B (-1, 1), (-1, -1), (2, 1)</li>
 <li>C (-1, 1), (1, -1), (1, 1), (2,0)</li>
 </ul>
 <details>
 <summary>答案</summary>
 <div>
-
-<p><img src="qa-ml-1/6_svm.jpg" alt="Support Vector Machine"></p>
+<p><img alt="Support Vector Machine" loading="lazy" decoding="async" width="400" height="314" src="/_astro/6_svm.WZQ55Nue_22I5gL.webp" srcset=""></p>
 <p><strong>C</strong> 先将坐标点画出来，问自己一个问题，是不是所有的点对于分割线的位置起决定性作用？</p>
 <p>其实在特别远的区域，无论增加多少个样本点，也不会影响分割线的位置，因为分割线是由几个关键点决定的（图上四个），这几个关键点支撑起了一个分割超平面，这四个关键点，就是支持向量。</p>
 </div>
 </details>
-
-<h2 id="Q7-过拟合"><a href="#Q7-过拟合" class="headerlink" title="Q7 过拟合"></a>Q7 过拟合</h2><p>下列哪个模型过拟合(Overfit)了。</p>
-<p><img src="qa-ml-1/overfit.jpg" alt="Overfit"></p>
+<h2 id="q7-过拟合">Q7 过拟合</h2>
+<p>下列哪个模型过拟合(Overfit)了。</p>
+<p><img alt="Overfit" loading="lazy" decoding="async" width="800" height="207" src="/_astro/overfit.YlAP3h77_Z1r7Btk.webp" srcset=""></p>
 <details>
 <summary>答案</summary>
 <div>
-
 <p><strong>B</strong> 拟合曲线紧跟数据集且复杂很高，表明过度拟合了训练集。</p>
 </div>
 </details>
-
-<h2 id="Q8-误差"><a href="#Q8-误差" class="headerlink" title="Q8 误差"></a>Q8 误差</h2><p>经验误差(empirical error)与泛化误差(generalization error)分别指？</p>
+<h2 id="q8-误差">Q8 误差</h2>
+<p>经验误差(empirical error)与泛化误差(generalization error)分别指？</p>
 <details>
 <summary>答案</summary>
 <div>
-
 <ul>
 <li>经验误差: 也叫训练误差(training error)，模型在训练集上的误差。</li>
-<li>泛化误差: 模型在新样本集(测试集)上的误差。</div>
-</details></li>
+<li>泛化误差: 模型在新样本集(测试集)上的误差。</li>
 </ul>
-<h2 id="Q9-交叉验证"><a href="#Q9-交叉验证" class="headerlink" title="Q9 交叉验证"></a>Q9 交叉验证</h2><p>简述 K折交叉验证(k-fold crossValidation)。</p>
+</div>
+</details>
+<h2 id="q9-交叉验证">Q9 交叉验证</h2>
+<p>简述 K折交叉验证(k-fold crossValidation)。</p>
 <details>
 <summary>答案</summary>
 <div>
-
 <ul>
 <li>数据集大小为N，分成K份，则每份含有样本N/K个。每次选择其中1份作为测试集，另外K-1份作为训练集，共K种情况。</li>
 <li>在每种情况中，训练集训练模型，用测试集测试模型，计算模型的泛化误差。</li>
-<li>将K种情况下，模型的泛化误差取均值，得到模型最终的泛化误差。</div>
-</details></li>
+<li>将K种情况下，模型的泛化误差取均值，得到模型最终的泛化误差。</li>
 </ul>
-<h2 id="Q10-类别不平衡"><a href="#Q10-类别不平衡" class="headerlink" title="Q10 类别不平衡"></a>Q10 类别不平衡</h2><p>如何处理数据中的“类别不平衡”？例如二分类问题，训练集中80%分类为A，20%分类为B。</p>
+</div>
+</details>
+<h2 id="q10-类别不平衡">Q10 类别不平衡</h2>
+<p>如何处理数据中的“类别不平衡”？例如二分类问题，训练集中80%分类为A，20%分类为B。</p>
 <details>
 <summary>答案</summary>
 <div>
-
 <ul>
-<li><p><strong>简单方法</strong></p>
+<li>
+<p><strong>简单方法</strong></p>
 <ul>
 <li>数据多的欠采样(under-sampling)，舍弃一部分数据，使其与较少类别的数据相当。</li>
 <li>数据少的过采样(over-sampling)，即重复使用一部分数据，使其与较多类别的数据相当。</li>
 <li>阈值调整（threshold moving，例如数据均衡时，阈值为0.5，那么可以按比例，例如调整到 0.8。</li>
 </ul>
 </li>
-<li><p><strong>复杂方法</strong></p>
+<li>
+<p><strong>复杂方法</strong></p>
 <ul>
 <li>数据采样过程中，生成并插样“少数类别”数据，代表算法 SMOTE 和 ADASYN。</li>
 <li>数据先聚类，“多数类别”随机欠采样，“少数类别”数据生成。</li>
@@ -431,882 +152,84 @@
 </ul>
 </div>
 </details>
+<h2 id="附题目主要来源">附：题目主要来源</h2>
+<ul>
+<li><a href="http://www.cs.cmu.edu/~tom/10701_sp11/prev.shtml">Machine Learning exam - CMU</a></li>
+<li><a href="https://www.coursera.org/learn/machine-learning">Andrew Ng - coursera</a></li>
+</ul></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/qa-ml.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">机器学习笔试面试题汇总</span></a><a href="/post/qa-ml-2.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">机器学习笔试面试题 11-20</span></a></nav><script>(function(){const bookId = "interview-questions";
+const slug = "qa-ml-1";
 
-<h2 id="附：题目主要来源"><a href="#附：题目主要来源" class="headerlink" title="附：题目主要来源"></a>附：题目主要来源</h2><ul>
-<li><a target="_blank" rel="noopener" href="http://www.cs.cmu.edu/~tom/10701_sp11/prev.shtml">Machine Learning exam - CMU</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.coursera.org/learn/machine-learning">Andrew Ng - coursera</a></li>
-</ul>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "qa-ml-1";
+const title = "机器学习笔试面试题 1-10";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
 
-        
-<script src="/js/qrious.min.js"></script>
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
 
-
-        <hr style="margin-top: 2rem;">
-        <div>
-            
-            <p>
-                <span>专题: </span>
-                
-                <a href="/series/#机器学习面试题">
-                    <code key="机器学习面试题" class="post-label">机器学习面试题</code>
-                </a>
-                
-            </p>
-            
-            <p>
-                <span>本文发表于 2019-08-04，最后修改于 2026-02-23。</span>
-            </p>
-            <!-- 文章末尾的提示 start -->
-            
-            <p>
-                本站永久域名「 <a
-                        href="/post/qa-ml-1.html">geektutu.com</a>
-                    」，也可搜索「 极客兔兔 」找到我。
-            </p>
-            
-            
-                
-            <!-- 文章末尾的提示 end -->
-        </div>
-        <hr />
-        <p name="pagination" style="font-size: 1.2em">
-    
-    <a class="float-left" href="/post/qa-ml.html">上一篇 « 机器学习笔试面试题汇总</a>
-    
-    
-    <a class="float-right" href="/post/qa-ml-2.html">下一篇 » 机器学习笔试面试题 11-20</a>
-    
-</p>
-    </article>
-    <!-- 赞赏 -->
-    <!--打赏-->
-
-<style>
-    #reward .reward-btn-wrapper {
-        width: 100px;
-        padding-top: 35px;
-        cursor: pointer;
-        margin: 0 auto;
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
     }
 
-    #reward .reward-btn {
-        padding: 2px 15px;
-        color: #fff;
-        background-color: #ea6f5a;
-        border-radius: 20px;
-    }
-
-    #reward .reward-code {
-        position: absolute;
-        top: -220px;
-        left: 50%;
-        display: none;
-        width: 360px;
-        height: 240px;
-        margin-left: -180px;
-        padding: 15px 20px;
-        border: 1px solid #e6e6e6;
-        background: #fff;
-        box-shadow: 0 1px 1px 1px #efefef;
-    }
-
-    #reward .reward-code:after,
-    #reward .reward-code:before {
-        position: absolute;
-        content: '';
-        border: 10px solid transparent
-    }
-
-    #reward .reward-code:after {
-        bottom: -19px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #fff
-    }
-
-    #reward .reward-code:before {
-        bottom: -20px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #e6e6e6
-    }
-
-    #reward .qr-code {
-        width: 50%;
-        float: left;
-        padding: 5px;
-    }
-
-    #reward .qr-code p {
-        margin-top: -6px;
-    }
-
-    #reward img {
-        transform: none;
-        -webkit-transform: none;
-        margin-left: 0;
-    }
-
-    #reward img[alt='i'] {
-        width: 20px;
-        height: 20px;
-        z-index: 2;
-        position: absolute;
-        margin: 65px 0 0 65px;
-    }
-
-    #reward img[alt="ali"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #0f9be0;
-    }
-
-    #reward img[alt="wechat"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #3db034;
-    }
-
-    #reward .reward-tip {
-        font-size: 1.2em;
-        margin-bottom: 0;
-        color: #ea6f5a;
-    }
-</style>
-<div id="reward" class="col-xs-12">
-    <div class="reward-btn-wrapper">
-        <div class="reward-btn text-center">赞赏支持</div>
-    </div>
-    <div class="reward-code text-center">
-        <p class="text-center reward-tip"><strong>请我吃胡萝卜 =^_^= </strong></p>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-ali" src="" alt="ali">
-            <p><small>支付宝</small></p>
-        </div>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-wechat" src="" alt="wechat">
-            <p><small>微信</small></p>
-        </div>
-    </div>
-</div>
-<script>
-    (function (window, document) {
-        var aliQr = new QRious({ value: 'HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8' });
-        var wechatQr = new QRious({ value: 'wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5' });
-        document.querySelector('#reward-ali').src = aliQr.toDataURL();
-        document.querySelector('#reward-wechat').src = wechatQr.toDataURL();
-
-        var rewardBtn = document.querySelector('#reward .reward-btn-wrapper');
-        var qrCode = document.querySelector('#reward .reward-code')
-        var activeFunc = function (e) {
-            qrCode.style.display = 'block';
-        }
-        var hideFunc = function (e) {
-            qrCode.style.display = 'none';
-        }
-
-        rewardBtn.addEventListener('mouseenter', activeFunc, false)
-        rewardBtn.addEventListener('mouseover', activeFunc, false)
-        rewardBtn.addEventListener('mouseleave', hideFunc, false)
-        qrCode.addEventListener('mouseenter', activeFunc, false)
-        qrCode.addEventListener('mouseover', activeFunc, false)
-        qrCode.addEventListener('mouseleave', hideFunc, false)
-    })(window, document);
-</script>
-
-    
-<div class="col-xs-12 text-center" style="margin-top: 30px;">
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://github.com/geektutu" title="Github"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/github.png" /></a>
-    
-    <a style="display:inline-block;" href="https://geektutu.com/feed.xml" title="RSS"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/rss.jpg" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie" title="知乎"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/zhihu.png" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://weibo.com/geektutu" title="微博"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/weibo.jpg" /></a>
-    
-</div>
-
-    <!-- 推荐阅读三篇文章 -->
-    <div class="col-xs-12">
-        <h3>推荐阅读</h3>
-        
-        <div class="post-preview">
-    <div class="post-img" style="background-image: url('/post/hpg-reduce-size/compiler.jpg')"></div>
-    <div class="post-info">
-        <div class="post-info-center">
-            <div class="hidden-xs">
-                
-                
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#Go语言高性能编程"
-                    title="Go语言高性能编程">Go语言高性能编程</a>
-                <span>/</span>
-                
-                
-            </div>
-            <a href="/post/hpg-escape-analysis.html" class="title">
-                Go 逃逸分析
-            </a>
-            <p class="text-gray">
-                <small>
-                    <span>发表于2020-12-31，</span>
-                    <span class="hidden-xs">全文5880字，</span>
-                    <span>阅读约20分钟</span>
-                </small>
-            </p>
-        </div>
-    </div>
-</div>
-        
-        <div class="post-preview">
-    <div class="post-img" style="background-image: url('/post/hpg-mutex/concurrent.jpg')"></div>
-    <div class="post-info">
-        <div class="post-info-center">
-            <div class="hidden-xs">
-                
-                
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#Go语言高性能编程"
-                    title="Go语言高性能编程">Go语言高性能编程</a>
-                <span>/</span>
-                
-                
-            </div>
-            <a href="/post/hpg-concurrency-control.html" class="title">
-                控制协程(goroutine)的并发数量
-            </a>
-            <p class="text-gray">
-                <small>
-                    <span>发表于2020-12-21，</span>
-                    <span class="hidden-xs">全文5801字，</span>
-                    <span>阅读约20分钟</span>
-                </small>
-            </p>
-        </div>
-    </div>
-</div>
-        
-        <div class="post-preview">
-    <div class="post-img" style="background-image: url('/post/awesome-config/wsl.jpg')"></div>
-    <div class="post-info">
-        <div class="post-info-center">
-            <div class="hidden-xs">
-                
-                
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#百宝箱"
-                    title="百宝箱">百宝箱</a>
-                <span>/</span>
-                
-                
-            </div>
-            <a href="/post/awesome-config.html" class="title">
-                WSL, Git, Mircosoft Terminal 等常用工具配置
-            </a>
-            <p class="text-gray">
-                <small>
-                    <span>发表于2019-12-03，</span>
-                    <span class="hidden-xs">全文4850字，</span>
-                    <span>阅读约17分钟</span>
-                </small>
-            </p>
-        </div>
-    </div>
-</div>
-        
-    </div>
-    <div class="col-xs-12">
-        <!-- 标签列表 -->
-        <!-- Featured Tags -->
-<style>
-    #featured-tag .post-tag-item {
-        font-size: 12px;
-        line-height: 30px;
-        display: inline-block;
-        height: 30px;
-        margin: 5px 0px;
-        padding: 0 7px;
-        color: #333;
-        border-radius: 15px;
-        background: #f6f6f6;
-    }
-
-    #featured-tag .post-tag-item:hover {
-        color: #337ab7;
-    }
-</style>
-<div id="featured-tag">
-    
-    <a class="post-tag-item" href="/tags/#关于我" title="关于我"
-        rel="9">#关于我 (9) </a>
-    
-    <a class="post-tag-item" href="/tags/#Go" title="Go"
-        rel="48">#Go (48) </a>
-    
-    <a class="post-tag-item" href="/tags/#百宝箱" title="百宝箱"
-        rel="2">#百宝箱 (2) </a>
-    
-    <a class="post-tag-item" href="/tags/#Cheat Sheet" title="Cheat Sheet"
-        rel="1">#Cheat Sheet (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#Go语言高性能编程" title="Go语言高性能编程"
-        rel="20">#Go语言高性能编程 (20) </a>
-    
-    <a class="post-tag-item" href="/tags/#友链" title="友链"
-        rel="1">#友链 (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#Pandas" title="Pandas"
-        rel="3">#Pandas (3) </a>
-    
-    <a class="post-tag-item" href="/tags/#机器学习" title="机器学习"
-        rel="9">#机器学习 (9) </a>
-    
-    <a class="post-tag-item" href="/tags/#Python" title="Python"
-        rel="10">#Python (10) </a>
-    
-    <a class="post-tag-item" href="/tags/#Rust" title="Rust"
-        rel="1">#Rust (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#TensorFlow" title="TensorFlow"
-        rel="9">#TensorFlow (9) </a>
-    
-    <a class="post-tag-item" href="/tags/#mnist" title="mnist"
-        rel="5">#mnist (5) </a>
-    
-    <a class="post-tag-item" href="/tags/#强化学习" title="强化学习"
-        rel="3">#强化学习 (3) </a>
-    
-    <a class="post-tag-item" href="/tags/#OpenAI gym" title="OpenAI gym"
-        rel="4">#OpenAI gym (4) </a>
-    
-    <a class="post-tag-item" href="/tags/#DQN" title="DQN"
-        rel="1">#DQN (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#Q-Learning" title="Q-Learning"
-        rel="1">#Q-Learning (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#CNN" title="CNN"
-        rel="1">#CNN (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#TensorFlow 2" title="TensorFlow 2"
-        rel="10">#TensorFlow 2 (10) </a>
-    
-    <a class="post-tag-item" href="/tags/#官方文档" title="官方文档"
-        rel="10">#官方文档 (10) </a>
-    
-</div>
-    </div>
-    <!-- 评论 -->
-    
-    <div class="col-xs-12">
-        
-<div class="col-xs-12 padding-0">
-    <div id="gitalk-container">
-        <div class="gt-container text-center" style="margin-top: 50px;">
-            <button class="gt-btn gt-btn-public"><span class="gt-btn-text">去 Github 评论</span></button>
-        </div>
-    </div>
-    <div id="gitalk-related"></div>
-</div>
-
-<link rel="stylesheet" href="/css/gitalk.css">
-
-
-<script src="/js/gitalk.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        function renderCommentUrl(data) {
-            var url = (data[window.location.pathname] || {}).url
-            url && getDom('#gitalk-container button').addEventListener('click', function (e) { window.open(url)})
-            url || (getDom('#gitalk-container').style.display = 'none')
-        }
-        const gitalk = new Gitalk({
-            clientID: 'c1fdd456a4caae5f7df0',
-            clientSecret: 'b2674451e21feae50520f99337ec15d2aebe7879',
-            accessToken: '513dc2f1e6df8c07a12fbf1547874f54679d9712',
-            repo: 'geektutu.github.io',
-            owner: 'geektutu',
-            admin: ['geektutu'],
-            id: window.location.pathname,
-            distractionFreeMode: false
-        });
-        fetch("https://api.github.com/user").then(function(resp){
-            gitalk.render('gitalk-container');
-        }).catch(function(e){
-            fetch('/tool/issues.json').then(function (r) { return r.json() }).then(renderCommentUrl).catch(function (e) { })
-        })
-        getDom('#gitalk-container').addEventListener('click', function (e) {
-            e && e.stopPropagation && e.stopPropagation();
-        });
-    })
-</script>
-<script>
-    window.addEventListener('load', function () {
-        function render(comments) {
-            var template = '<a href="${comment.url}?utm_source=gitalk" class="dis-item-url"><h3 class="dis-item-title">${comment.title}</h3>' +
-                '<p class="dis-item-des">${comment.count} 评论 ● ${comment.date}</p>' +
-                '<div class="dis-item-content"><img class="dis-item-img" src="${comment.icon}" alt="icon"><p><b><span class="dis-item-user">${comment.user}</span></b>&nbsp;——&nbsp;${comment.body}</p></div>' +
-                '</a>'
-
-            var wrapper = getDom('#gitalk-related');
-            comments = shuffle(comments);
-            comments.slice(0, 4).forEach(function (c) {
-                var div = document.createElement('div');
-                div.classList.add('dis-item');
-                div.innerHTML = template.replace("${comment.url}", c.url)
-                    .replace("${comment.title}", c.title)
-                    .replace("${comment.count}", c.count)
-                    .replace("${comment.date}", c.date)
-                    .replace("${comment.icon}", c.icon)
-                    .replace("${comment.user}", c.user)
-                    .replace("${comment.body}", c.body)
-                wrapper.appendChild(div)
-            })
-            var p = document.createElement('p')
-            p.innerHTML = '<a href="https://geektutu.com/post/blog-experience-7.html">Gitalk Plus</a>';
-            p.classList.add('dis-divide');
-            wrapper.appendChild(p);
-            wrapper.classList.add('dis-wrapper')
-        }
-        function shuffle(a) {
-            for (var i = a.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-        fetch('/tool/comments.json').then(function (r) { return r.json() }).then(render).catch(function (e) { })
-    })
-</script>
-
-    </div>
-    
-</div>
-<aside class="float-left gkt-sidebar hidden-xs hidden-sm">
-    <div style="clear: both"></div>
-    <div class="gkt-sidebar-wrapper">
-        <section class="box-shadow"><style>
-    .gkt-summary {
-        border: 1px solid #DDDDDD;
-        border-radius: 3px;
-        padding: 5px;
-        width: 100%;
-    }
-
-
-    .gkt-summary nav {
-        overflow: hidden;
-    }
-
-    .gkt-summary nav a {
-        display: inline-block;
-        text-align: center;
-        color: #333;
-        font-size: 12px;
-    }
-
-    .gkt-summary nav span {
-        display: block;
-    }
-
-    .gkt-summary nav .middle {
-        border-left: 1px solid #eaecef;
-        border-right: 1px solid #eaecef;
-    }
-
-    .gkt-summary .number {
-        font-weight: bold;
-    }
-
-    .gkt-summary .link-list {
-        margin-top: 5px;
-        margin-bottom: -5px;
-        padding-top: 7px;
-        border-top: 1px dashed #999;
-        display: flex;
-    }
-
-    .gkt-summary .link-list a {
-        flex: 1;
-    }
-
-    .gkt-summary .link-list img {
-        width: 25px;
-        height: 25px;
-    }
-</style>
-
-<div class="gkt-summary">
-    <nav>
-        <a href="/" class="col-xs-4">
-            <span class="number">108</span><span>文章</span>
-        </a>
-        <a href="/series" class="col-xs-4 middle">
-            <span class="number">23</span><span>专题</span>
-        </a>
-        <a href="/tags" class="col-xs-4">
-            <span class="number">19</span><span>标签</span>
-        </a>
-    </nav>
-
-    
-    <div class="link-list">
-        
-        <a target="_blank" rel="noopener" href="https://github.com/geektutu"><img src="/img/related_links/github.png" /></a>
-        
-        <a href="https://geektutu.com/feed.xml"><img src="/img/related_links/rss.jpg" /></a>
-        
-        <a target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie"><img src="/img/related_links/zhihu.png" /></a>
-        
-        <a target="_blank" rel="noopener" href="https://weibo.com/geektutu"><img src="/img/related_links/weibo.jpg" /></a>
-        
-    </div>
-    
-</div></section>
-        
-        
-        <section class="gkt-sidebar-content box-shadow">
-            <strong>机器学习面试题</strong>
-            <ul>
-                
-                <li>
-                    <a href="/post/qa-ml.html"
-                        class="">机器学习笔试面试题汇总</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/qa-ml-1.html"
-                        class="gkt-sidebar-active">机器学习笔试面试题 1-10</a>
-                    
-                    <!-- Table of Contents -->
-<div id="sidebar-toc">
-  <!-- TOC  -->
-  
-  
-  <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Q1-%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-nav-text">Q1 决策树</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Q2-%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF"><span class="toc-nav-text">Q2 朴素贝叶斯</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Q3-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C"><span class="toc-nav-text">Q3 神经网络</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Q4-%E5%9B%9E%E5%BD%92"><span class="toc-nav-text">Q4 回归</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Q5-%E7%89%B9%E5%BE%81%E7%BC%A9%E6%94%BE"><span class="toc-nav-text">Q5 特征缩放</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Q6-SVM"><span class="toc-nav-text">Q6 SVM</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Q7-%E8%BF%87%E6%8B%9F%E5%90%88"><span class="toc-nav-text">Q7 过拟合</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Q8-%E8%AF%AF%E5%B7%AE"><span class="toc-nav-text">Q8 误差</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Q9-%E4%BA%A4%E5%8F%89%E9%AA%8C%E8%AF%81"><span class="toc-nav-text">Q9 交叉验证</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Q10-%E7%B1%BB%E5%88%AB%E4%B8%8D%E5%B9%B3%E8%A1%A1"><span class="toc-nav-text">Q10 类别不平衡</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%99%84%EF%BC%9A%E9%A2%98%E7%9B%AE%E4%B8%BB%E8%A6%81%E6%9D%A5%E6%BA%90"><span class="toc-nav-text">附：题目主要来源</span></a></li></ol>
-  
-</div>
-
-<script>
-  (function () {
-    var h2 = document.querySelectorAll('article h2');
-    var h3 = document.querySelectorAll('article h3');
-    var linkList = document.querySelectorAll('#sidebar-toc a');
-
-    function findLinkElement(name) {
-      for (var i = 0; i < linkList.length; i++) {
-        var items = linkList[i].href.split('#');
-        if (items && items[items.length - 1] === encodeURIComponent(name)) {
-          return i;
-        }
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
       }
-      return -1;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
     }
 
-    function activeLink(titleList) {
-      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      for (var i = titleList.length - 1; i >= 0; i--) {
-        if (scrollTop - titleList[i].offsetTop > 0) {
-          var index = findLinkElement(titleList[i].id);
-          index != -1 && linkList[index].classList.add('gkt-sidebar-active');
-          break;
-        }
-      }
-    }
-
-    window.addEventListener("scroll", function (e) {
-      [].slice.call(linkList).forEach(function (link) {
-        link.classList.remove('gkt-sidebar-active');
-      })
-      activeLink(h2);
-    })
-  })();
-</script>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/qa-ml-2.html"
-                        class="">机器学习笔试面试题 11-20</a>
-                    
-                </li>
-                
-            </ul>
-        </section>
-        
-        
-        <section class="gkt-sidebar-content box-shadow">
-            <strong>最近的文章</strong>
-            <ul>
-                
-                <li>
-                    <a href="/post/hpg-sync-cond.html">Go sync.Cond</a>
-                </li>
-                
-                <li>
-                    <a href="/post/hpg-dead-code-elimination.html">Go 死码消除与调试(debug)模式</a>
-                </li>
-                
-                <li>
-                    <a href="/post/hpg-sync-once.html">Go sync.Once</a>
-                </li>
-                
-            </ul>
-        </section>
-        
-    </div>
-</aside>
-
-<script>
-    (function () {
-        function resizeUArrow() {
-            var s = getDom('.u-arrow-wrapper').style
-            var pc = getDom('.post-container')
-            s.left = getPosition(pc).x + 'px';
-            s.width = pc.clientWidth + 'px';
-        }
-        resizeUArrow()
-        window.addEventListener('resize', resizeUArrow);
-    })();
-</script>
-
-    
-
-<script>
-    (function () {
-        var ele = getDom('.gkt-sidebar-content')
-        if(!ele) return;
-        var wrapper = getDom('.gkt-sidebar-wrapper')
-        var last = 0
-        ele.style.maxHeight = ((window.innerHeight || 798) - 200) + 'px'
-        var f = function (e) {
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            var isDown = scrollTop > last;
-            var pos = getPosition(ele).y - scrollTop;
-            var downLimit = 50;
-            var upLimit = -100;
-            // uarrow.style.marginTop = scrollTop + 'px';
-            isDown && pos <= downLimit && wrapper.classList.add("gkt-sidebar-fixed");
-            !isDown && pos > upLimit && wrapper.classList.remove("gkt-sidebar-fixed");
-            last = scrollTop
-        }
-        f()
-        window.addEventListener("scroll", f)
-    })();
-</script>
-
-</main>
-    </div>
-    <style>
-    img#go-top {
-        position: fixed;
-        bottom: 100px;
-        width: 50px;
-        cursor: pointer;
-        z-index: 9999;
-    }
-</style>
-<img id="go-top" src="/icon/top.png" class="hidden-xs" style="display: none" />
-<script>
-    (function () {
-        var goTop = document.getElementById('go-top');
-        var mainContainer = document.querySelector('.main-container');
-        
-        goTop.addEventListener('click', function () {
-            window.scroll(0, 0);
-        }, false);
-        window.addEventListener('scroll', function () {
-            var right = document.body.offsetWidth - mainContainer.getBoundingClientRect().right;
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            goTop.style.right = right + 10 + 'px'
-            scrollTop > 700 && (goTop.style.display = "block");
-            scrollTop <= 700 && (goTop.style.display = "none");
-        });
-    })();
-</script>
-    <style>
-    #geektutu-click-img-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        text-align: center;
-        width: 100%;
-        display: none;
-        z-index: 9999;
-    }
-
-    #geektutu-click-img-container img {
-        object-fit: contain;
-        background: #eaecef;
-        padding: 15px;
-        border-radius: 10px;
-        height: auto;
-        width: auto;
-        vertical-align: middle;
-    }
-</style>
-
-
-<div id="geektutu-click-img-container">
-    <img src="" alt="Big Image">
-</div>
-
-<script>
-    (function () {
-        var container = document.querySelector('#geektutu-click-img-container')
-        var targetImg = container.querySelector('img')
-        var imgs = document.querySelectorAll('article img');
-        targetImg.addEventListener('click', function (e) {
-            container.style.display = 'none';
-            e && e.stopPropagation && e.stopPropagation();
-        }, false);
-
-        for (var i = 0; i < imgs.length; ++i) {
-            var img = imgs[i];
-            img.addEventListener('click', (function (src, rate) {
-                return function (e) {
-                    e && e.stopPropagation && e.stopPropagation();
-                    if (window.innerWidth < 980) {
-                        return
-                    }
-                    targetImg.style.height = targetImg.style.width = 'auto';
-                    if (window.innerWidth / window.innerHeight > rate) {
-                        targetImg.style.height = (window.innerHeight - 20) + 'px';
-                    } else {
-                        targetImg.style.width = (window.innerWidth - 20) + 'px';
-                    }
-                    container.style.height = window.innerHeight + 'px'
-                    container.style.lineHeight = window.innerHeight + 'px'
-                    container.style.display = 'block';
-                    targetImg.src = src;
-                };
-            }(img.src, img.width / img.height)), false)
-        }
-    })();
-</script>
-    <!-- Footer -->
-    <!-- Footer -->
-<style>
-    footer {
-        width: 100%;
-        line-height: 1.5;
-        padding: 20px;
-    }
-
-    footer a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    .footer-hexo img {
-        height: 20px;
-        margin-bottom: -5px;
-    }
-
-    .footer-hexo a {
-        color: #337ab7;
-    }
-</style>
-<footer class="text-center col-xs-12">
-    <p>
-        <small>© 2026 - 极客兔兔 - </small>
-        <small>
-            <a target="_blank" rel="nofollow noopener" href="http://beian.miit.gov.cn/">沪ICP备18001798号-1</a>
-        </small>
-    </p>
-    <p class="footer-hexo">
-        <!-- 但若直接使用或修改主题，请务必保留这段声明 -->
-        <small>Powered by <a target="_blank" href="https://hexo.io">Hexo</a> | Theme
-            <a target="_blank" href="https://geektutu.com">Geektutu</a>
-            <a target="_blank" rel="noopener" href="https://github.com/geektutu/hexo-theme-geektutu">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIACIAUAMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQQFBwIDBgj/2gAIAQEAAAAA9KrHSgAYL5/z6zZGuJd12uugbhq3uKtmuRtix20IS7lTLAfAAAn/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oACAECEAAAAAAB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAxAAAAAAAf/EADEQAAICAQIEBQEGBwAAAAAAAAECAwQFAAYREhORBxQhUlQxQVFic5KxJDJCYYGC0f/aAAgBAQABPwCFHnjWUzuvN6hV4cANSRLGjO9yRVUcSzMoA7jVXJYe5N0a2dhmk9kc0bN2GvLN8mbuNeWb5M3ca8s3yZu415Y/Jm7jXlm+TN3H/NeVPyZu40vOk3TZywK8wJ+v3EHVM/wsI/Dq2lrxN3Nnca16eti8chSAIoMbzByhMwP14kHVfwIiSaF5c96J6kwwCOTnHsYk8uvCrdmQy1TI4rJuz3cZLyGR/wCd4+YoOf8AEpUjXitubLYPG4paFsUxcuiGe7yc5gTW3LW44szXmobsi3Dhmic2+Z4+vCVH9CpraPiQ+QvbgTJrPFBWd5YpWrmNIIEXiRO32Pqt4p7cnfHk18lFBdmEVW1LVdIZGOrniTt6plrWKaO69yCykDRxwF+LMAewB0Txtr+Sf31VI8tEPw62fZt7N3Humtbpzz13ucX6CGSWMSuzpLyD1eNgeUka3PuvHbaxq3biTMHfkiSNCS78CwU+3Xg7Vu3MhuTcU6cq3Zemn3Eh2dv8Lzcut+29x1atKbHYqLJUhLwyNMwiZ3j9yDWOxUOV3tgb+3No5LDx1pi9+aeIwRlNY6bc+Jv+IFGrhLxtXJZ7VKcw81diiAAEn0JOrkWZyNfbEr0tz27UGQgkuGzXdIIvyowq99bRxk9ffO/L81SZBPZgEEroQroIxxMZOgeNsfkn99QypHGqO4Vl9CDrN4LDZkwyzyyQ2IgRHZrzGCZVP1XnQglT9oOtw4LC7iqV6uRkZoYpxKFSQpzFRw4EjVRMfSrQ1qqwxQxKFjjTgFUD7BoWYR6iVe+mtxt9Zwf9teaj4AdccPu5tedX5A/VrzUR+sy/q1CwksF19VEfDj/cnQRW+qg66cfsXtrpx+xe2unH7F7a6cfsXtrpx+xe2unH7F7a6cfsXtoxx+xe2gAAOA1//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwB//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwB//9k="
-                    alt="Github Star">
-            </a>
-        </small>
-    </p>
-    
-    <p>
-        <small>
-            <span id="busuanzi_container_site_pv">👁<span id="busuanzi_value_site_pv"></span></span> &nbsp;
-            <span id="busuanzi_container_page_pv">📚<span id="busuanzi_value_page_pv"></span></span>
-        </small>
-    </p>
-    
-    
-
-</footer>
-
-
-<script>
-    window.addEventListener('load', function () {
-        globalAddScript('//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js');
-    })
-</script>
-
-<!-- Baidu Tongji -->
-
-<script>
-    window.addEventListener('load', function () {
-        var _hmt = _hmt || [];
-        globalAddScript('//hm.baidu.com/hm.js?1a0ec38c52c08db815b0046c2783b1aa')
-    })
-</script>
-
-
-
-<!-- baidu auto push for seo -->
-<script>
-    window.addEventListener('load', function () {
-        var src = 'http://push.zhanzhang.baidu.com/push.js'
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        globalAddScript(src);
-    })
-</script>
-
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-142641425-1');
-
-    window.addEventListener('load', function () {
-        globalAddScript('https://www.googletagmanager.com/gtag/js?id=UA-142641425-1');
-    });
-</script>
-
-
-    <script>
-        // 非本站网址，新开tab页签
-        (function () {
-            var stopBubble = function (e) {
-                e && e.stopPropagation && e.stopPropagation();
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
             }
-            var links = document.querySelectorAll('a');
-            [].slice.call(links).forEach(function (item) {
-                if (item.href && item.href.indexOf(window.location.host) === -1) {
-                    item.target = '_blank'
-                }
-                // 阻止冒泡，不触发彩蛋。
-                item.addEventListener('click', stopBubble, false);
-            });
-            var article = document.querySelector('article');
-            article && article.addEventListener('click', stopBubble, false)
-        })();
-    </script>
-    
-</body>
-
-</html>
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

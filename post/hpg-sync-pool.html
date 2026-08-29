@@ -1,1132 +1,240 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
-<!-- Head tag -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="referrer" content="no-referrer-when-downgrade">
-  
-  <meta name="baidu-site-verification" content="p7Pz3jlx4t" />
-  <meta name="google-site-verification" content="X31OY0d2sKImNbS2x8-OpITWRK4nn7nZCcXe3_hA9ew" />
-  <meta name="msvalidate.01" content="7E2AEE3378AC93764DEAB411177A21A1" />
-  <meta name="360-site-verification" content="1d1e81a1a48a1ed2e3308d7cb8e548e7" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- if page has tags, then add tags to keyword -->
-  
-  
-  <meta name="keywords" content="geektutu,jiketutu,Go语言,golang,python,Go语言高性能编程,golang,sync.Pool,内存碎片">
-  <!-- page.description has higher priority -->
-  <meta name="description" content="Go 语言/golang 高性能编程，Go 语言进阶教程，Go 语言高性能编程(high performance go)。Go 语言标准库中的 sync.Pool 可以建立对象池，复用已有对象，解决内存分配碎片化的问题，有效减轻垃圾回收的压力(Garbage Collection, GC)，在特定场景下可以有效地降低内存占用，提升性能。最后介绍了 sync.Pool 的作用和用法。">
-  <link rel="shortcut icon" href="/img/icon.png">
-  <title>
-    
-    Go sync.Pool | Go 语言高性能编程 | 极客兔兔
-    
-  </title>
-
-  <link rel="canonical" href="https://geektutu.com/post/hpg-sync-pool.html">
-  
-<link rel="stylesheet" href="/css/geektutu.css">
-
-  <!-- global function -->
-  <script>
-    window.globalAddScript = function (url, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = url;
-      onload && (s.onload = onload);
-      onerror && (s.onerror = onerror);
-      document.body.appendChild(s);
-    }
-    window.globalAddCss = function (url) {
-      var s = document.createElement('link');
-      s.rel = 'stylesheet';
-      s.href = url;
-      document.body.appendChild(s);
-    }
-    window.getPosition = function (ele) {
-      var x = 0, y = 0;
-      while (ele) {
-        x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-        y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-        ele = ele.offsetParent;
-      }
-      return { x: x, y: y };
-    }
-    window.getDom = function (str) { return document.querySelector(str) }
-  </script>
-  <!-- google ad -->
-  
-<meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/feed.xml" title="极客兔兔" type="application/rss+xml">
-</head>
-
-<body>
-    
-<style>
-    body {
-        background: white;
-    }
-    .gkt-header-placeholder, .gkt-header {
-        display: none;
-    }
-    .main-container {
-        width: 100%;
-        padding-top: 0;
-        max-width: 100%;
-    }
-</style>
-
-<header class="gkt-header col-xs-12 padding-0">
-    <div id="gkt-nav" class="gkt-header-container">
-        <a href="/" class="gkt-header-title float-left">
-            <img class="float-left" src="/img/icon.png" alt="">
-            <span>极客兔兔</span>
-        </a>
-        <nav class="gkt-header-nav text-right">
-            <ul>
-                <li><a class="hidden-xs" href="/feed.xml">订阅</a></li>
-                <li><a href="/series/">专题</a></li>
-                <li><a href="/archives/">归档</a></li>
-                <li><a href="/post/link.html">友链</a></li>
-                <li><a href="/post/about.html">关于</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="gkt-cate-nav" class="gkt-header-container hidden-xs">
-        
-        <nav class="gkt-header-nav float-left">
-            <ul>
-                
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/tensorflow-mnist-simplest.html">简明教程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tensorflow-mnist-simplest.html">TensorFlow 教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/pandas-dataframe-series.html">Pandas 数据处理</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tf2doc.html">TensorFlow2 文档</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-golang.html">Go 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-rust.html">Rust 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-python.html">Python 简明教程</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/blog-experience-1.html">杂谈 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/blog-experience-1.html">建站经历</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/2020.html">年终总结</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/qa-ml.html">面试 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-ml.html">机器学习面试题</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-golang.html">Go 语言面试题</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/gee.html">从零实现 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/gee.html">Web框架 - Gee</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geecache.html">分布式缓存 - GeeCache</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geeorm.html">ORM框架 - GeeORM</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geerpc.html">RPC框架 - GeeRPC</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/7days-golang-q1.html">7days-golang Q &amp; A</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/box-tools.html">百宝箱 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/box-tools.html">工具</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/cheat-sheet-sqlite.html">SQLite 速查表</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left active">
-                    <a class="float-left" href="/post/high-performance-go.html">高性能编程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/high-performance-go.html">序言</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-benchmark.html">性能分析</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-string-concat.html">常用数据结构</a></li>
-                        
-                        <li class="gkt-sub-cate-name active"><a class="float-left"
-                                href="/post/hpg-mutex.html">并发编程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-reduce-size.html">编译优化</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-gotchas-array-slice.html">语言陷阱</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-            </ul>
-        </nav>
-    </div>
-</header>
-<div class="gkt-header-placeholder" style="height: 44px"></div>
-<div class="gkt-header-placeholder hidden-xs" style="height: 44px"></div>
-<script>
-    (function () {
-        window.addEventListener('scroll', function () {
-            if (window.innerWidth < 768) {
-                return;
-            }
-            var nav = document.querySelector('#gkt-nav');
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            scrollTop > 50 && (nav.classList.add('hide'));
-            scrollTop <= 50 && (nav.classList.remove('hide'));
-        });
-        var cateNavs = document.querySelectorAll('#gkt-cate-nav>nav>ul>li');
-        [].slice.call(cateNavs).forEach(function (item) {
-            var sub = item.querySelector('.gkt-sub-cate');
-            if (!sub) return;
-            item.addEventListener('mouseenter', function (e) { sub.style.display = 'block'; }, false);
-            item.addEventListener('mouseleave', function (e) { sub.style.display = 'none'; }, false);
-        })
-    })();
-</script>
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Main Content -->
-<main class="col-xs-12 padding-0 markdown-it">
-    <!-- Post Container -->
-    
-    
-    <!-- Post Content -->
-<style>
-  .markdown-it article h1, .markdown-it article h2, .markdown-it article h3 {
-    padding-top: 5px;
-    margin-top: 0px;
-  }
-  .post-container {
-    padding: 0 !important;
-    width: 100%;
-  }
-  .post-container article {
-    padding: 0 15px !important;
-  }
-  .gkt-book {
-    max-width: 80rem;
-    margin: 1rem auto;
-    display: flex;
-  }
-  .gkt-book-title {
-    color: #343a40;
-    font-size: 1.2em;
-  }
-  .gkt-sidebar-wrapper {
-    position: fixed;
-    margin-top: 15px;
-  }
-  .gkt-book-menu {
-    flex: 0 0 16rem;
-    padding-left: 15px;
-    padding-top: 5px;
-    z-index: 999;
-  }
-  .gkt-book-menu a {
-    color: #343a40;
-  }
-  .gkt-book-menu a.active {
-    color: #337ab7;
-  }
-  .gkt-book-menu > nav {
-    position: fixed;
-    overflow: auto;
-    padding-right: 15px;
-    height: 95%;
-    font-size: 0.85em;
-    line-height: 2;
-    -ms-overflow-style: none;
-    overflow: -moz-scrollbars-none;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-    border-left: 1px solid #eee;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-thumb {
-      background-color: #c1c1c1;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar {
-    width: 5px !important;
-  }
-  .gkt-book-menu hr {
-    padding: 2px;
-  }
-  .gkt-book-menu > nav > ul {
-    padding-left: 0;
-  }
-  .gkt-book-menu > nav ul,
-  .gkt-book-toc ul,
-  .gkt-book-toc ol {
-    list-style: none !important;
-  }
-  @media (min-width: 992px) {
-    .gkt-book-page {
-      width: calc(100% - 32rem);
-    }
-  }
-  .gkt-book-page {
-    min-width: 20rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-  .gkt-page-tips {
-    color: #555;
-    margin-top: -10px;
-  }
-  .gkt-book-toc {
-    flex: 0 0 16rem;
-    font-size: 0.85em;
-  }
-  .gkt-book .series_links {
-    border: 1px solid #eaecef;
-    padding: 0 15px;
-    background-color: #fff8dc;
-    margin-bottom: 20px;
-    border-radius: 5px;
-  }
-  .gkt-book-menu-icon {
-    padding: 0 15px;
-    font-size: 16px;
-    overflow: hidden;
-    cursor: pointer;
-  }
-  @media (max-width: 767px) {
-    .gkt-book-menu-hidden {
-      margin-left: -16rem;
-    }
-  }
-  .gkt-book-menu-checked {
-    opacity: 0.4;
-    margin-right: -16rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-</style>
-<div class="gkt-book post-container">
-  <aside class="gkt-book-menu gkt-book-menu-hidden">
-    <nav>
-      
-      <h3 class="text-center">
-        <a class="gkt-book-title" href="/post/high-performance-go.html">Go 语言高性能编程</a>
-      </h3>
-      
-      <ul class="col-xs-12 text-center">
-        <li><a href="/">极客兔兔</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://github.com/geektutu">Github</a></li>
-        
-        <li><a href="https://geektutu.com/feed.xml">RSS</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie">知乎</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://weibo.com/geektutu">微博</a></li>
-        
-      </ul>
-      
-      <hr />
-      
-      <ul>
-        
-        <li>
-          <a>序言</a>
-          <ul>
-            
-            <li><a href="/post/high-performance-go.html" class=" ">关于本书</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>性能分析</a>
-          <ul>
-            
-            <li><a href="/post/hpg-benchmark.html" class=" ">benchmark 基准测试</a></li>
-            
-            <li><a href="/post/hpg-pprof.html" class=" ">pprof 性能分析</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>常用数据结构</a>
-          <ul>
-            
-            <li><a href="/post/hpg-string-concat.html" class=" ">字符串拼接性能及原理</a></li>
-            
-            <li><a href="/post/hpg-slice.html" class=" ">切片(slice)性能及陷阱</a></li>
-            
-            <li><a href="/post/hpg-range.html" class=" ">for 和 range 的性能比较</a></li>
-            
-            <li><a href="/post/hpg-reflect.html" class=" ">反射(reflect)性能</a></li>
-            
-            <li><a href="/post/hpg-empty-struct.html" class=" ">使用空结构体节省内存</a></li>
-            
-            <li><a href="/post/hpg-struct-alignment.html" class=" ">内存对齐对性能的影响</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>并发编程</a>
-          <ul>
-            
-            <li><a href="/post/hpg-mutex.html" class=" ">读写锁和互斥锁的性能比较</a></li>
-            
-            <li><a href="/post/hpg-timeout-goroutine.html" class=" ">如何退出协程(超时场景)</a></li>
-            
-            <li><a href="/post/hpg-exit-goroutine.html" class=" ">如何退出协程(其他场景)</a></li>
-            
-            <li><a href="/post/hpg-concurrency-control.html" class=" ">控制协程的并发数量</a></li>
-            
-            <li><a href="/post/hpg-sync-pool.html" class="active ">sync.Pool 复用对象</a></li>
-            
-            <li><a href="/post/hpg-sync-once.html" class=" ">sync.Once 如何提升性能</a></li>
-            
-            <li><a href="/post/hpg-sync-cond.html" class=" ">sync.Cond 条件变量</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>编译优化</a>
-          <ul>
-            
-            <li><a href="/post/hpg-reduce-size.html" class=" ">减小编译体积</a></li>
-            
-            <li><a href="/post/hpg-escape-analysis.html" class=" ">逃逸分析对性能的影响</a></li>
-            
-            <li><a href="/post/hpg-dead-code-elimination.html" class=" ">死码消除与调试模式</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>语言陷阱</a>
-          <ul>
-            
-            <li><a href="/post/hpg-gotchas-array-slice.html" class=" ">数组和切片</a></li>
-            
-          </ul>
-        </li>
-        
-      </ul>
-    </nav>
-  </aside>
-  <div class="gkt-book-page">
-    <div class="hidden-sm hidden-md hidden-lg gkt-book-menu-icon">
-      <label for="book-menu">
-        <svg class="float-left" name="book-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0V0z"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-      </label>
-      <strong class="float-right">Go 语言高性能编程</strong>
-    </div>
-    <div class="u-arrow-wrapper hidden-xs">
-        
-        <a class="float-left" href="/post/hpg-escape-analysis.html"><i class="u-arrow-left"></i></a>
-        
-        
-        <a class="float-right" href="/post/hpg-sync-once.html"><i class="u-arrow-right"></i></a>
-        
-    </div>
-    <article class="col-xs-12">
-      <h1>Go sync.Pool</h1>
-       
-      <div class="hidden-lg hidden-md hidden-sm series_links">
-        <p><strong> 并发编程系列文章链接：</strong></p>
-        <ul>
-          
-          <li>
-            <a href="/post/hpg-mutex.html">读写锁和互斥锁的性能比较</a>
-            <span class="post-item-date">(Dec 5, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-timeout-goroutine.html">如何退出协程 goroutine (超时场景)</a>
-            <span class="post-item-date">(Dec 12, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-exit-goroutine.html">如何退出协程 goroutine (其他场景)</a>
-            <span class="post-item-date">(Dec 15, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-concurrency-control.html">控制协程(goroutine)的并发数量</a>
-            <span class="post-item-date">(Dec 21, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-sync-pool.html">Go sync.Pool</a>
-            <span class="post-item-date">(Dec 31, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-sync-once.html">Go sync.Once</a>
-            <span class="post-item-date">(Jan 7, 2021)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-sync-cond.html">Go sync.Cond</a>
-            <span class="post-item-date">(Jan 14, 2021)</span>
-          </li>
-          
-        </ul>
-      </div>
-       
-      <blockquote>
-        <p>
-          源代码/数据集已上传到
-          <a href="https://github.com/geektutu/high-performance-go" target="_blank" rel="noopener">Github - high-performance-go</a>
-        </p>
-      </blockquote>
-      
-      <div class="gkt-article-start"></div>
-      <p><img src="hpg-mutex/concurrent.jpg" alt="high performance go - concurrent programming"></p>
-<h2 id="1-sync-Pool-的使用场景"><a href="#1-sync-Pool-的使用场景" class="headerlink" title="1 sync.Pool 的使用场景"></a>1 sync.Pool 的使用场景</h2><blockquote>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Go 语言/golang 高性能编程，Go 语言进阶教程，Go 语言高性能编程(high performance go)。Go 语言标准库中的 sync.Pool 可以建立对象池，复用已有对象，解决内存分配碎片化的问题，有效减轻垃圾回收的压力(Garbage Collection, GC)，在特定场景下可以有效地降低内存占用，提升性能。最后介绍了 sync.Pool 的作用和用法。"><title>Go sync.Pool · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.B88FlGyz.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-baseline gap-2"><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔<span class="text-accent">.</span></span><span class="hidden text-xs text-faint sm:inline">写书式技术博客</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/high-performance-go" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">Go 语言高性能编程</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">序言</span></div><ul><li><a href="/post/high-performance-go.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言高性能编程</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">性能分析</span></div><ul><li><a href="/post/hpg-benchmark.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">benchmark 基准测试</a></li><li><a href="/post/hpg-pprof.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">pprof 性能分析</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">常用数据结构</span></div><ul><li><a href="/post/hpg-string-concat.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">字符串拼接性能及原理</a></li><li><a href="/post/hpg-slice.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">切片(slice)性能及陷阱</a></li><li><a href="/post/hpg-range.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">for 和 range 的性能比较</a></li><li><a href="/post/hpg-reflect.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Reflect 提高反射性能</a></li><li><a href="/post/hpg-empty-struct.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 空结构体 struct{} 的使用</a></li><li><a href="/post/hpg-struct-alignment.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go struct 内存对齐</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">并发编程</span></div><ul><li><a href="/post/hpg-mutex.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">读写锁和互斥锁的性能比较</a></li><li><a href="/post/hpg-timeout-goroutine.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">如何退出协程 goroutine (超时场景)</a></li><li><a href="/post/hpg-exit-goroutine.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">如何退出协程 goroutine (其他场景)</a></li><li><a href="/post/hpg-concurrency-control.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">控制协程(goroutine)的并发数量</a></li><li><a href="/post/hpg-sync-pool.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Go sync.Pool</a></li><li><a href="/post/hpg-sync-once.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Once</a></li><li><a href="/post/hpg-sync-cond.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Cond</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">编译优化</span></div><ul><li><a href="/post/hpg-reduce-size.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">减小 Go 代码编译后的二进制体积</a></li><li><a href="/post/hpg-escape-analysis.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 逃逸分析</a></li><li><a href="/post/hpg-dead-code-elimination.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 死码消除与调试(debug)模式</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">语言陷阱</span></div><ul><li><a href="/post/hpg-gotchas-array-slice.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言陷阱 - 数组和切片</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/high-performance-go" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> Go 语言高性能编程</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">Go sync.Pool</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2020-12-31">2020-12-31</time><span aria-hidden="true">·</span><span>约 4 分钟</span><a href="https://github.com/geektutu/high-performance-go" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/high-performance-go" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/high-performance-go</a><span class="flex flex-wrap gap-2"><a href="/tags/Go语言高性能编程" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Go语言高性能编程</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#1-syncpool-的使用场景" class="toc-link block text-muted" data-toc-depth="2">1 sync.Pool 的使用场景</a></li><li style="padding-left:0rem"><a href="#2-如何使用" class="toc-link block text-muted" data-toc-depth="2">2 如何使用</a></li><li style="padding-left:0.9rem"><a href="#21-声明对象池" class="toc-link block text-muted" data-toc-depth="3">2.1 声明对象池</a></li><li style="padding-left:0.9rem"><a href="#22-get--put" class="toc-link block text-muted" data-toc-depth="3">2.2 Get &amp; Put</a></li><li style="padding-left:0rem"><a href="#3-性能测试" class="toc-link block text-muted" data-toc-depth="2">3 性能测试</a></li><li style="padding-left:0.9rem"><a href="#31-struct-反序列化" class="toc-link block text-muted" data-toc-depth="3">3.1 struct 反序列化</a></li><li style="padding-left:0.9rem"><a href="#32-bytesbuffer" class="toc-link block text-muted" data-toc-depth="3">3.2 bytes.Buffer</a></li><li style="padding-left:0rem"><a href="#4-在标准库中的应用" class="toc-link block text-muted" data-toc-depth="2">4 在标准库中的应用</a></li><li style="padding-left:0.9rem"><a href="#41-fmtprintf" class="toc-link block text-muted" data-toc-depth="3">4.1 fmt.Printf</a></li><li style="padding-left:0rem"><a href="#附-推荐与参考" class="toc-link block text-muted" data-toc-depth="2">附 推荐与参考</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><p><img alt="high performance go - concurrent programming" loading="lazy" decoding="async" width="1706" height="888" src="/_astro/concurrent.DDPp0g4q_Z14LrXy.webp" srcset=""></p>
+<h2 id="1-syncpool-的使用场景">1 sync.Pool 的使用场景</h2>
+<blockquote>
 <p>一句话总结：保存和复用临时对象，减少内存分配，降低 GC 压力。</p>
 </blockquote>
 <p>举个简单的例子：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Student <span class="keyword">struct</span> &#123;</span><br><span class="line">	Name   <span class="type">string</span></span><br><span class="line">	Age    <span class="type">int32</span></span><br><span class="line">	Remark [<span class="number">1024</span>]<span class="type">byte</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> buf, _ = json.Marshal(Student&#123;Name: <span class="string">&quot;Geektutu&quot;</span>, Age: <span class="number">25</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">unmarsh</span><span class="params">()</span></span> &#123;</span><br><span class="line">	stu := &amp;Student&#123;&#125;</span><br><span class="line">	json.Unmarshal(buf, stu)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Student</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	Name   </span><span style="color:#D73A49">string</span></span>
+<span class="line"><span style="color:#24292E">	Age    </span><span style="color:#D73A49">int32</span></span>
+<span class="line"><span style="color:#24292E">	Remark [</span><span style="color:#005CC5">1024</span><span style="color:#24292E">]</span><span style="color:#D73A49">byte</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> buf, _ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> json.</span><span style="color:#6F42C1">Marshal</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Student</span><span style="color:#24292E">{Name: </span><span style="color:#032F62">"Geektutu"</span><span style="color:#24292E">, Age: </span><span style="color:#005CC5">25</span><span style="color:#24292E">})</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> unmarsh</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	stu </span><span style="color:#D73A49">:=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#6F42C1">Student</span><span style="color:#24292E">{}</span></span>
+<span class="line"><span style="color:#24292E">	json.</span><span style="color:#6F42C1">Unmarshal</span><span style="color:#24292E">(buf, stu)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>json 的反序列化在文本解析和网络通信过程中非常常见，当程序并发度非常高的情况下，短时间内需要创建大量的临时对象。而这些对象是都是分配在堆上的，会给 GC 造成很大压力，严重影响程序的性能。</p>
 <blockquote>
 <p>参考：<a href="https://geektutu.com/post/qa-golang-2.html#Q5-%E7%AE%80%E8%BF%B0-Go-%E8%AF%AD%E8%A8%80GC-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86">垃圾回收(GC)的工作原理</a></p>
 </blockquote>
 <p>Go 语言从 1.3 版本开始提供了对象重用的机制，即 sync.Pool。sync.Pool 是可伸缩的，同时也是并发安全的，其大小仅受限于内存的大小。sync.Pool 用于存储那些被分配了但是没有被使用，而未来可能会使用的值。这样就可以不用再次经过内存分配，可直接复用已有对象，减轻 GC 的压力，从而提升系统的性能。</p>
 <p>sync.Pool 的大小是可伸缩的，高负载时会动态扩容，存放在池中的对象如果不活跃了会被自动清理。</p>
-<h2 id="2-如何使用"><a href="#2-如何使用" class="headerlink" title="2 如何使用"></a>2 如何使用</h2><p>sync.Pool 的使用方式非常简单：</p>
-<h3 id="2-1-声明对象池"><a href="#2-1-声明对象池" class="headerlink" title="2.1 声明对象池"></a>2.1 声明对象池</h3><p>只需要实现 New 函数即可。对象池中没有对象时，将会调用 New 函数创建。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> studentPool = sync.Pool&#123;</span><br><span class="line">    New: <span class="function"><span class="keyword">func</span><span class="params">()</span></span> <span class="keyword">interface</span>&#123;&#125; &#123; </span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">new</span>(Student) </span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-2-Get-amp-Put"><a href="#2-2-Get-amp-Put" class="headerlink" title="2.2 Get &amp; Put"></a>2.2 Get &amp; Put</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">stu := studentPool.Get().(*Student)</span><br><span class="line">json.Unmarshal(buf, stu)</span><br><span class="line">studentPool.Put(stu)</span><br></pre></td></tr></table></figure>
-
+<h2 id="2-如何使用">2 如何使用</h2>
+<p>sync.Pool 的使用方式非常简单：</p>
+<h3 id="21-声明对象池">2.1 声明对象池</h3>
+<p>只需要实现 New 函数即可。对象池中没有对象时，将会调用 New 函数创建。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> studentPool </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> sync</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Pool</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">    New: </span><span style="color:#D73A49">func</span><span style="color:#24292E">() </span><span style="color:#D73A49">interface</span><span style="color:#24292E">{} { </span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#6F42C1"> new</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Student</span><span style="color:#24292E">) </span></span>
+<span class="line"><span style="color:#24292E">    },</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h3 id="22-get--put">2.2 Get &#x26; Put</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">stu </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> studentPool.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">().(</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Student</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">json.</span><span style="color:#6F42C1">Unmarshal</span><span style="color:#24292E">(buf, stu)</span></span>
+<span class="line"><span style="color:#24292E">studentPool.</span><span style="color:#6F42C1">Put</span><span style="color:#24292E">(stu)</span></span></code></pre>
 <ul>
-<li><code>Get()</code> 用于从对象池中获取对象，因为返回值是 <code>interface&#123;&#125;</code>，因此需要类型转换。</li>
+<li><code>Get()</code> 用于从对象池中获取对象，因为返回值是 <code>interface{}</code>，因此需要类型转换。</li>
 <li><code>Put()</code> 则是在对象使用完毕后，返回对象池。</li>
 </ul>
-<h2 id="3-性能测试"><a href="#3-性能测试" class="headerlink" title="3 性能测试"></a>3 性能测试</h2><h3 id="3-1-struct-反序列化"><a href="#3-1-struct-反序列化" class="headerlink" title="3.1 struct 反序列化"></a>3.1 struct 反序列化</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkUnmarshal</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> n := <span class="number">0</span>; n &lt; b.N; n++ &#123;</span><br><span class="line">		stu := &amp;Student&#123;&#125;</span><br><span class="line">		json.Unmarshal(buf, stu)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkUnmarshalWithPool</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> n := <span class="number">0</span>; n &lt; b.N; n++ &#123;</span><br><span class="line">		stu := studentPool.Get().(*Student)</span><br><span class="line">		json.Unmarshal(buf, stu)</span><br><span class="line">		studentPool.Put(stu)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h2 id="3-性能测试">3 性能测试</h2>
+<h3 id="31-struct-反序列化">3.1 struct 反序列化</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkUnmarshal</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> n </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; n </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; n</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		stu </span><span style="color:#D73A49">:=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#6F42C1">Student</span><span style="color:#24292E">{}</span></span>
+<span class="line"><span style="color:#24292E">		json.</span><span style="color:#6F42C1">Unmarshal</span><span style="color:#24292E">(buf, stu)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkUnmarshalWithPool</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> n </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; n </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; n</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		stu </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> studentPool.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">().(</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Student</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		json.</span><span style="color:#6F42C1">Unmarshal</span><span style="color:#24292E">(buf, stu)</span></span>
+<span class="line"><span style="color:#24292E">		studentPool.</span><span style="color:#6F42C1">Put</span><span style="color:#24292E">(stu)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>测试结果如下：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench . -benchmem</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example/hpg-sync-pool</span><br><span class="line">BenchmarkUnmarshal-8           1993   559768 ns/op   5096 B/op 7 allocs/op</span><br><span class="line">BenchmarkUnmarshalWithPool-8   1976   550223 ns/op    234 B/op 6 allocs/op</span><br><span class="line">PASS</span><br><span class="line">ok      example/hpg-sync-pool   2.334s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench</span><span style="color:#032F62"> .</span><span style="color:#005CC5"> -benchmem</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example/hpg-sync-pool</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkUnmarshal-8</span><span style="color:#005CC5">           1993</span><span style="color:#005CC5">   559768</span><span style="color:#032F62"> ns/op</span><span style="color:#005CC5">   5096</span><span style="color:#032F62"> B/op</span><span style="color:#005CC5"> 7</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkUnmarshalWithPool-8</span><span style="color:#005CC5">   1976</span><span style="color:#005CC5">   550223</span><span style="color:#032F62"> ns/op</span><span style="color:#005CC5">    234</span><span style="color:#032F62"> B/op</span><span style="color:#005CC5"> 6</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example/hpg-sync-pool</span><span style="color:#032F62">   2.334s</span></span></code></pre>
 <p>在这个例子中，因为 Student 结构体内存占用较小，内存分配几乎不耗时间。而标准库 json 反序列化时利用了反射，效率是比较低的，占据了大部分时间，因此两种方式最终的执行时间几乎没什么变化。但是内存占用差了一个数量级，使用了 <code>sync.Pool</code> 后，内存占用仅为未使用的 234/5096 = 1/22，对 GC 的影响就很大了。</p>
-<h3 id="3-2-bytes-Buffer"><a href="#3-2-bytes-Buffer" class="headerlink" title="3.2 bytes.Buffer"></a>3.2 bytes.Buffer</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> bufferPool = sync.Pool&#123;</span><br><span class="line">	New: <span class="function"><span class="keyword">func</span><span class="params">()</span></span> <span class="keyword">interface</span>&#123;&#125; &#123;</span><br><span class="line">		<span class="keyword">return</span> &amp;bytes.Buffer&#123;&#125;</span><br><span class="line">	&#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> data = <span class="built_in">make</span>([]<span class="type">byte</span>, <span class="number">10000</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkBufferWithPool</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> n := <span class="number">0</span>; n &lt; b.N; n++ &#123;</span><br><span class="line">		buf := bufferPool.Get().(*bytes.Buffer)</span><br><span class="line">		buf.Write(data)</span><br><span class="line">		buf.Reset()</span><br><span class="line">		bufferPool.Put(buf)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkBuffer</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> n := <span class="number">0</span>; n &lt; b.N; n++ &#123;</span><br><span class="line">		<span class="keyword">var</span> buf bytes.Buffer</span><br><span class="line">		buf.Write(data)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h3 id="32-bytesbuffer">3.2 bytes.Buffer</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> bufferPool </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> sync</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Pool</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">	New: </span><span style="color:#D73A49">func</span><span style="color:#24292E">() </span><span style="color:#D73A49">interface</span><span style="color:#24292E">{} {</span></span>
+<span class="line"><span style="color:#D73A49">		return</span><span style="color:#D73A49"> &#x26;</span><span style="color:#6F42C1">bytes</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Buffer</span><span style="color:#24292E">{}</span></span>
+<span class="line"><span style="color:#24292E">	},</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> data </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> make</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">, </span><span style="color:#005CC5">10000</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkBufferWithPool</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> n </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; n </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; n</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		buf </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> bufferPool.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">().(</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">bytes</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Buffer</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		buf.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">(data)</span></span>
+<span class="line"><span style="color:#24292E">		buf.</span><span style="color:#6F42C1">Reset</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">		bufferPool.</span><span style="color:#6F42C1">Put</span><span style="color:#24292E">(buf)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkBuffer</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> n </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; n </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; n</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">		var</span><span style="color:#24292E"> buf </span><span style="color:#6F42C1">bytes</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Buffer</span></span>
+<span class="line"><span style="color:#24292E">		buf.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">(data)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>测试结果如下：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">BenchmarkBufferWithPool-8    8778160    133 ns/op       0 B/op   0 allocs/op</span><br><span class="line">BenchmarkBuffer-8             906572   1299 ns/op   10240 B/op   1 allocs/op</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">BenchmarkBufferWithPool-8</span><span style="color:#005CC5">    8778160</span><span style="color:#005CC5">    133</span><span style="color:#032F62"> ns/op</span><span style="color:#005CC5">       0</span><span style="color:#032F62"> B/op</span><span style="color:#005CC5">   0</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkBuffer-8</span><span style="color:#005CC5">             906572</span><span style="color:#005CC5">   1299</span><span style="color:#032F62"> ns/op</span><span style="color:#005CC5">   10240</span><span style="color:#032F62"> B/op</span><span style="color:#005CC5">   1</span><span style="color:#032F62"> allocs/op</span></span></code></pre>
 <p>这个例子创建了一个 <code>bytes.Buffer</code> 对象池，而且每次只执行一个简单的 <code>Write</code> 操作，存粹的内存搬运工，耗时几乎可以忽略。而内存分配和回收的耗时占比较多，因此对程序整体的性能影响更大。</p>
-<h2 id="4-在标准库中的应用"><a href="#4-在标准库中的应用" class="headerlink" title="4 在标准库中的应用"></a>4 在标准库中的应用</h2><h3 id="4-1-fmt-Printf"><a href="#4-1-fmt-Printf" class="headerlink" title="4.1 fmt.Printf"></a>4.1 fmt.Printf</h3><p>Go 语言标准库也大量使用了 <code>sync.Pool</code>，例如 <code>fmt</code> 和 <code>encoding/json</code>。</p>
+<h2 id="4-在标准库中的应用">4 在标准库中的应用</h2>
+<h3 id="41-fmtprintf">4.1 fmt.Printf</h3>
+<p>Go 语言标准库也大量使用了 <code>sync.Pool</code>，例如 <code>fmt</code> 和 <code>encoding/json</code>。</p>
 <p>以下是 <code>fmt.Printf</code> 的源代码(go/src/fmt/print.go)：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// go 1.13.6</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// pp is used to store a printer&#x27;s state and is reused with sync.Pool to avoid allocations.</span></span><br><span class="line"><span class="keyword">type</span> pp <span class="keyword">struct</span> &#123;</span><br><span class="line">    buf buffer</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> ppFree = sync.Pool&#123;</span><br><span class="line">	New: <span class="function"><span class="keyword">func</span><span class="params">()</span></span> <span class="keyword">interface</span>&#123;&#125; &#123; <span class="keyword">return</span> <span class="built_in">new</span>(pp) &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// newPrinter allocates a new pp struct or grabs a cached one.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newPrinter</span><span class="params">()</span></span> *pp &#123;</span><br><span class="line">	p := ppFree.Get().(*pp)</span><br><span class="line">	p.panicking = <span class="literal">false</span></span><br><span class="line">	p.erroring = <span class="literal">false</span></span><br><span class="line">	p.wrapErrs = <span class="literal">false</span></span><br><span class="line">	p.fmt.init(&amp;p.buf)</span><br><span class="line">	<span class="keyword">return</span> p</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// free saves used pp structs in ppFree; avoids an allocation per invocation.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *pp)</span></span> free() &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">cap</span>(p.buf) &gt; <span class="number">64</span>&lt;&lt;<span class="number">10</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	p.buf = p.buf[:<span class="number">0</span>]</span><br><span class="line">	p.arg = <span class="literal">nil</span></span><br><span class="line">	p.value = reflect.Value&#123;&#125;</span><br><span class="line">	p.wrappedErr = <span class="literal">nil</span></span><br><span class="line">	ppFree.Put(p)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Fprintf</span><span class="params">(w io.Writer, format <span class="type">string</span>, a ...<span class="keyword">interface</span>&#123;&#125;)</span></span> (n <span class="type">int</span>, err <span class="type">error</span>) &#123;</span><br><span class="line">	p := newPrinter()</span><br><span class="line">	p.doPrintf(format, a)</span><br><span class="line">	n, err = w.Write(p.buf)</span><br><span class="line">	p.free()</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Printf formats according to a format specifier and writes to standard output.</span></span><br><span class="line"><span class="comment">// It returns the number of bytes written and any write error encountered.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Printf</span><span class="params">(format <span class="type">string</span>, a ...<span class="keyword">interface</span>&#123;&#125;)</span></span> (n <span class="type">int</span>, err <span class="type">error</span>) &#123;</span><br><span class="line">	<span class="keyword">return</span> Fprintf(os.Stdout, format, a...)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// go 1.13.6</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// pp is used to store a printer's state and is reused with sync.Pool to avoid allocations.</span></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> pp</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    buf </span><span style="color:#6F42C1">buffer</span></span>
+<span class="line"><span style="color:#D73A49">    ...</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> ppFree </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> sync</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Pool</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">	New: </span><span style="color:#D73A49">func</span><span style="color:#24292E">() </span><span style="color:#D73A49">interface</span><span style="color:#24292E">{} { </span><span style="color:#D73A49">return</span><span style="color:#6F42C1"> new</span><span style="color:#24292E">(</span><span style="color:#6F42C1">pp</span><span style="color:#24292E">) },</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// newPrinter allocates a new pp struct or grabs a cached one.</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> newPrinter</span><span style="color:#24292E">() </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">pp</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	p </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> ppFree.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">().(</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">pp</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	p.panicking </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#24292E">	p.erroring </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#24292E">	p.wrapErrs </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#24292E">	p.fmt.</span><span style="color:#6F42C1">init</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">p.buf)</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> p</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// free saves used pp structs in ppFree; avoids an allocation per invocation.</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">p </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">pp</span><span style="color:#24292E">) </span><span style="color:#6F42C1">free</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#6F42C1"> cap</span><span style="color:#24292E">(p.buf) </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 64</span><span style="color:#D73A49">&#x3C;&#x3C;</span><span style="color:#005CC5">10</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">		return</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">	p.buf </span><span style="color:#D73A49">=</span><span style="color:#24292E"> p.buf[:</span><span style="color:#005CC5">0</span><span style="color:#24292E">]</span></span>
+<span class="line"><span style="color:#24292E">	p.arg </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> nil</span></span>
+<span class="line"><span style="color:#24292E">	p.value </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> reflect</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Value</span><span style="color:#24292E">{}</span></span>
+<span class="line"><span style="color:#24292E">	p.wrappedErr </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> nil</span></span>
+<span class="line"><span style="color:#24292E">	ppFree.</span><span style="color:#6F42C1">Put</span><span style="color:#24292E">(p)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Fprintf</span><span style="color:#24292E">(</span><span style="color:#E36209">w</span><span style="color:#6F42C1"> io</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Writer</span><span style="color:#24292E">, </span><span style="color:#E36209">format</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">a</span><span style="color:#D73A49"> ...interface</span><span style="color:#24292E">{}) (</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">err</span><span style="color:#D73A49"> error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	p </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> newPrinter</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	p.</span><span style="color:#6F42C1">doPrintf</span><span style="color:#24292E">(format, a)</span></span>
+<span class="line"><span style="color:#24292E">	n, err </span><span style="color:#D73A49">=</span><span style="color:#24292E"> w.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">(p.buf)</span></span>
+<span class="line"><span style="color:#24292E">	p.</span><span style="color:#6F42C1">free</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#D73A49">	return</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Printf formats according to a format specifier and writes to standard output.</span></span>
+<span class="line"><span style="color:#6A737D">// It returns the number of bytes written and any write error encountered.</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Printf</span><span style="color:#24292E">(</span><span style="color:#E36209">format</span><span style="color:#D73A49"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">a</span><span style="color:#D73A49"> ...interface</span><span style="color:#24292E">{}) (</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">err</span><span style="color:#D73A49"> error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#6F42C1"> Fprintf</span><span style="color:#24292E">(os.Stdout, format, a</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p><code>fmt.Printf</code> 的调用是非常频繁的，利用 <code>sync.Pool</code> 复用 pp 对象能够极大地提升性能，减少内存占用，同时降低 GC 压力。</p>
 <blockquote>
-<p>这个例子来源于：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/qcrao-2018/p/12736031.html">深度解密 Go 语言之 sync.Pool</a></p>
+<p>这个例子来源于：<a href="https://www.cnblogs.com/qcrao-2018/p/12736031.html">深度解密 Go 语言之 sync.Pool</a></p>
 </blockquote>
-<h2 id="附-推荐与参考"><a href="#附-推荐与参考" class="headerlink" title="附 推荐与参考"></a>附 推荐与参考</h2><ul>
+<h2 id="附-推荐与参考">附 推荐与参考</h2>
+<ul>
 <li><a href="https://geektutu.com/post/qa-golang.html">Go 语言笔试面试题汇总</a></li>
 <li><a href="https://geektutu.com/post/gee.html">七天用Go从零实现系列</a></li>
-</ul>
+</ul></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/hpg-concurrency-control.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">控制协程(goroutine)的并发数量</span></a><a href="/post/hpg-sync-once.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">Go sync.Once</span></a></nav><script>(function(){const bookId = "high-performance-go";
+const slug = "hpg-sync-pool";
 
-      
-<script src="/js/qrious.min.js"></script>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "hpg-sync-pool";
+const title = "Go sync.Pool";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
 
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
 
-      <hr />
-      <p>
-        <a target="_blank" rel="noopener" href="https://github.com/geektutu/high-performance-go/blob/master/charpter-3/hpg-sync-pool.md"><span class="float-left gkt-page-tips">edit this page</span></a>
-        <span class="float-right gkt-page-tips">last updated at 2026-02-23</span>
-      </p>
-    </article>
-    <!-- 赞赏 -->
-    <!--打赏-->
-
-<style>
-    #reward .reward-btn-wrapper {
-        width: 100px;
-        padding-top: 35px;
-        cursor: pointer;
-        margin: 0 auto;
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
     }
 
-    #reward .reward-btn {
-        padding: 2px 15px;
-        color: #fff;
-        background-color: #ea6f5a;
-        border-radius: 20px;
-    }
-
-    #reward .reward-code {
-        position: absolute;
-        top: -220px;
-        left: 50%;
-        display: none;
-        width: 360px;
-        height: 240px;
-        margin-left: -180px;
-        padding: 15px 20px;
-        border: 1px solid #e6e6e6;
-        background: #fff;
-        box-shadow: 0 1px 1px 1px #efefef;
-    }
-
-    #reward .reward-code:after,
-    #reward .reward-code:before {
-        position: absolute;
-        content: '';
-        border: 10px solid transparent
-    }
-
-    #reward .reward-code:after {
-        bottom: -19px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #fff
-    }
-
-    #reward .reward-code:before {
-        bottom: -20px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #e6e6e6
-    }
-
-    #reward .qr-code {
-        width: 50%;
-        float: left;
-        padding: 5px;
-    }
-
-    #reward .qr-code p {
-        margin-top: -6px;
-    }
-
-    #reward img {
-        transform: none;
-        -webkit-transform: none;
-        margin-left: 0;
-    }
-
-    #reward img[alt='i'] {
-        width: 20px;
-        height: 20px;
-        z-index: 2;
-        position: absolute;
-        margin: 65px 0 0 65px;
-    }
-
-    #reward img[alt="ali"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #0f9be0;
-    }
-
-    #reward img[alt="wechat"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #3db034;
-    }
-
-    #reward .reward-tip {
-        font-size: 1.2em;
-        margin-bottom: 0;
-        color: #ea6f5a;
-    }
-</style>
-<div id="reward" class="col-xs-12">
-    <div class="reward-btn-wrapper">
-        <div class="reward-btn text-center">赞赏支持</div>
-    </div>
-    <div class="reward-code text-center">
-        <p class="text-center reward-tip"><strong>请我吃胡萝卜 =^_^= </strong></p>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-ali" src="" alt="ali">
-            <p><small>支付宝</small></p>
-        </div>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-wechat" src="" alt="wechat">
-            <p><small>微信</small></p>
-        </div>
-    </div>
-</div>
-<script>
-    (function (window, document) {
-        var aliQr = new QRious({ value: 'HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8' });
-        var wechatQr = new QRious({ value: 'wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5' });
-        document.querySelector('#reward-ali').src = aliQr.toDataURL();
-        document.querySelector('#reward-wechat').src = wechatQr.toDataURL();
-
-        var rewardBtn = document.querySelector('#reward .reward-btn-wrapper');
-        var qrCode = document.querySelector('#reward .reward-code')
-        var activeFunc = function (e) {
-            qrCode.style.display = 'block';
-        }
-        var hideFunc = function (e) {
-            qrCode.style.display = 'none';
-        }
-
-        rewardBtn.addEventListener('mouseenter', activeFunc, false)
-        rewardBtn.addEventListener('mouseover', activeFunc, false)
-        rewardBtn.addEventListener('mouseleave', hideFunc, false)
-        qrCode.addEventListener('mouseenter', activeFunc, false)
-        qrCode.addEventListener('mouseover', activeFunc, false)
-        qrCode.addEventListener('mouseleave', hideFunc, false)
-    })(window, document);
-</script>
-
-    
-<div class="col-xs-12 text-center" style="margin-top: 30px;">
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://github.com/geektutu" title="Github"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/github.png" /></a>
-    
-    <a style="display:inline-block;" href="https://geektutu.com/feed.xml" title="RSS"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/rss.jpg" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie" title="知乎"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/zhihu.png" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://weibo.com/geektutu" title="微博"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/weibo.jpg" /></a>
-    
-</div>
-
-    <!-- 评论 -->
-    
-    <div class="col-xs-12">
-      
-<div class="col-xs-12 padding-0">
-    <div id="gitalk-container">
-        <div class="gt-container text-center" style="margin-top: 50px;">
-            <button class="gt-btn gt-btn-public"><span class="gt-btn-text">去 Github 评论</span></button>
-        </div>
-    </div>
-    <div id="gitalk-related"></div>
-</div>
-
-<link rel="stylesheet" href="/css/gitalk.css">
-
-
-<script src="/js/gitalk.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        function renderCommentUrl(data) {
-            var url = (data[window.location.pathname] || {}).url
-            url && getDom('#gitalk-container button').addEventListener('click', function (e) { window.open(url)})
-            url || (getDom('#gitalk-container').style.display = 'none')
-        }
-        const gitalk = new Gitalk({
-            clientID: 'c1fdd456a4caae5f7df0',
-            clientSecret: 'b2674451e21feae50520f99337ec15d2aebe7879',
-            accessToken: '513dc2f1e6df8c07a12fbf1547874f54679d9712',
-            repo: 'geektutu.github.io',
-            owner: 'geektutu',
-            admin: ['geektutu'],
-            id: window.location.pathname,
-            distractionFreeMode: false
-        });
-        fetch("https://api.github.com/user").then(function(resp){
-            gitalk.render('gitalk-container');
-        }).catch(function(e){
-            fetch('/tool/issues.json').then(function (r) { return r.json() }).then(renderCommentUrl).catch(function (e) { })
-        })
-        getDom('#gitalk-container').addEventListener('click', function (e) {
-            e && e.stopPropagation && e.stopPropagation();
-        });
-    })
-</script>
-<script>
-    window.addEventListener('load', function () {
-        function render(comments) {
-            var template = '<a href="${comment.url}?utm_source=gitalk" class="dis-item-url"><h3 class="dis-item-title">${comment.title}</h3>' +
-                '<p class="dis-item-des">${comment.count} 评论 ● ${comment.date}</p>' +
-                '<div class="dis-item-content"><img class="dis-item-img" src="${comment.icon}" alt="icon"><p><b><span class="dis-item-user">${comment.user}</span></b>&nbsp;——&nbsp;${comment.body}</p></div>' +
-                '</a>'
-
-            var wrapper = getDom('#gitalk-related');
-            comments = shuffle(comments);
-            comments.slice(0, 4).forEach(function (c) {
-                var div = document.createElement('div');
-                div.classList.add('dis-item');
-                div.innerHTML = template.replace("${comment.url}", c.url)
-                    .replace("${comment.title}", c.title)
-                    .replace("${comment.count}", c.count)
-                    .replace("${comment.date}", c.date)
-                    .replace("${comment.icon}", c.icon)
-                    .replace("${comment.user}", c.user)
-                    .replace("${comment.body}", c.body)
-                wrapper.appendChild(div)
-            })
-            var p = document.createElement('p')
-            p.innerHTML = '<a href="https://geektutu.com/post/blog-experience-7.html">Gitalk Plus</a>';
-            p.classList.add('dis-divide');
-            wrapper.appendChild(p);
-            wrapper.classList.add('dis-wrapper')
-        }
-        function shuffle(a) {
-            for (var i = a.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-        fetch('/tool/comments.json').then(function (r) { return r.json() }).then(render).catch(function (e) { })
-    })
-</script>
-
-    </div>
-    
-  </div>
-  <aside class="gkt-book-toc hidden-xs hidden-sm">
-    <div style="clear: both"></div>
-    <div class="gkt-sidebar-wrapper">
-      <!-- Table of Contents -->
-<div id="sidebar-toc">
-  <!-- TOC  -->
-  
-  
-  <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-sync-Pool-%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-nav-text">1 sync.Pool 的使用场景</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8"><span class="toc-nav-text">2 如何使用</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-1-%E5%A3%B0%E6%98%8E%E5%AF%B9%E8%B1%A1%E6%B1%A0"><span class="toc-nav-text">2.1 声明对象池</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-2-Get-amp-Put"><span class="toc-nav-text">2.2 Get &amp; Put</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95"><span class="toc-nav-text">3 性能测试</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-1-struct-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="toc-nav-text">3.1 struct 反序列化</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-2-bytes-Buffer"><span class="toc-nav-text">3.2 bytes.Buffer</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-%E5%9C%A8%E6%A0%87%E5%87%86%E5%BA%93%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-nav-text">4 在标准库中的应用</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#4-1-fmt-Printf"><span class="toc-nav-text">4.1 fmt.Printf</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%99%84-%E6%8E%A8%E8%8D%90%E4%B8%8E%E5%8F%82%E8%80%83"><span class="toc-nav-text">附 推荐与参考</span></a></li></ol>
-  
-</div>
-
-<script>
-  (function () {
-    var h2 = document.querySelectorAll('article h2');
-    var h3 = document.querySelectorAll('article h3');
-    var linkList = document.querySelectorAll('#sidebar-toc a');
-
-    function findLinkElement(name) {
-      for (var i = 0; i < linkList.length; i++) {
-        var items = linkList[i].href.split('#');
-        if (items && items[items.length - 1] === encodeURIComponent(name)) {
-          return i;
-        }
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
       }
-      return -1;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
     }
 
-    function activeLink(titleList) {
-      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      for (var i = titleList.length - 1; i >= 0; i--) {
-        if (scrollTop - titleList[i].offsetTop > 0) {
-          var index = findLinkElement(titleList[i].id);
-          index != -1 && linkList[index].classList.add('gkt-sidebar-active');
-          break;
-        }
-      }
-    }
-
-    window.addEventListener("scroll", function (e) {
-      [].slice.call(linkList).forEach(function (link) {
-        link.classList.remove('gkt-sidebar-active');
-      })
-      activeLink(h2);
-    })
-  })();
-</script>
-    </div>
-  </aside>
-</div>
-<script>
-    (function () {
-        function resizeUArrow() {
-            var s = getDom('.u-arrow-wrapper').style
-            var pc = getDom('.gkt-book-page')
-            s.left = getPosition(pc).x - 15 + 'px';
-            s.width = pc.clientWidth + 30 + 'px';
-        }
-        resizeUArrow()
-        window.addEventListener('resize', resizeUArrow);
-        var nav = getDom('.gkt-book-menu nav');
-        var key = 'gkt_book_Go 语言高性能编程_' + parseInt(new Date().getTime()/1000/3600/24/7)
-        nav.scrollTo(0, localStorage.getItem(key) * 1)
-        nav.addEventListener('scroll', function(){ localStorage.setItem(key, nav.scrollTop) })
-    })();
-    (function(){
-      getDom(".gkt-book-menu-icon").addEventListener('click', function() {
-        var menu = getDom(".gkt-book-menu").classList
-        var article = getDom(".gkt-book-page").classList
-        if (menu.contains("gkt-book-menu-hidden")) {
-          menu.remove('gkt-book-menu-hidden')
-          article.add('gkt-book-menu-checked')
-        } else {
-          menu.add('gkt-book-menu-hidden')
-          article.remove('gkt-book-menu-checked')
-        }
-      })
-    })();
-</script>
-
-
-    
-
-</main>
-    </div>
-    <style>
-    img#go-top {
-        position: fixed;
-        bottom: 100px;
-        width: 50px;
-        cursor: pointer;
-        z-index: 9999;
-    }
-</style>
-<img id="go-top" src="/icon/top.png" class="hidden-xs" style="display: none" />
-<script>
-    (function () {
-        var goTop = document.getElementById('go-top');
-        var mainContainer = document.querySelector('.main-container');
-        
-        goTop.addEventListener('click', function () {
-            window.scroll(0, 0);
-        }, false);
-        window.addEventListener('scroll', function () {
-            var right = document.body.offsetWidth - mainContainer.getBoundingClientRect().right;
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            goTop.style.right = right + 10 + 'px'
-            scrollTop > 700 && (goTop.style.display = "block");
-            scrollTop <= 700 && (goTop.style.display = "none");
-        });
-    })();
-</script>
-    <style>
-    #geektutu-click-img-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        text-align: center;
-        width: 100%;
-        display: none;
-        z-index: 9999;
-    }
-
-    #geektutu-click-img-container img {
-        object-fit: contain;
-        background: #eaecef;
-        padding: 15px;
-        border-radius: 10px;
-        height: auto;
-        width: auto;
-        vertical-align: middle;
-    }
-</style>
-
-
-<div id="geektutu-click-img-container">
-    <img src="" alt="Big Image">
-</div>
-
-<script>
-    (function () {
-        var container = document.querySelector('#geektutu-click-img-container')
-        var targetImg = container.querySelector('img')
-        var imgs = document.querySelectorAll('article img');
-        targetImg.addEventListener('click', function (e) {
-            container.style.display = 'none';
-            e && e.stopPropagation && e.stopPropagation();
-        }, false);
-
-        for (var i = 0; i < imgs.length; ++i) {
-            var img = imgs[i];
-            img.addEventListener('click', (function (src, rate) {
-                return function (e) {
-                    e && e.stopPropagation && e.stopPropagation();
-                    if (window.innerWidth < 980) {
-                        return
-                    }
-                    targetImg.style.height = targetImg.style.width = 'auto';
-                    if (window.innerWidth / window.innerHeight > rate) {
-                        targetImg.style.height = (window.innerHeight - 20) + 'px';
-                    } else {
-                        targetImg.style.width = (window.innerWidth - 20) + 'px';
-                    }
-                    container.style.height = window.innerHeight + 'px'
-                    container.style.lineHeight = window.innerHeight + 'px'
-                    container.style.display = 'block';
-                    targetImg.src = src;
-                };
-            }(img.src, img.width / img.height)), false)
-        }
-    })();
-</script>
-    <!-- Footer -->
-    <!-- Footer -->
-<style>
-    footer {
-        width: 100%;
-        line-height: 1.5;
-        padding: 20px;
-    }
-
-    footer a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    .footer-hexo img {
-        height: 20px;
-        margin-bottom: -5px;
-    }
-
-    .footer-hexo a {
-        color: #337ab7;
-    }
-</style>
-<footer class="text-center col-xs-12">
-    <p>
-        <small>© 2026 - 极客兔兔 - </small>
-        <small>
-            <a target="_blank" rel="nofollow noopener" href="http://beian.miit.gov.cn/">沪ICP备18001798号-1</a>
-        </small>
-    </p>
-    <p class="footer-hexo">
-        <!-- 但若直接使用或修改主题，请务必保留这段声明 -->
-        <small>Powered by <a target="_blank" href="https://hexo.io">Hexo</a> | Theme
-            <a target="_blank" href="https://geektutu.com">Geektutu</a>
-            <a target="_blank" rel="noopener" href="https://github.com/geektutu/hexo-theme-geektutu">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIACIAUAMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQQFBwIDBgj/2gAIAQEAAAAA9KrHSgAYL5/z6zZGuJd12uugbhq3uKtmuRtix20IS7lTLAfAAAn/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oACAECEAAAAAAB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAxAAAAAAAf/EADEQAAICAQIEBQEGBwAAAAAAAAECAwQFAAYREhORBxQhUlQxQVFic5KxJDJCYYGC0f/aAAgBAQABPwCFHnjWUzuvN6hV4cANSRLGjO9yRVUcSzMoA7jVXJYe5N0a2dhmk9kc0bN2GvLN8mbuNeWb5M3ca8s3yZu415Y/Jm7jXlm+TN3H/NeVPyZu40vOk3TZywK8wJ+v3EHVM/wsI/Dq2lrxN3Nnca16eti8chSAIoMbzByhMwP14kHVfwIiSaF5c96J6kwwCOTnHsYk8uvCrdmQy1TI4rJuz3cZLyGR/wCd4+YoOf8AEpUjXitubLYPG4paFsUxcuiGe7yc5gTW3LW44szXmobsi3Dhmic2+Z4+vCVH9CpraPiQ+QvbgTJrPFBWd5YpWrmNIIEXiRO32Pqt4p7cnfHk18lFBdmEVW1LVdIZGOrniTt6plrWKaO69yCykDRxwF+LMAewB0Txtr+Sf31VI8tEPw62fZt7N3Humtbpzz13ucX6CGSWMSuzpLyD1eNgeUka3PuvHbaxq3biTMHfkiSNCS78CwU+3Xg7Vu3MhuTcU6cq3Zemn3Eh2dv8Lzcut+29x1atKbHYqLJUhLwyNMwiZ3j9yDWOxUOV3tgb+3No5LDx1pi9+aeIwRlNY6bc+Jv+IFGrhLxtXJZ7VKcw81diiAAEn0JOrkWZyNfbEr0tz27UGQgkuGzXdIIvyowq99bRxk9ffO/L81SZBPZgEEroQroIxxMZOgeNsfkn99QypHGqO4Vl9CDrN4LDZkwyzyyQ2IgRHZrzGCZVP1XnQglT9oOtw4LC7iqV6uRkZoYpxKFSQpzFRw4EjVRMfSrQ1qqwxQxKFjjTgFUD7BoWYR6iVe+mtxt9Zwf9teaj4AdccPu5tedX5A/VrzUR+sy/q1CwksF19VEfDj/cnQRW+qg66cfsXtrpx+xe2unH7F7a6cfsXtrpx+xe2unH7F7a6cfsXtoxx+xe2gAAOA1//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwB//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwB//9k="
-                    alt="Github Star">
-            </a>
-        </small>
-    </p>
-    
-    <p>
-        <small>
-            <span id="busuanzi_container_site_pv">👁<span id="busuanzi_value_site_pv"></span></span> &nbsp;
-            <span id="busuanzi_container_page_pv">📚<span id="busuanzi_value_page_pv"></span></span>
-        </small>
-    </p>
-    
-    
-
-</footer>
-
-
-<script>
-    window.addEventListener('load', function () {
-        globalAddScript('//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js');
-    })
-</script>
-
-<!-- Baidu Tongji -->
-
-<script>
-    window.addEventListener('load', function () {
-        var _hmt = _hmt || [];
-        globalAddScript('//hm.baidu.com/hm.js?1a0ec38c52c08db815b0046c2783b1aa')
-    })
-</script>
-
-
-
-<!-- baidu auto push for seo -->
-<script>
-    window.addEventListener('load', function () {
-        var src = 'http://push.zhanzhang.baidu.com/push.js'
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        globalAddScript(src);
-    })
-</script>
-
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-142641425-1');
-
-    window.addEventListener('load', function () {
-        globalAddScript('https://www.googletagmanager.com/gtag/js?id=UA-142641425-1');
-    });
-</script>
-
-
-    <script>
-        // 非本站网址，新开tab页签
-        (function () {
-            var stopBubble = function (e) {
-                e && e.stopPropagation && e.stopPropagation();
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
             }
-            var links = document.querySelectorAll('a');
-            [].slice.call(links).forEach(function (item) {
-                if (item.href && item.href.indexOf(window.location.host) === -1) {
-                    item.target = '_blank'
-                }
-                // 阻止冒泡，不触发彩蛋。
-                item.addEventListener('click', stopBubble, false);
-            });
-            var article = document.querySelector('article');
-            article && article.addEventListener('click', stopBubble, false)
-        })();
-    </script>
-    
-</body>
-
-</html>
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

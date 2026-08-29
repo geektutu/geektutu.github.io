@@ -1,1169 +1,264 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
-<!-- Head tag -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="referrer" content="no-referrer-when-downgrade">
-  
-  <meta name="baidu-site-verification" content="p7Pz3jlx4t" />
-  <meta name="google-site-verification" content="X31OY0d2sKImNbS2x8-OpITWRK4nn7nZCcXe3_hA9ew" />
-  <meta name="msvalidate.01" content="7E2AEE3378AC93764DEAB411177A21A1" />
-  <meta name="360-site-verification" content="1d1e81a1a48a1ed2e3308d7cb8e548e7" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- if page has tags, then add tags to keyword -->
-  
-  
-  <meta name="keywords" content="geektutu,jiketutu,Go语言,golang,python,Go语言高性能编程,golang,字符串拼接,内存分配">
-  <!-- page.description has higher priority -->
-  <meta name="description" content="Go 语言/golang 高性能编程，Go 语言进阶教程，Go 语言高性能编程(high performance go)。详细介绍了构造字符串/拼接字符串(string concatation) 的 5 种方式：+, strings.Builder, bytes.Buffer, []byte 和 fmt.Sprintf，比较了这 5 种方式的性能，并且深入解释了背后的原理。">
-  <link rel="shortcut icon" href="/img/icon.png">
-  <title>
-    
-    字符串拼接性能及原理 | Go 语言高性能编程 | 极客兔兔
-    
-  </title>
-
-  <link rel="canonical" href="https://geektutu.com/post/hpg-string-concat.html">
-  
-<link rel="stylesheet" href="/css/geektutu.css">
-
-  <!-- global function -->
-  <script>
-    window.globalAddScript = function (url, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = url;
-      onload && (s.onload = onload);
-      onerror && (s.onerror = onerror);
-      document.body.appendChild(s);
-    }
-    window.globalAddCss = function (url) {
-      var s = document.createElement('link');
-      s.rel = 'stylesheet';
-      s.href = url;
-      document.body.appendChild(s);
-    }
-    window.getPosition = function (ele) {
-      var x = 0, y = 0;
-      while (ele) {
-        x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-        y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-        ele = ele.offsetParent;
-      }
-      return { x: x, y: y };
-    }
-    window.getDom = function (str) { return document.querySelector(str) }
-  </script>
-  <!-- google ad -->
-  
-<meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/feed.xml" title="极客兔兔" type="application/rss+xml">
-</head>
-
-<body>
-    
-<style>
-    body {
-        background: white;
-    }
-    .gkt-header-placeholder, .gkt-header {
-        display: none;
-    }
-    .main-container {
-        width: 100%;
-        padding-top: 0;
-        max-width: 100%;
-    }
-</style>
-
-<header class="gkt-header col-xs-12 padding-0">
-    <div id="gkt-nav" class="gkt-header-container">
-        <a href="/" class="gkt-header-title float-left">
-            <img class="float-left" src="/img/icon.png" alt="">
-            <span>极客兔兔</span>
-        </a>
-        <nav class="gkt-header-nav text-right">
-            <ul>
-                <li><a class="hidden-xs" href="/feed.xml">订阅</a></li>
-                <li><a href="/series/">专题</a></li>
-                <li><a href="/archives/">归档</a></li>
-                <li><a href="/post/link.html">友链</a></li>
-                <li><a href="/post/about.html">关于</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="gkt-cate-nav" class="gkt-header-container hidden-xs">
-        
-        <nav class="gkt-header-nav float-left">
-            <ul>
-                
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/tensorflow-mnist-simplest.html">简明教程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tensorflow-mnist-simplest.html">TensorFlow 教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/pandas-dataframe-series.html">Pandas 数据处理</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tf2doc.html">TensorFlow2 文档</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-golang.html">Go 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-rust.html">Rust 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-python.html">Python 简明教程</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/blog-experience-1.html">杂谈 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/blog-experience-1.html">建站经历</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/2020.html">年终总结</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/qa-ml.html">面试 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-ml.html">机器学习面试题</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-golang.html">Go 语言面试题</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/gee.html">从零实现 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/gee.html">Web框架 - Gee</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geecache.html">分布式缓存 - GeeCache</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geeorm.html">ORM框架 - GeeORM</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geerpc.html">RPC框架 - GeeRPC</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/7days-golang-q1.html">7days-golang Q &amp; A</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/box-tools.html">百宝箱 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/box-tools.html">工具</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/cheat-sheet-sqlite.html">SQLite 速查表</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left active">
-                    <a class="float-left" href="/post/high-performance-go.html">高性能编程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/high-performance-go.html">序言</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-benchmark.html">性能分析</a></li>
-                        
-                        <li class="gkt-sub-cate-name active"><a class="float-left"
-                                href="/post/hpg-string-concat.html">常用数据结构</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-mutex.html">并发编程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-reduce-size.html">编译优化</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-gotchas-array-slice.html">语言陷阱</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-            </ul>
-        </nav>
-    </div>
-</header>
-<div class="gkt-header-placeholder" style="height: 44px"></div>
-<div class="gkt-header-placeholder hidden-xs" style="height: 44px"></div>
-<script>
-    (function () {
-        window.addEventListener('scroll', function () {
-            if (window.innerWidth < 768) {
-                return;
-            }
-            var nav = document.querySelector('#gkt-nav');
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            scrollTop > 50 && (nav.classList.add('hide'));
-            scrollTop <= 50 && (nav.classList.remove('hide'));
-        });
-        var cateNavs = document.querySelectorAll('#gkt-cate-nav>nav>ul>li');
-        [].slice.call(cateNavs).forEach(function (item) {
-            var sub = item.querySelector('.gkt-sub-cate');
-            if (!sub) return;
-            item.addEventListener('mouseenter', function (e) { sub.style.display = 'block'; }, false);
-            item.addEventListener('mouseleave', function (e) { sub.style.display = 'none'; }, false);
-        })
-    })();
-</script>
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Main Content -->
-<main class="col-xs-12 padding-0 markdown-it">
-    <!-- Post Container -->
-    
-    
-    <!-- Post Content -->
-<style>
-  .markdown-it article h1, .markdown-it article h2, .markdown-it article h3 {
-    padding-top: 5px;
-    margin-top: 0px;
-  }
-  .post-container {
-    padding: 0 !important;
-    width: 100%;
-  }
-  .post-container article {
-    padding: 0 15px !important;
-  }
-  .gkt-book {
-    max-width: 80rem;
-    margin: 1rem auto;
-    display: flex;
-  }
-  .gkt-book-title {
-    color: #343a40;
-    font-size: 1.2em;
-  }
-  .gkt-sidebar-wrapper {
-    position: fixed;
-    margin-top: 15px;
-  }
-  .gkt-book-menu {
-    flex: 0 0 16rem;
-    padding-left: 15px;
-    padding-top: 5px;
-    z-index: 999;
-  }
-  .gkt-book-menu a {
-    color: #343a40;
-  }
-  .gkt-book-menu a.active {
-    color: #337ab7;
-  }
-  .gkt-book-menu > nav {
-    position: fixed;
-    overflow: auto;
-    padding-right: 15px;
-    height: 95%;
-    font-size: 0.85em;
-    line-height: 2;
-    -ms-overflow-style: none;
-    overflow: -moz-scrollbars-none;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-    border-left: 1px solid #eee;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-thumb {
-      background-color: #c1c1c1;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar {
-    width: 5px !important;
-  }
-  .gkt-book-menu hr {
-    padding: 2px;
-  }
-  .gkt-book-menu > nav > ul {
-    padding-left: 0;
-  }
-  .gkt-book-menu > nav ul,
-  .gkt-book-toc ul,
-  .gkt-book-toc ol {
-    list-style: none !important;
-  }
-  @media (min-width: 992px) {
-    .gkt-book-page {
-      width: calc(100% - 32rem);
-    }
-  }
-  .gkt-book-page {
-    min-width: 20rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-  .gkt-page-tips {
-    color: #555;
-    margin-top: -10px;
-  }
-  .gkt-book-toc {
-    flex: 0 0 16rem;
-    font-size: 0.85em;
-  }
-  .gkt-book .series_links {
-    border: 1px solid #eaecef;
-    padding: 0 15px;
-    background-color: #fff8dc;
-    margin-bottom: 20px;
-    border-radius: 5px;
-  }
-  .gkt-book-menu-icon {
-    padding: 0 15px;
-    font-size: 16px;
-    overflow: hidden;
-    cursor: pointer;
-  }
-  @media (max-width: 767px) {
-    .gkt-book-menu-hidden {
-      margin-left: -16rem;
-    }
-  }
-  .gkt-book-menu-checked {
-    opacity: 0.4;
-    margin-right: -16rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-</style>
-<div class="gkt-book post-container">
-  <aside class="gkt-book-menu gkt-book-menu-hidden">
-    <nav>
-      
-      <h3 class="text-center">
-        <a class="gkt-book-title" href="/post/high-performance-go.html">Go 语言高性能编程</a>
-      </h3>
-      
-      <ul class="col-xs-12 text-center">
-        <li><a href="/">极客兔兔</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://github.com/geektutu">Github</a></li>
-        
-        <li><a href="https://geektutu.com/feed.xml">RSS</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie">知乎</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://weibo.com/geektutu">微博</a></li>
-        
-      </ul>
-      
-      <hr />
-      
-      <ul>
-        
-        <li>
-          <a>序言</a>
-          <ul>
-            
-            <li><a href="/post/high-performance-go.html" class=" ">关于本书</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>性能分析</a>
-          <ul>
-            
-            <li><a href="/post/hpg-benchmark.html" class=" ">benchmark 基准测试</a></li>
-            
-            <li><a href="/post/hpg-pprof.html" class=" ">pprof 性能分析</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>常用数据结构</a>
-          <ul>
-            
-            <li><a href="/post/hpg-string-concat.html" class="active ">字符串拼接性能及原理</a></li>
-            
-            <li><a href="/post/hpg-slice.html" class=" ">切片(slice)性能及陷阱</a></li>
-            
-            <li><a href="/post/hpg-range.html" class=" ">for 和 range 的性能比较</a></li>
-            
-            <li><a href="/post/hpg-reflect.html" class=" ">反射(reflect)性能</a></li>
-            
-            <li><a href="/post/hpg-empty-struct.html" class=" ">使用空结构体节省内存</a></li>
-            
-            <li><a href="/post/hpg-struct-alignment.html" class=" ">内存对齐对性能的影响</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>并发编程</a>
-          <ul>
-            
-            <li><a href="/post/hpg-mutex.html" class=" ">读写锁和互斥锁的性能比较</a></li>
-            
-            <li><a href="/post/hpg-timeout-goroutine.html" class=" ">如何退出协程(超时场景)</a></li>
-            
-            <li><a href="/post/hpg-exit-goroutine.html" class=" ">如何退出协程(其他场景)</a></li>
-            
-            <li><a href="/post/hpg-concurrency-control.html" class=" ">控制协程的并发数量</a></li>
-            
-            <li><a href="/post/hpg-sync-pool.html" class=" ">sync.Pool 复用对象</a></li>
-            
-            <li><a href="/post/hpg-sync-once.html" class=" ">sync.Once 如何提升性能</a></li>
-            
-            <li><a href="/post/hpg-sync-cond.html" class=" ">sync.Cond 条件变量</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>编译优化</a>
-          <ul>
-            
-            <li><a href="/post/hpg-reduce-size.html" class=" ">减小编译体积</a></li>
-            
-            <li><a href="/post/hpg-escape-analysis.html" class=" ">逃逸分析对性能的影响</a></li>
-            
-            <li><a href="/post/hpg-dead-code-elimination.html" class=" ">死码消除与调试模式</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>语言陷阱</a>
-          <ul>
-            
-            <li><a href="/post/hpg-gotchas-array-slice.html" class=" ">数组和切片</a></li>
-            
-          </ul>
-        </li>
-        
-      </ul>
-    </nav>
-  </aside>
-  <div class="gkt-book-page">
-    <div class="hidden-sm hidden-md hidden-lg gkt-book-menu-icon">
-      <label for="book-menu">
-        <svg class="float-left" name="book-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0V0z"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-      </label>
-      <strong class="float-right">Go 语言高性能编程</strong>
-    </div>
-    <div class="u-arrow-wrapper hidden-xs">
-        
-        <a class="float-left" href="/post/hpg-pprof.html"><i class="u-arrow-left"></i></a>
-        
-        
-        <a class="float-right" href="/post/hpg-slice.html"><i class="u-arrow-right"></i></a>
-        
-    </div>
-    <article class="col-xs-12">
-      <h1>字符串拼接性能及原理</h1>
-       
-      <div class="hidden-lg hidden-md hidden-sm series_links">
-        <p><strong> 常用数据结构系列文章链接：</strong></p>
-        <ul>
-          
-          <li>
-            <a href="/post/hpg-string-concat.html">字符串拼接性能及原理</a>
-            <span class="post-item-date">(Nov 24, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-slice.html">切片(slice)性能及陷阱</a>
-            <span class="post-item-date">(Nov 30, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-range.html">for 和 range 的性能比较</a>
-            <span class="post-item-date">(Dec 1, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-reflect.html">Go Reflect 提高反射性能</a>
-            <span class="post-item-date">(Dec 6, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-empty-struct.html">Go 空结构体 struct{} 的使用</a>
-            <span class="post-item-date">(Dec 25, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-struct-alignment.html">Go struct 内存对齐</a>
-            <span class="post-item-date">(Dec 27, 2020)</span>
-          </li>
-          
-        </ul>
-      </div>
-       
-      <blockquote>
-        <p>
-          源代码/数据集已上传到
-          <a href="https://github.com/geektutu/high-performance-go" target="_blank" rel="noopener">Github - high-performance-go</a>
-        </p>
-      </blockquote>
-      
-      <div class="gkt-article-start"></div>
-      <p><img src="hpg-string-concat/data-structure.jpg" alt="high performance go - data structure"></p>
-<h2 id="1-字符串高效拼接"><a href="#1-字符串高效拼接" class="headerlink" title="1. 字符串高效拼接"></a>1. 字符串高效拼接</h2><p>在 Go 语言中，字符串(string) 是不可变的，拼接字符串事实上是创建了一个新的字符串对象。如果代码中存在大量的字符串拼接，对性能会产生严重的影响。</p>
-<h3 id="1-1-常见的拼接方式"><a href="#1-1-常见的拼接方式" class="headerlink" title="1.1 常见的拼接方式"></a>1.1 常见的拼接方式</h3><p>为了避免编译器优化，我们首先实现一个生成长度为 n 的随机字符串的函数。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> letterBytes = <span class="string">&quot;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">randomString</span><span class="params">(n <span class="type">int</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	b := <span class="built_in">make</span>([]<span class="type">byte</span>, n)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="keyword">range</span> b &#123;</span><br><span class="line">		b[i] = letterBytes[rand.Intn(<span class="built_in">len</span>(letterBytes))]</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="type">string</span>(b)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Go 语言/golang 高性能编程，Go 语言进阶教程，Go 语言高性能编程(high performance go)。详细介绍了构造字符串/拼接字符串(string concatation) 的 5 种方式：+, strings.Builder, bytes.Buffer, []byte 和 fmt.Sprintf，比较了这 5 种方式的性能，并且深入解释了背后的原理。"><title>字符串拼接性能及原理 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.B88FlGyz.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-baseline gap-2"><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔<span class="text-accent">.</span></span><span class="hidden text-xs text-faint sm:inline">写书式技术博客</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/high-performance-go" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">Go 语言高性能编程</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">序言</span></div><ul><li><a href="/post/high-performance-go.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言高性能编程</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">性能分析</span></div><ul><li><a href="/post/hpg-benchmark.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">benchmark 基准测试</a></li><li><a href="/post/hpg-pprof.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">pprof 性能分析</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">常用数据结构</span></div><ul><li><a href="/post/hpg-string-concat.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">字符串拼接性能及原理</a></li><li><a href="/post/hpg-slice.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">切片(slice)性能及陷阱</a></li><li><a href="/post/hpg-range.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">for 和 range 的性能比较</a></li><li><a href="/post/hpg-reflect.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Reflect 提高反射性能</a></li><li><a href="/post/hpg-empty-struct.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 空结构体 struct{} 的使用</a></li><li><a href="/post/hpg-struct-alignment.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go struct 内存对齐</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">并发编程</span></div><ul><li><a href="/post/hpg-mutex.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">读写锁和互斥锁的性能比较</a></li><li><a href="/post/hpg-timeout-goroutine.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">如何退出协程 goroutine (超时场景)</a></li><li><a href="/post/hpg-exit-goroutine.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">如何退出协程 goroutine (其他场景)</a></li><li><a href="/post/hpg-concurrency-control.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">控制协程(goroutine)的并发数量</a></li><li><a href="/post/hpg-sync-pool.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Pool</a></li><li><a href="/post/hpg-sync-once.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Once</a></li><li><a href="/post/hpg-sync-cond.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Cond</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">编译优化</span></div><ul><li><a href="/post/hpg-reduce-size.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">减小 Go 代码编译后的二进制体积</a></li><li><a href="/post/hpg-escape-analysis.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 逃逸分析</a></li><li><a href="/post/hpg-dead-code-elimination.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 死码消除与调试(debug)模式</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">语言陷阱</span></div><ul><li><a href="/post/hpg-gotchas-array-slice.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言陷阱 - 数组和切片</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/high-performance-go" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> Go 语言高性能编程</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">字符串拼接性能及原理</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2020-11-24">2020-11-24</time><span aria-hidden="true">·</span><span>约 5 分钟</span><a href="https://github.com/geektutu/high-performance-go" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/high-performance-go" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/high-performance-go</a><span class="flex flex-wrap gap-2"><a href="/tags/Go语言高性能编程" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Go语言高性能编程</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#1-字符串高效拼接" class="toc-link block text-muted" data-toc-depth="2">1. 字符串高效拼接</a></li><li style="padding-left:0.9rem"><a href="#11-常见的拼接方式" class="toc-link block text-muted" data-toc-depth="3">1.1 常见的拼接方式</a></li><li style="padding-left:0.9rem"><a href="#12-benchmark-性能比拼" class="toc-link block text-muted" data-toc-depth="3">1.2 benchmark 性能比拼</a></li><li style="padding-left:0.9rem"><a href="#13-建议" class="toc-link block text-muted" data-toc-depth="3">1.3 建议</a></li><li style="padding-left:0rem"><a href="#2-性能背后的原理" class="toc-link block text-muted" data-toc-depth="2">2 性能背后的原理</a></li><li style="padding-left:0.9rem"><a href="#21-比较-stringsbuilder-和-" class="toc-link block text-muted" data-toc-depth="3">2.1 比较 strings.Builder 和 +</a></li><li style="padding-left:0.9rem"><a href="#22-比较-stringsbuilder-和-bytesbuffer" class="toc-link block text-muted" data-toc-depth="3">2.2 比较 strings.Builder 和 bytes.Buffer</a></li><li style="padding-left:0rem"><a href="#附-推荐与参考" class="toc-link block text-muted" data-toc-depth="2">附 推荐与参考</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><p><img alt="high performance go - data structure" loading="lazy" decoding="async" width="1706" height="888" src="/_astro/data-structure.CGScMXCx_Z2tblOy.webp" srcset=""></p>
+<h2 id="1-字符串高效拼接">1. 字符串高效拼接</h2>
+<p>在 Go 语言中，字符串(string) 是不可变的，拼接字符串事实上是创建了一个新的字符串对象。如果代码中存在大量的字符串拼接，对性能会产生严重的影响。</p>
+<h3 id="11-常见的拼接方式">1.1 常见的拼接方式</h3>
+<p>为了避免编译器优化，我们首先实现一个生成长度为 n 的随机字符串的函数。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> letterBytes</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> randomString</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	b </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> make</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">, n)</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#D73A49"> range</span><span style="color:#24292E"> b {</span></span>
+<span class="line"><span style="color:#24292E">		b[i] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> letterBytes[rand.</span><span style="color:#6F42C1">Intn</span><span style="color:#24292E">(</span><span style="color:#6F42C1">len</span><span style="color:#24292E">(letterBytes))]</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#D73A49"> string</span><span style="color:#24292E">(b)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>然后利用这个函数生成字符串 <code>str</code>，然后将 <code>str</code> 拼接 N 次。在 Go 语言中，常见的字符串拼接方式有如下 5 种：</p>
 <ul>
 <li>使用 <code>+</code></li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">plusConcat</span><span class="params">(n <span class="type">int</span>, str <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	s := <span class="string">&quot;&quot;</span></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">		s += str</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> s</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> plusConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">str</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	s </span><span style="color:#D73A49">:=</span><span style="color:#032F62"> ""</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> n; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		s </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> str</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> s</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>使用 <code>fmt.Sprintf</code></li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sprintfConcat</span><span class="params">(n <span class="type">int</span>, str <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	s := <span class="string">&quot;&quot;</span></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">		s = fmt.Sprintf(<span class="string">&quot;%s%s&quot;</span>, s, str)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> s</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> sprintfConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">str</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	s </span><span style="color:#D73A49">:=</span><span style="color:#032F62"> ""</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> n; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		s </span><span style="color:#D73A49">=</span><span style="color:#24292E"> fmt.</span><span style="color:#6F42C1">Sprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%s%s</span><span style="color:#032F62">"</span><span style="color:#24292E">, s, str)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> s</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>使用 <code>strings.Builder</code></li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">builderConcat</span><span class="params">(n <span class="type">int</span>, str <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	<span class="keyword">var</span> builder strings.Builder</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">		builder.WriteString(str)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> builder.String()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> builderConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">str</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> builder </span><span style="color:#6F42C1">strings</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Builder</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> n; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		builder.</span><span style="color:#6F42C1">WriteString</span><span style="color:#24292E">(str)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> builder.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>使用 <code>bytes.Buffer</code></li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">bufferConcat</span><span class="params">(n <span class="type">int</span>, s <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	buf := <span class="built_in">new</span>(bytes.Buffer)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">		buf.WriteString(s)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> buf.String()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> bufferConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">s</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	buf </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> new</span><span style="color:#24292E">(</span><span style="color:#6F42C1">bytes</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Buffer</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> n; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		buf.</span><span style="color:#6F42C1">WriteString</span><span style="color:#24292E">(s)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> buf.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>使用 <code>[]byte</code></li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">byteConcat</span><span class="params">(n <span class="type">int</span>, str <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	buf := <span class="built_in">make</span>([]<span class="type">byte</span>, <span class="number">0</span>)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">		buf = <span class="built_in">append</span>(buf, str...)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="type">string</span>(buf)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> byteConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">str</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	buf </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> make</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> n; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		buf </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> append</span><span style="color:#24292E">(buf, str</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#D73A49"> string</span><span style="color:#24292E">(buf)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>如果长度是可预知的，那么创建 <code>[]byte</code> 时，我们还可以预分配切片的容量(cap)。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">preByteConcat</span><span class="params">(n <span class="type">int</span>, str <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	buf := <span class="built_in">make</span>([]<span class="type">byte</span>, <span class="number">0</span>, n*<span class="built_in">len</span>(str))</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">		buf = <span class="built_in">append</span>(buf, str...)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="type">string</span>(buf)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> preByteConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">str</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	buf </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> make</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">, n</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">len</span><span style="color:#24292E">(str))</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> n; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		buf </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> append</span><span style="color:#24292E">(buf, str</span><span style="color:#D73A49">...</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#D73A49"> string</span><span style="color:#24292E">(buf)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <blockquote>
 <p>make([]byte, 0, n*len(str)) 第二个参数是长度，第三个参数是容量(cap)，切片创建时，将预分配 cap 大小的内存。</p>
 </blockquote>
-<h3 id="1-2-benchmark-性能比拼"><a href="#1-2-benchmark-性能比拼" class="headerlink" title="1.2 benchmark 性能比拼"></a>1.2 benchmark 性能比拼</h3><p>每个 benchmark 用例中，生成了一个长度为 10 的字符串，并拼接 1w 次。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">benchmark</span><span class="params">(b *testing.B, f <span class="keyword">func</span>(<span class="type">int</span>, <span class="type">string</span>)</span></span> <span class="type">string</span>) &#123;</span><br><span class="line">	<span class="keyword">var</span> str = randomString(<span class="number">10</span>)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		f(<span class="number">10000</span>, str)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkPlusConcat</span><span class="params">(b *testing.B)</span></span>    &#123; benchmark(b, plusConcat) &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkSprintfConcat</span><span class="params">(b *testing.B)</span></span> &#123; benchmark(b, sprintfConcat) &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkBuilderConcat</span><span class="params">(b *testing.B)</span></span> &#123; benchmark(b, builderConcat) &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkBufferConcat</span><span class="params">(b *testing.B)</span></span>  &#123; benchmark(b, bufferConcat) &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkByteConcat</span><span class="params">(b *testing.B)</span></span>    &#123; benchmark(b, byteConcat) &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkPreByteConcat</span><span class="params">(b *testing.B)</span></span> &#123; benchmark(b, preByteConcat) &#125;</span><br></pre></td></tr></table></figure>
-
+<h3 id="12-benchmark-性能比拼">1.2 benchmark 性能比拼</h3>
+<p>每个 benchmark 用例中，生成了一个长度为 10 的字符串，并拼接 1w 次。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> benchmark</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">, </span><span style="color:#E36209">f</span><span style="color:#D73A49"> func</span><span style="color:#24292E">(</span><span style="color:#D73A49">int</span><span style="color:#24292E">, </span><span style="color:#D73A49">string</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> str </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> randomString</span><span style="color:#24292E">(</span><span style="color:#005CC5">10</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">		f</span><span style="color:#24292E">(</span><span style="color:#005CC5">10000</span><span style="color:#24292E">, str)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkPlusConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">)    { </span><span style="color:#6F42C1">benchmark</span><span style="color:#24292E">(b, plusConcat) }</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkSprintfConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) { </span><span style="color:#6F42C1">benchmark</span><span style="color:#24292E">(b, sprintfConcat) }</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkBuilderConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) { </span><span style="color:#6F42C1">benchmark</span><span style="color:#24292E">(b, builderConcat) }</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkBufferConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">)  { </span><span style="color:#6F42C1">benchmark</span><span style="color:#24292E">(b, bufferConcat) }</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkByteConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">)    { </span><span style="color:#6F42C1">benchmark</span><span style="color:#24292E">(b, byteConcat) }</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkPreByteConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) { </span><span style="color:#6F42C1">benchmark</span><span style="color:#24292E">(b, preByteConcat) }</span></span></code></pre>
 <p>运行该用例：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench=<span class="string">&quot;Concat$&quot;</span> -benchmem .</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkPlusConcat-8         19      56 ms/op   530 MB/op   10026 allocs/op</span><br><span class="line">BenchmarkSprintfConcat-8      10     112 ms/op   835 MB/op   37435 allocs/op</span><br><span class="line">BenchmarkBuilderConcat-8    8901    0.13 ms/op   0.5 MB/op      23 allocs/op</span><br><span class="line">BenchmarkBufferConcat-8     8130    0.14 ms/op   0.4 MB/op      13 allocs/op</span><br><span class="line">BenchmarkByteConcat-8       8984    0.12 ms/op   0.6 MB/op      24 allocs/op</span><br><span class="line">BenchmarkPreByteConcat-8   17379    0.07 ms/op   0.2 MB/op       2 allocs/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 8.627s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">"Concat$"</span><span style="color:#005CC5"> -benchmem</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkPlusConcat-8</span><span style="color:#005CC5">         19</span><span style="color:#005CC5">      56</span><span style="color:#032F62"> ms/op</span><span style="color:#005CC5">   530</span><span style="color:#032F62"> MB/op</span><span style="color:#005CC5">   10026</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkSprintfConcat-8</span><span style="color:#005CC5">      10</span><span style="color:#005CC5">     112</span><span style="color:#032F62"> ms/op</span><span style="color:#005CC5">   835</span><span style="color:#032F62"> MB/op</span><span style="color:#005CC5">   37435</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkBuilderConcat-8</span><span style="color:#005CC5">    8901</span><span style="color:#005CC5">    0.13</span><span style="color:#032F62"> ms/op</span><span style="color:#005CC5">   0.5</span><span style="color:#032F62"> MB/op</span><span style="color:#005CC5">      23</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkBufferConcat-8</span><span style="color:#005CC5">     8130</span><span style="color:#005CC5">    0.14</span><span style="color:#032F62"> ms/op</span><span style="color:#005CC5">   0.4</span><span style="color:#032F62"> MB/op</span><span style="color:#005CC5">      13</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkByteConcat-8</span><span style="color:#005CC5">       8984</span><span style="color:#005CC5">    0.12</span><span style="color:#032F62"> ms/op</span><span style="color:#005CC5">   0.6</span><span style="color:#032F62"> MB/op</span><span style="color:#005CC5">      24</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkPreByteConcat-8</span><span style="color:#005CC5">   17379</span><span style="color:#005CC5">    0.07</span><span style="color:#032F62"> ms/op</span><span style="color:#005CC5">   0.2</span><span style="color:#032F62"> MB/op</span><span style="color:#005CC5">       2</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 8.627s</span></span></code></pre>
 <p>从基准测试的结果来看，使用 <code>+</code> 和 <code>fmt.Sprintf</code> 的效率是最低的，和其余的方式相比，性能相差约 1000 倍，而且消耗了超过 1000 倍的内存。当然 <code>fmt.Sprintf</code> 通常是用来格式化字符串的，一般不会用来拼接字符串。</p>
 <p><code>strings.Builder</code>、<code>bytes.Buffer</code> 和 <code>[]byte</code> 的性能差距不大，而且消耗的内存也十分接近，性能最好且消耗内存最小的是 <code>preByteConcat</code>，这种方式预分配了内存，在字符串拼接的过程中，不需要进行字符串的拷贝，也不需要分配新的内存，因此性能最好，且内存消耗最小。</p>
-<h3 id="1-3-建议"><a href="#1-3-建议" class="headerlink" title="1.3 建议"></a>1.3 建议</h3><p>综合易用性和性能，一般推荐使用 <code>strings.Builder</code> 来拼接字符串。</p>
+<h3 id="13-建议">1.3 建议</h3>
+<p>综合易用性和性能，一般推荐使用 <code>strings.Builder</code> 来拼接字符串。</p>
 <p>这是 Go 官方对 <code>strings.Builder</code> 的解释：</p>
 <blockquote>
-<p>A Builder is used to efficiently build a string using Write methods. It minimizes memory copying. </p>
+<p>A Builder is used to efficiently build a string using Write methods. It minimizes memory copying.</p>
 </blockquote>
 <p><code>string.Builder</code> 也提供了预分配内存的方式 <code>Grow</code>：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">builderConcat</span><span class="params">(n <span class="type">int</span>, str <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	<span class="keyword">var</span> builder strings.Builder</span><br><span class="line">	builder.Grow(n * <span class="built_in">len</span>(str))</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">		builder.WriteString(str)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> builder.String()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> builderConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">str</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> builder </span><span style="color:#6F42C1">strings</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Builder</span></span>
+<span class="line"><span style="color:#24292E">	builder.</span><span style="color:#6F42C1">Grow</span><span style="color:#24292E">(n </span><span style="color:#D73A49">*</span><span style="color:#6F42C1"> len</span><span style="color:#24292E">(str))</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> n; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		builder.</span><span style="color:#6F42C1">WriteString</span><span style="color:#24292E">(str)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> builder.</span><span style="color:#6F42C1">String</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>使用了 Grow 优化后的版本的 benchmark 结果如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">BenchmarkBuilderConcat-8   16855    0.07 ns/op   0.1 MB/op       1 allocs/op</span><br><span class="line">BenchmarkPreByteConcat-8   17379    0.07 ms/op   0.2 MB/op       2 allocs/op</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="plaintext"><code><span class="line"><span>BenchmarkBuilderConcat-8   16855    0.07 ns/op   0.1 MB/op       1 allocs/op</span></span>
+<span class="line"><span>BenchmarkPreByteConcat-8   17379    0.07 ms/op   0.2 MB/op       2 allocs/op</span></span></code></pre>
 <p>与预分配内存的 <code>[]byte</code> 相比，因为省去了 <code>[]byte</code> 和字符串(string) 之间的转换，内存分配次数还减少了 1 次，内存消耗减半。</p>
-<h2 id="2-性能背后的原理"><a href="#2-性能背后的原理" class="headerlink" title="2 性能背后的原理"></a>2 性能背后的原理</h2><h3 id="2-1-比较-strings-Builder-和"><a href="#2-1-比较-strings-Builder-和" class="headerlink" title="2.1 比较 strings.Builder 和 +"></a>2.1 比较 strings.Builder 和 <code>+</code></h3><p><code>strings.Builder</code> 和 <code>+</code> 性能和内存消耗差距如此巨大，是因为两者的内存分配方式不一样。</p>
+<h2 id="2-性能背后的原理">2 性能背后的原理</h2>
+<h3 id="21-比较-stringsbuilder-和-">2.1 比较 strings.Builder 和 <code>+</code></h3>
+<p><code>strings.Builder</code> 和 <code>+</code> 性能和内存消耗差距如此巨大，是因为两者的内存分配方式不一样。</p>
 <p>字符串在 Go 语言中是不可变类型，占用内存大小是固定的，当使用 <code>+</code> 拼接 2 个字符串时，生成一个新的字符串，那么就需要开辟一段新的空间，新空间的大小是原来两个字符串的大小之和。拼接第三个字符串时，再开辟一段新空间，新空间大小是三个字符串大小之和，以此类推。假设一个字符串大小为 10 byte，拼接 1w 次，需要申请的内存大小为：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">10 + 2 * 10 + 3 * 10 + ... + 10000 * 10 byte = 500 MB </span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">10</span><span style="color:#032F62"> +</span><span style="color:#005CC5"> 2</span><span style="color:#005CC5"> *</span><span style="color:#005CC5"> 10</span><span style="color:#032F62"> +</span><span style="color:#005CC5"> 3</span><span style="color:#005CC5"> *</span><span style="color:#005CC5"> 10</span><span style="color:#032F62"> +</span><span style="color:#032F62"> ...</span><span style="color:#032F62"> +</span><span style="color:#005CC5"> 10000</span><span style="color:#005CC5"> *</span><span style="color:#005CC5"> 10</span><span style="color:#032F62"> byte</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> 500</span><span style="color:#032F62"> MB</span><span style="color:#24292E"> </span></span></code></pre>
 <p>而 <code>strings.Builder</code>，<code>bytes.Buffer</code>，包括切片 <code>[]byte</code> 的内存是以倍数申请的。例如，初始大小为 0，当第一次写入大小为 10 byte 的字符串时，则会申请大小为 16 byte 的内存（恰好大于 10 byte 的 2 的指数），第二次写入 10 byte 时，内存不够，则申请 32 byte 的内存，第三次写入内存足够，则不申请新的，以此类推。在实际过程中，超过一定大小，比如 2048 byte 后，申请策略上会有些许调整。我们可以通过打印 <code>builder.Cap()</code> 查看字符串拼接过程中，<code>strings.Builder</code> 的内存申请过程。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestBuilderConcat</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> str = randomString(<span class="number">10</span>)</span><br><span class="line">	<span class="keyword">var</span> builder strings.Builder</span><br><span class="line">	<span class="built_in">cap</span> := <span class="number">0</span></span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++ &#123;</span><br><span class="line">		<span class="keyword">if</span> builder.Cap() != <span class="built_in">cap</span> &#123;</span><br><span class="line">			fmt.Print(builder.Cap(), <span class="string">&quot; &quot;</span>)</span><br><span class="line">			<span class="built_in">cap</span> = builder.Cap()</span><br><span class="line">		&#125;</span><br><span class="line">		builder.WriteString(str)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> TestBuilderConcat</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> str </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> randomString</span><span style="color:#24292E">(</span><span style="color:#005CC5">10</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> builder </span><span style="color:#6F42C1">strings</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Builder</span></span>
+<span class="line"><span style="color:#24292E">	cap </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 10000</span><span style="color:#24292E">; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">		if</span><span style="color:#24292E"> builder.</span><span style="color:#6F42C1">Cap</span><span style="color:#24292E">() </span><span style="color:#D73A49">!=</span><span style="color:#24292E"> cap {</span></span>
+<span class="line"><span style="color:#24292E">			fmt.</span><span style="color:#6F42C1">Print</span><span style="color:#24292E">(builder.</span><span style="color:#6F42C1">Cap</span><span style="color:#24292E">(), </span><span style="color:#032F62">" "</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">			cap </span><span style="color:#D73A49">=</span><span style="color:#24292E"> builder.</span><span style="color:#6F42C1">Cap</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#24292E">		builder.</span><span style="color:#6F42C1">WriteString</span><span style="color:#24292E">(str)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>运行结果如下：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -run=<span class="string">&quot;TestBuilderConcat&quot;</span> . -v</span><br><span class="line">=== RUN   TestBuilderConcat</span><br><span class="line">16 32 64 128 256 512 1024 2048 2688 3456 4864 6144 8192 10240 13568 18432 24576 32768 40960 57344 73728 98304 122880 --- PASS: TestBuilderConcat (0.00s)</span><br><span class="line">PASS</span><br><span class="line">ok      example 0.007s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -run=</span><span style="color:#032F62">"TestBuilderConcat"</span><span style="color:#032F62"> .</span><span style="color:#005CC5"> -v</span></span>
+<span class="line"><span style="color:#032F62">===</span><span style="color:#032F62"> RUN</span><span style="color:#032F62">   TestBuilderConcat</span></span>
+<span class="line"><span style="color:#6F42C1">16</span><span style="color:#005CC5"> 32</span><span style="color:#005CC5"> 64</span><span style="color:#005CC5"> 128</span><span style="color:#005CC5"> 256</span><span style="color:#005CC5"> 512</span><span style="color:#005CC5"> 1024</span><span style="color:#005CC5"> 2048</span><span style="color:#005CC5"> 2688</span><span style="color:#005CC5"> 3456</span><span style="color:#005CC5"> 4864</span><span style="color:#005CC5"> 6144</span><span style="color:#005CC5"> 8192</span><span style="color:#005CC5"> 10240</span><span style="color:#005CC5"> 13568</span><span style="color:#005CC5"> 18432</span><span style="color:#005CC5"> 24576</span><span style="color:#005CC5"> 32768</span><span style="color:#005CC5"> 40960</span><span style="color:#005CC5"> 57344</span><span style="color:#005CC5"> 73728</span><span style="color:#005CC5"> 98304</span><span style="color:#005CC5"> 122880</span><span style="color:#005CC5"> ---</span><span style="color:#032F62"> PASS:</span><span style="color:#032F62"> TestBuilderConcat</span><span style="color:#24292E"> (0.00s)</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 0.007s</span></span></code></pre>
 <p>我们可以看到，2048 以前按倍数申请，2048 之后，以 640 递增，最后一次递增 24576 到 122880。总共申请的内存大小约 <code>0.52 MB</code>，约为上一种方式的千分之一。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">16 + 32 + 64 + ... + 122880 = 0.52 MB</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-2-比较-strings-Builder-和-bytes-Buffer"><a href="#2-2-比较-strings-Builder-和-bytes-Buffer" class="headerlink" title="2.2 比较 strings.Builder 和 bytes.Buffer"></a>2.2 比较 strings.Builder 和 bytes.Buffer</h3><p><code>strings.Builder</code> 和 <code>bytes.Buffer</code> 底层都是 <code>[]byte</code> 数组，但 <code>strings.Builder</code> 性能比 <code>bytes.Buffer</code> 略快约 10% 。一个比较重要的区别在于，<code>bytes.Buffer</code> 转化为字符串时重新申请了一块空间，存放生成的字符串变量，而 <code>strings.Builder</code> 直接将底层的 <code>[]byte</code> 转换成了字符串类型返回了回来。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">16</span><span style="color:#032F62"> +</span><span style="color:#005CC5"> 32</span><span style="color:#032F62"> +</span><span style="color:#005CC5"> 64</span><span style="color:#032F62"> +</span><span style="color:#032F62"> ...</span><span style="color:#032F62"> +</span><span style="color:#005CC5"> 122880</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> 0.52</span><span style="color:#032F62"> MB</span></span></code></pre>
+<h3 id="22-比较-stringsbuilder-和-bytesbuffer">2.2 比较 strings.Builder 和 bytes.Buffer</h3>
+<p><code>strings.Builder</code> 和 <code>bytes.Buffer</code> 底层都是 <code>[]byte</code> 数组，但 <code>strings.Builder</code> 性能比 <code>bytes.Buffer</code> 略快约 10% 。一个比较重要的区别在于，<code>bytes.Buffer</code> 转化为字符串时重新申请了一块空间，存放生成的字符串变量，而 <code>strings.Builder</code> 直接将底层的 <code>[]byte</code> 转换成了字符串类型返回了回来。</p>
 <ul>
 <li>bytes.Buffer</li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// To build strings more efficiently, see the strings.Builder type.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(b *Buffer)</span></span> String() <span class="type">string</span> &#123;</span><br><span class="line">	<span class="keyword">if</span> b == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="comment">// Special case, useful in debugging.</span></span><br><span class="line">		<span class="keyword">return</span> <span class="string">&quot;&lt;nil&gt;&quot;</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="type">string</span>(b.buf[b.off:])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// To build strings more efficiently, see the strings.Builder type.</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">b </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Buffer</span><span style="color:#24292E">) </span><span style="color:#6F42C1">String</span><span style="color:#24292E">() </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> b </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">		// Special case, useful in debugging.</span></span>
+<span class="line"><span style="color:#D73A49">		return</span><span style="color:#032F62"> "&#x3C;nil>"</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#D73A49"> string</span><span style="color:#24292E">(b.buf[b.off:])</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>strings.Builder</li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// String returns the accumulated string.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(b *Builder)</span></span> String() <span class="type">string</span> &#123;</span><br><span class="line">	<span class="keyword">return</span> *(*<span class="type">string</span>)(unsafe.Pointer(&amp;b.buf))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// String returns the accumulated string.</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">b </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Builder</span><span style="color:#24292E">) </span><span style="color:#6F42C1">String</span><span style="color:#24292E">() </span><span style="color:#D73A49">string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#D73A49"> *</span><span style="color:#24292E">(</span><span style="color:#D73A49">*</span><span style="color:#D73A49">string</span><span style="color:#24292E">)(unsafe.</span><span style="color:#6F42C1">Pointer</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">b.buf))</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p><code>bytes.Buffer</code> 的注释中还特意提到了：</p>
 <blockquote>
 <p>To build strings more efficiently, see the strings.Builder type.</p>
 </blockquote>
-<h2 id="附-推荐与参考"><a href="#附-推荐与参考" class="headerlink" title="附 推荐与参考"></a>附 推荐与参考</h2><ul>
+<h2 id="附-推荐与参考">附 推荐与参考</h2>
+<ul>
 <li><a href="https://geektutu.com/post/qa-golang.html">Go 语言笔试面试题汇总</a></li>
 <li><a href="https://geektutu.com/post/gee.html">七天用Go从零实现系列</a></li>
-</ul>
+</ul></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/hpg-pprof.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">pprof 性能分析</span></a><a href="/post/hpg-slice.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">切片(slice)性能及陷阱</span></a></nav><script>(function(){const bookId = "high-performance-go";
+const slug = "hpg-string-concat";
 
-      
-<script src="/js/qrious.min.js"></script>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "hpg-string-concat";
+const title = "字符串拼接性能及原理";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
 
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
 
-      <hr />
-      <p>
-        <a target="_blank" rel="noopener" href="https://github.com/geektutu/high-performance-go/blob/master/charpter-2/hpg-string-concat.md"><span class="float-left gkt-page-tips">edit this page</span></a>
-        <span class="float-right gkt-page-tips">last updated at 2026-02-23</span>
-      </p>
-    </article>
-    <!-- 赞赏 -->
-    <!--打赏-->
-
-<style>
-    #reward .reward-btn-wrapper {
-        width: 100px;
-        padding-top: 35px;
-        cursor: pointer;
-        margin: 0 auto;
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
     }
 
-    #reward .reward-btn {
-        padding: 2px 15px;
-        color: #fff;
-        background-color: #ea6f5a;
-        border-radius: 20px;
-    }
-
-    #reward .reward-code {
-        position: absolute;
-        top: -220px;
-        left: 50%;
-        display: none;
-        width: 360px;
-        height: 240px;
-        margin-left: -180px;
-        padding: 15px 20px;
-        border: 1px solid #e6e6e6;
-        background: #fff;
-        box-shadow: 0 1px 1px 1px #efefef;
-    }
-
-    #reward .reward-code:after,
-    #reward .reward-code:before {
-        position: absolute;
-        content: '';
-        border: 10px solid transparent
-    }
-
-    #reward .reward-code:after {
-        bottom: -19px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #fff
-    }
-
-    #reward .reward-code:before {
-        bottom: -20px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #e6e6e6
-    }
-
-    #reward .qr-code {
-        width: 50%;
-        float: left;
-        padding: 5px;
-    }
-
-    #reward .qr-code p {
-        margin-top: -6px;
-    }
-
-    #reward img {
-        transform: none;
-        -webkit-transform: none;
-        margin-left: 0;
-    }
-
-    #reward img[alt='i'] {
-        width: 20px;
-        height: 20px;
-        z-index: 2;
-        position: absolute;
-        margin: 65px 0 0 65px;
-    }
-
-    #reward img[alt="ali"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #0f9be0;
-    }
-
-    #reward img[alt="wechat"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #3db034;
-    }
-
-    #reward .reward-tip {
-        font-size: 1.2em;
-        margin-bottom: 0;
-        color: #ea6f5a;
-    }
-</style>
-<div id="reward" class="col-xs-12">
-    <div class="reward-btn-wrapper">
-        <div class="reward-btn text-center">赞赏支持</div>
-    </div>
-    <div class="reward-code text-center">
-        <p class="text-center reward-tip"><strong>请我吃胡萝卜 =^_^= </strong></p>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-ali" src="" alt="ali">
-            <p><small>支付宝</small></p>
-        </div>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-wechat" src="" alt="wechat">
-            <p><small>微信</small></p>
-        </div>
-    </div>
-</div>
-<script>
-    (function (window, document) {
-        var aliQr = new QRious({ value: 'HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8' });
-        var wechatQr = new QRious({ value: 'wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5' });
-        document.querySelector('#reward-ali').src = aliQr.toDataURL();
-        document.querySelector('#reward-wechat').src = wechatQr.toDataURL();
-
-        var rewardBtn = document.querySelector('#reward .reward-btn-wrapper');
-        var qrCode = document.querySelector('#reward .reward-code')
-        var activeFunc = function (e) {
-            qrCode.style.display = 'block';
-        }
-        var hideFunc = function (e) {
-            qrCode.style.display = 'none';
-        }
-
-        rewardBtn.addEventListener('mouseenter', activeFunc, false)
-        rewardBtn.addEventListener('mouseover', activeFunc, false)
-        rewardBtn.addEventListener('mouseleave', hideFunc, false)
-        qrCode.addEventListener('mouseenter', activeFunc, false)
-        qrCode.addEventListener('mouseover', activeFunc, false)
-        qrCode.addEventListener('mouseleave', hideFunc, false)
-    })(window, document);
-</script>
-
-    
-<div class="col-xs-12 text-center" style="margin-top: 30px;">
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://github.com/geektutu" title="Github"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/github.png" /></a>
-    
-    <a style="display:inline-block;" href="https://geektutu.com/feed.xml" title="RSS"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/rss.jpg" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie" title="知乎"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/zhihu.png" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://weibo.com/geektutu" title="微博"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/weibo.jpg" /></a>
-    
-</div>
-
-    <!-- 评论 -->
-    
-    <div class="col-xs-12">
-      
-<div class="col-xs-12 padding-0">
-    <div id="gitalk-container">
-        <div class="gt-container text-center" style="margin-top: 50px;">
-            <button class="gt-btn gt-btn-public"><span class="gt-btn-text">去 Github 评论</span></button>
-        </div>
-    </div>
-    <div id="gitalk-related"></div>
-</div>
-
-<link rel="stylesheet" href="/css/gitalk.css">
-
-
-<script src="/js/gitalk.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        function renderCommentUrl(data) {
-            var url = (data[window.location.pathname] || {}).url
-            url && getDom('#gitalk-container button').addEventListener('click', function (e) { window.open(url)})
-            url || (getDom('#gitalk-container').style.display = 'none')
-        }
-        const gitalk = new Gitalk({
-            clientID: 'c1fdd456a4caae5f7df0',
-            clientSecret: 'b2674451e21feae50520f99337ec15d2aebe7879',
-            accessToken: '513dc2f1e6df8c07a12fbf1547874f54679d9712',
-            repo: 'geektutu.github.io',
-            owner: 'geektutu',
-            admin: ['geektutu'],
-            id: window.location.pathname,
-            distractionFreeMode: false
-        });
-        fetch("https://api.github.com/user").then(function(resp){
-            gitalk.render('gitalk-container');
-        }).catch(function(e){
-            fetch('/tool/issues.json').then(function (r) { return r.json() }).then(renderCommentUrl).catch(function (e) { })
-        })
-        getDom('#gitalk-container').addEventListener('click', function (e) {
-            e && e.stopPropagation && e.stopPropagation();
-        });
-    })
-</script>
-<script>
-    window.addEventListener('load', function () {
-        function render(comments) {
-            var template = '<a href="${comment.url}?utm_source=gitalk" class="dis-item-url"><h3 class="dis-item-title">${comment.title}</h3>' +
-                '<p class="dis-item-des">${comment.count} 评论 ● ${comment.date}</p>' +
-                '<div class="dis-item-content"><img class="dis-item-img" src="${comment.icon}" alt="icon"><p><b><span class="dis-item-user">${comment.user}</span></b>&nbsp;——&nbsp;${comment.body}</p></div>' +
-                '</a>'
-
-            var wrapper = getDom('#gitalk-related');
-            comments = shuffle(comments);
-            comments.slice(0, 4).forEach(function (c) {
-                var div = document.createElement('div');
-                div.classList.add('dis-item');
-                div.innerHTML = template.replace("${comment.url}", c.url)
-                    .replace("${comment.title}", c.title)
-                    .replace("${comment.count}", c.count)
-                    .replace("${comment.date}", c.date)
-                    .replace("${comment.icon}", c.icon)
-                    .replace("${comment.user}", c.user)
-                    .replace("${comment.body}", c.body)
-                wrapper.appendChild(div)
-            })
-            var p = document.createElement('p')
-            p.innerHTML = '<a href="https://geektutu.com/post/blog-experience-7.html">Gitalk Plus</a>';
-            p.classList.add('dis-divide');
-            wrapper.appendChild(p);
-            wrapper.classList.add('dis-wrapper')
-        }
-        function shuffle(a) {
-            for (var i = a.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-        fetch('/tool/comments.json').then(function (r) { return r.json() }).then(render).catch(function (e) { })
-    })
-</script>
-
-    </div>
-    
-  </div>
-  <aside class="gkt-book-toc hidden-xs hidden-sm">
-    <div style="clear: both"></div>
-    <div class="gkt-sidebar-wrapper">
-      <!-- Table of Contents -->
-<div id="sidebar-toc">
-  <!-- TOC  -->
-  
-  
-  <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%AB%98%E6%95%88%E6%8B%BC%E6%8E%A5"><span class="toc-nav-text">1. 字符串高效拼接</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#1-1-%E5%B8%B8%E8%A7%81%E7%9A%84%E6%8B%BC%E6%8E%A5%E6%96%B9%E5%BC%8F"><span class="toc-nav-text">1.1 常见的拼接方式</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#1-2-benchmark-%E6%80%A7%E8%83%BD%E6%AF%94%E6%8B%BC"><span class="toc-nav-text">1.2 benchmark 性能比拼</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#1-3-%E5%BB%BA%E8%AE%AE"><span class="toc-nav-text">1.3 建议</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-%E6%80%A7%E8%83%BD%E8%83%8C%E5%90%8E%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-nav-text">2 性能背后的原理</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-1-%E6%AF%94%E8%BE%83-strings-Builder-%E5%92%8C"><span class="toc-nav-text">2.1 比较 strings.Builder 和 +</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-2-%E6%AF%94%E8%BE%83-strings-Builder-%E5%92%8C-bytes-Buffer"><span class="toc-nav-text">2.2 比较 strings.Builder 和 bytes.Buffer</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%99%84-%E6%8E%A8%E8%8D%90%E4%B8%8E%E5%8F%82%E8%80%83"><span class="toc-nav-text">附 推荐与参考</span></a></li></ol>
-  
-</div>
-
-<script>
-  (function () {
-    var h2 = document.querySelectorAll('article h2');
-    var h3 = document.querySelectorAll('article h3');
-    var linkList = document.querySelectorAll('#sidebar-toc a');
-
-    function findLinkElement(name) {
-      for (var i = 0; i < linkList.length; i++) {
-        var items = linkList[i].href.split('#');
-        if (items && items[items.length - 1] === encodeURIComponent(name)) {
-          return i;
-        }
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
       }
-      return -1;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
     }
 
-    function activeLink(titleList) {
-      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      for (var i = titleList.length - 1; i >= 0; i--) {
-        if (scrollTop - titleList[i].offsetTop > 0) {
-          var index = findLinkElement(titleList[i].id);
-          index != -1 && linkList[index].classList.add('gkt-sidebar-active');
-          break;
-        }
-      }
-    }
-
-    window.addEventListener("scroll", function (e) {
-      [].slice.call(linkList).forEach(function (link) {
-        link.classList.remove('gkt-sidebar-active');
-      })
-      activeLink(h2);
-    })
-  })();
-</script>
-    </div>
-  </aside>
-</div>
-<script>
-    (function () {
-        function resizeUArrow() {
-            var s = getDom('.u-arrow-wrapper').style
-            var pc = getDom('.gkt-book-page')
-            s.left = getPosition(pc).x - 15 + 'px';
-            s.width = pc.clientWidth + 30 + 'px';
-        }
-        resizeUArrow()
-        window.addEventListener('resize', resizeUArrow);
-        var nav = getDom('.gkt-book-menu nav');
-        var key = 'gkt_book_Go 语言高性能编程_' + parseInt(new Date().getTime()/1000/3600/24/7)
-        nav.scrollTo(0, localStorage.getItem(key) * 1)
-        nav.addEventListener('scroll', function(){ localStorage.setItem(key, nav.scrollTop) })
-    })();
-    (function(){
-      getDom(".gkt-book-menu-icon").addEventListener('click', function() {
-        var menu = getDom(".gkt-book-menu").classList
-        var article = getDom(".gkt-book-page").classList
-        if (menu.contains("gkt-book-menu-hidden")) {
-          menu.remove('gkt-book-menu-hidden')
-          article.add('gkt-book-menu-checked')
-        } else {
-          menu.add('gkt-book-menu-hidden')
-          article.remove('gkt-book-menu-checked')
-        }
-      })
-    })();
-</script>
-
-
-    
-
-</main>
-    </div>
-    <style>
-    img#go-top {
-        position: fixed;
-        bottom: 100px;
-        width: 50px;
-        cursor: pointer;
-        z-index: 9999;
-    }
-</style>
-<img id="go-top" src="/icon/top.png" class="hidden-xs" style="display: none" />
-<script>
-    (function () {
-        var goTop = document.getElementById('go-top');
-        var mainContainer = document.querySelector('.main-container');
-        
-        goTop.addEventListener('click', function () {
-            window.scroll(0, 0);
-        }, false);
-        window.addEventListener('scroll', function () {
-            var right = document.body.offsetWidth - mainContainer.getBoundingClientRect().right;
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            goTop.style.right = right + 10 + 'px'
-            scrollTop > 700 && (goTop.style.display = "block");
-            scrollTop <= 700 && (goTop.style.display = "none");
-        });
-    })();
-</script>
-    <style>
-    #geektutu-click-img-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        text-align: center;
-        width: 100%;
-        display: none;
-        z-index: 9999;
-    }
-
-    #geektutu-click-img-container img {
-        object-fit: contain;
-        background: #eaecef;
-        padding: 15px;
-        border-radius: 10px;
-        height: auto;
-        width: auto;
-        vertical-align: middle;
-    }
-</style>
-
-
-<div id="geektutu-click-img-container">
-    <img src="" alt="Big Image">
-</div>
-
-<script>
-    (function () {
-        var container = document.querySelector('#geektutu-click-img-container')
-        var targetImg = container.querySelector('img')
-        var imgs = document.querySelectorAll('article img');
-        targetImg.addEventListener('click', function (e) {
-            container.style.display = 'none';
-            e && e.stopPropagation && e.stopPropagation();
-        }, false);
-
-        for (var i = 0; i < imgs.length; ++i) {
-            var img = imgs[i];
-            img.addEventListener('click', (function (src, rate) {
-                return function (e) {
-                    e && e.stopPropagation && e.stopPropagation();
-                    if (window.innerWidth < 980) {
-                        return
-                    }
-                    targetImg.style.height = targetImg.style.width = 'auto';
-                    if (window.innerWidth / window.innerHeight > rate) {
-                        targetImg.style.height = (window.innerHeight - 20) + 'px';
-                    } else {
-                        targetImg.style.width = (window.innerWidth - 20) + 'px';
-                    }
-                    container.style.height = window.innerHeight + 'px'
-                    container.style.lineHeight = window.innerHeight + 'px'
-                    container.style.display = 'block';
-                    targetImg.src = src;
-                };
-            }(img.src, img.width / img.height)), false)
-        }
-    })();
-</script>
-    <!-- Footer -->
-    <!-- Footer -->
-<style>
-    footer {
-        width: 100%;
-        line-height: 1.5;
-        padding: 20px;
-    }
-
-    footer a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    .footer-hexo img {
-        height: 20px;
-        margin-bottom: -5px;
-    }
-
-    .footer-hexo a {
-        color: #337ab7;
-    }
-</style>
-<footer class="text-center col-xs-12">
-    <p>
-        <small>© 2026 - 极客兔兔 - </small>
-        <small>
-            <a target="_blank" rel="nofollow noopener" href="http://beian.miit.gov.cn/">沪ICP备18001798号-1</a>
-        </small>
-    </p>
-    <p class="footer-hexo">
-        <!-- 但若直接使用或修改主题，请务必保留这段声明 -->
-        <small>Powered by <a target="_blank" href="https://hexo.io">Hexo</a> | Theme
-            <a target="_blank" href="https://geektutu.com">Geektutu</a>
-            <a target="_blank" rel="noopener" href="https://github.com/geektutu/hexo-theme-geektutu">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIACIAUAMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQQFBwIDBgj/2gAIAQEAAAAA9KrHSgAYL5/z6zZGuJd12uugbhq3uKtmuRtix20IS7lTLAfAAAn/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oACAECEAAAAAAB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAxAAAAAAAf/EADEQAAICAQIEBQEGBwAAAAAAAAECAwQFAAYREhORBxQhUlQxQVFic5KxJDJCYYGC0f/aAAgBAQABPwCFHnjWUzuvN6hV4cANSRLGjO9yRVUcSzMoA7jVXJYe5N0a2dhmk9kc0bN2GvLN8mbuNeWb5M3ca8s3yZu415Y/Jm7jXlm+TN3H/NeVPyZu40vOk3TZywK8wJ+v3EHVM/wsI/Dq2lrxN3Nnca16eti8chSAIoMbzByhMwP14kHVfwIiSaF5c96J6kwwCOTnHsYk8uvCrdmQy1TI4rJuz3cZLyGR/wCd4+YoOf8AEpUjXitubLYPG4paFsUxcuiGe7yc5gTW3LW44szXmobsi3Dhmic2+Z4+vCVH9CpraPiQ+QvbgTJrPFBWd5YpWrmNIIEXiRO32Pqt4p7cnfHk18lFBdmEVW1LVdIZGOrniTt6plrWKaO69yCykDRxwF+LMAewB0Txtr+Sf31VI8tEPw62fZt7N3Humtbpzz13ucX6CGSWMSuzpLyD1eNgeUka3PuvHbaxq3biTMHfkiSNCS78CwU+3Xg7Vu3MhuTcU6cq3Zemn3Eh2dv8Lzcut+29x1atKbHYqLJUhLwyNMwiZ3j9yDWOxUOV3tgb+3No5LDx1pi9+aeIwRlNY6bc+Jv+IFGrhLxtXJZ7VKcw81diiAAEn0JOrkWZyNfbEr0tz27UGQgkuGzXdIIvyowq99bRxk9ffO/L81SZBPZgEEroQroIxxMZOgeNsfkn99QypHGqO4Vl9CDrN4LDZkwyzyyQ2IgRHZrzGCZVP1XnQglT9oOtw4LC7iqV6uRkZoYpxKFSQpzFRw4EjVRMfSrQ1qqwxQxKFjjTgFUD7BoWYR6iVe+mtxt9Zwf9teaj4AdccPu5tedX5A/VrzUR+sy/q1CwksF19VEfDj/cnQRW+qg66cfsXtrpx+xe2unH7F7a6cfsXtrpx+xe2unH7F7a6cfsXtoxx+xe2gAAOA1//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwB//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwB//9k="
-                    alt="Github Star">
-            </a>
-        </small>
-    </p>
-    
-    <p>
-        <small>
-            <span id="busuanzi_container_site_pv">👁<span id="busuanzi_value_site_pv"></span></span> &nbsp;
-            <span id="busuanzi_container_page_pv">📚<span id="busuanzi_value_page_pv"></span></span>
-        </small>
-    </p>
-    
-    
-
-</footer>
-
-
-<script>
-    window.addEventListener('load', function () {
-        globalAddScript('//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js');
-    })
-</script>
-
-<!-- Baidu Tongji -->
-
-<script>
-    window.addEventListener('load', function () {
-        var _hmt = _hmt || [];
-        globalAddScript('//hm.baidu.com/hm.js?1a0ec38c52c08db815b0046c2783b1aa')
-    })
-</script>
-
-
-
-<!-- baidu auto push for seo -->
-<script>
-    window.addEventListener('load', function () {
-        var src = 'http://push.zhanzhang.baidu.com/push.js'
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        globalAddScript(src);
-    })
-</script>
-
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-142641425-1');
-
-    window.addEventListener('load', function () {
-        globalAddScript('https://www.googletagmanager.com/gtag/js?id=UA-142641425-1');
-    });
-</script>
-
-
-    <script>
-        // 非本站网址，新开tab页签
-        (function () {
-            var stopBubble = function (e) {
-                e && e.stopPropagation && e.stopPropagation();
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
             }
-            var links = document.querySelectorAll('a');
-            [].slice.call(links).forEach(function (item) {
-                if (item.href && item.href.indexOf(window.location.host) === -1) {
-                    item.target = '_blank'
-                }
-                // 阻止冒泡，不触发彩蛋。
-                item.addEventListener('click', stopBubble, false);
-            });
-            var article = document.querySelector('article');
-            article && article.addEventListener('click', stopBubble, false)
-        })();
-    </script>
-    
-</body>
-
-</html>
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

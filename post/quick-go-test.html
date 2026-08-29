@@ -1,360 +1,118 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
-<!-- Head tag -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="referrer" content="no-referrer-when-downgrade">
-  
-  <meta name="baidu-site-verification" content="p7Pz3jlx4t" />
-  <meta name="google-site-verification" content="X31OY0d2sKImNbS2x8-OpITWRK4nn7nZCcXe3_hA9ew" />
-  <meta name="msvalidate.01" content="7E2AEE3378AC93764DEAB411177A21A1" />
-  <meta name="360-site-verification" content="1d1e81a1a48a1ed2e3308d7cb8e548e7" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- if page has tags, then add tags to keyword -->
-  
-  
-  <meta name="keywords" content="geektutu,jiketutu,Go语言,golang,python,Go,golang test,unit tests,golang testing">
-  <!-- page.description has higher priority -->
-  <meta name="description" content="本文介绍了Go语言(golang) 如何写单元测试(unit tests)，详细介绍了标准库 testing 的使用。包括子测试(subtests)，帮助函数(helpers)，setup 和 teardown 机制，网络测试(Network, http) 和基准测试(benchmark)">
-  <link rel="shortcut icon" href="/img/icon.png">
-  <title>
-    
-    Go Test 单元测试简明教程 | 快速入门 | 极客兔兔
-    
-  </title>
-
-  <link rel="canonical" href="https://geektutu.com/post/quick-go-test.html">
-  
-<link rel="stylesheet" href="/css/geektutu.css">
-
-  <!-- global function -->
-  <script>
-    window.globalAddScript = function (url, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = url;
-      onload && (s.onload = onload);
-      onerror && (s.onerror = onerror);
-      document.body.appendChild(s);
-    }
-    window.globalAddCss = function (url) {
-      var s = document.createElement('link');
-      s.rel = 'stylesheet';
-      s.href = url;
-      document.body.appendChild(s);
-    }
-    window.getPosition = function (ele) {
-      var x = 0, y = 0;
-      while (ele) {
-        x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-        y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-        ele = ele.offsetParent;
-      }
-      return { x: x, y: y };
-    }
-    window.getDom = function (str) { return document.querySelector(str) }
-  </script>
-  <!-- google ad -->
-  
-<meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/feed.xml" title="极客兔兔" type="application/rss+xml">
-</head>
-
-<body>
-    
-<header class="gkt-header col-xs-12 padding-0">
-    <div id="gkt-nav" class="gkt-header-container">
-        <a href="/" class="gkt-header-title float-left">
-            <img class="float-left" src="/img/icon.png" alt="">
-            <span>极客兔兔</span>
-        </a>
-        <nav class="gkt-header-nav text-right">
-            <ul>
-                <li><a class="hidden-xs" href="/feed.xml">订阅</a></li>
-                <li><a href="/series/">专题</a></li>
-                <li><a href="/archives/">归档</a></li>
-                <li><a href="/post/link.html">友链</a></li>
-                <li><a href="/post/about.html">关于</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="gkt-cate-nav" class="gkt-header-container hidden-xs">
-        
-        <nav class="gkt-header-nav float-left">
-            <ul>
-                
-                
-                <li class="gkt-cate-name float-left active">
-                    <a class="float-left" href="/post/tensorflow-mnist-simplest.html">简明教程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tensorflow-mnist-simplest.html">TensorFlow 教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/pandas-dataframe-series.html">Pandas 数据处理</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tf2doc.html">TensorFlow2 文档</a></li>
-                        
-                        <li class="gkt-sub-cate-name active"><a class="float-left"
-                                href="/post/quick-golang.html">Go 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-rust.html">Rust 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-python.html">Python 简明教程</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/blog-experience-1.html">杂谈 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/blog-experience-1.html">建站经历</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/2020.html">年终总结</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/qa-ml.html">面试 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-ml.html">机器学习面试题</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-golang.html">Go 语言面试题</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/gee.html">从零实现 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/gee.html">Web框架 - Gee</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geecache.html">分布式缓存 - GeeCache</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geeorm.html">ORM框架 - GeeORM</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geerpc.html">RPC框架 - GeeRPC</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/7days-golang-q1.html">7days-golang Q &amp; A</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/box-tools.html">百宝箱 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/box-tools.html">工具</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/cheat-sheet-sqlite.html">SQLite 速查表</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/high-performance-go.html">高性能编程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/high-performance-go.html">序言</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-benchmark.html">性能分析</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-string-concat.html">常用数据结构</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-mutex.html">并发编程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-reduce-size.html">编译优化</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-gotchas-array-slice.html">语言陷阱</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-            </ul>
-        </nav>
-    </div>
-</header>
-<div class="gkt-header-placeholder" style="height: 44px"></div>
-<div class="gkt-header-placeholder hidden-xs" style="height: 44px"></div>
-<script>
-    (function () {
-        window.addEventListener('scroll', function () {
-            if (window.innerWidth < 768) {
-                return;
-            }
-            var nav = document.querySelector('#gkt-nav');
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            scrollTop > 50 && (nav.classList.add('hide'));
-            scrollTop <= 50 && (nav.classList.remove('hide'));
-        });
-        var cateNavs = document.querySelectorAll('#gkt-cate-nav>nav>ul>li');
-        [].slice.call(cateNavs).forEach(function (item) {
-            var sub = item.querySelector('.gkt-sub-cate');
-            if (!sub) return;
-            item.addEventListener('mouseenter', function (e) { sub.style.display = 'block'; }, false);
-            item.addEventListener('mouseleave', function (e) { sub.style.display = 'none'; }, false);
-        })
-    })();
-</script>
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Main Content -->
-<main class="col-xs-12 padding-0 markdown-it">
-    <!-- Post Container -->
-    
-    
-    <!-- Post Content -->
-<div class="float-left post-container box-shadow">
-    <div class="u-arrow-wrapper hidden-xs">
-        
-        <a class="float-left" href="/post/geecache.html"><i class="u-arrow-left"></i></a>
-        
-        
-        <a class="float-right" href="/post/geecache-day1.html"><i class="u-arrow-right"></i></a>
-        
-    </div>
-    <article class="col-xs-12">
-        <h1> Go Test 单元测试简明教程 </h1>
-        
-        
-        <div class="hidden-lg hidden-md series_links">
-            <p> <strong> Go 简明教程系列文章链接：</strong></p>
-            <ul>
-                
-                <li>
-                    <a href="/post/quick-golang.html">Go 语言简明教程</a>
-                    <span class="post-item-date">(Aug 6, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-gin.html">Go Gin 简明教程</a>
-                    <span class="post-item-date">(Aug 7, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go2.html">Go2 新特性简明教程</a>
-                    <span class="post-item-date">(Aug 15, 2019)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-protobuf.html">Go Protobuf 简明教程</a>
-                    <span class="post-item-date">(Jan 11, 2020)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-rpc.html">Go RPC & TLS 鉴权简明教程</a>
-                    <span class="post-item-date">(Jan 13, 2020)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-wasm.html">Go WebAssembly (Wasm) 简明教程</a>
-                    <span class="post-item-date">(Jan 23, 2020)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-test.html">Go Test 单元测试简明教程</a>
-                    <span class="post-item-date">(Feb 10, 2020)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/quick-gomock.html">Go Mock (gomock)简明教程</a>
-                    <span class="post-item-date">(Feb 14, 2020)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-mmap.html">Go Mmap 文件内存映射简明教程</a>
-                    <span class="post-item-date">(Apr 20, 2020)</span>
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-context.html">Go Context 并发编程简明教程</a>
-                    <span class="post-item-date">(Apr 20, 2020)</span>
-                </li>
-                
-            </ul>
-        </div>
-        
-        
-        <div class="gkt-article-start"></div>
-        <p><img src="quick-go-test/go_test.jpg" alt="golang test"></p>
-<h2 id="1-如何写好单元测试"><a href="#1-如何写好单元测试" class="headerlink" title="1 如何写好单元测试"></a>1 如何写好单元测试</h2><p>单元测试(Unit Tests, UT) 是一个优秀项目不可或缺的一部分，特别是在一些频繁变动和多人合作开发的项目中尤为重要。你或多或少都会有因为自己的提交，导致应用挂掉或服务宕机的经历。如果这个时候你的修改导致测试用例失败，你再重新审视自己的修改，发现之前的修改还有一些特殊场景没有包含，恭喜你减少了一次上库失误。也会有这样的情况，项目很大，启动环境很复杂，你优化了一个函数的性能，或是添加了某个新的特性，如果部署在正式环境上之后再进行测试，成本太高。对于这种场景，几个小小的测试用例或许就能够覆盖大部分的测试场景。而且在开发过程中，效率最高的莫过于所见即所得了，单元测试也能够帮助你做到这一点，试想一下，假如你一口气写完一千行代码，debug 的过程也不会轻松，如果在这个过程中，对于一些逻辑较为复杂的函数，同时添加一些测试用例，即时确保正确性，最后集成的时候，会是另外一番体验。</p>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="本文介绍了Go语言(golang) 如何写单元测试(unit tests)，详细介绍了标准库 testing 的使用。包括子测试(subtests)，帮助函数(helpers)，setup 和 teardown 机制，网络测试(Network, http) 和基准测试(benchmark)"><title>Go Test 单元测试简明教程 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.B88FlGyz.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-baseline gap-2"><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔<span class="text-accent">.</span></span><span class="hidden text-xs text-faint sm:inline">写书式技术博客</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/history" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">历史博客</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">快速上手 · Go</span></div><ul><li><a href="/post/quick-golang.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言简明教程</a></li><li><a href="/post/quick-go-gin.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Gin 简明教程</a></li><li><a href="/post/quick-go2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go2 新特性简明教程</a></li><li><a href="/post/quick-go-protobuf.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Protobuf 简明教程</a></li><li><a href="/post/quick-go-rpc.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go RPC &amp; TLS 鉴权简明教程</a></li><li><a href="/post/quick-go-wasm.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go WebAssembly (Wasm) 简明教程</a></li><li><a href="/post/quick-go-test.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Go Test 单元测试简明教程</a></li><li><a href="/post/quick-gomock.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Mock (gomock)简明教程</a></li><li><a href="/post/quick-go-mmap.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Mmap 文件内存映射简明教程</a></li><li><a href="/post/quick-go-context.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Context 并发编程简明教程</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">快速上手 · Python</span></div><ul><li><a href="/post/quick-python.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Python 简明教程</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">快速上手 · Rust</span></div><ul><li><a href="/post/quick-rust.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Rust 简明教程</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">TensorFlow 教程</span></div><ul><li><a href="/post/tensorflow-mnist-simplest.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow入门(一) - mnist手写数字识别(网络搭建)</a></li><li><a href="/post/tensorflow-mnist-save-ckpt.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow入门(二) - mnist手写数字识别(模型保存加载)</a></li><li><a href="/post/tensorflow-mnist-tensorboard-training.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow入门(三) - mnist手写数字识别(可视化训练)</a></li><li><a href="/post/tensorflow-make-npy-hdf5-data-set.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow入门(四) - mnist手写数字识别(制作h5py训练集)</a></li><li><a href="/post/tensorflow2-mnist-cnn.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow 2.0 (五) - mnist手写数字识别(CNN卷积神经网络)</a></li><li><a href="/post/tensorflow2-gym-nn.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow 2.0 (六) - 监督学习玩转 OpenAI gym game</a></li><li><a href="/post/tensorflow2-gym-q-learning.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow 2.0 (七) - 强化学习 Q-Learning 玩转 OpenAI gym</a></li><li><a href="/post/tensorflow2-gym-dqn.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow 2.0 (八) - 强化学习 DQN 玩转 gym Mountain Car</a></li><li><a href="/post/tensorflow2-gym-pg.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">TensorFlow 2.0 (九) - 强化学习 70行代码实战 Policy Gradient</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">TensorFlow 2 中文文档</span></div><ul><li><a href="/post/tf2doc.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">序言</a></li><li><a href="/post/tf2doc-ml-basic-image.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">图像分类</a></li><li><a href="/post/tf2doc-ml-basic-text.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">文本分类</a></li><li><a href="/post/tf2doc-ml-basic-structured-data.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">结构化数据分类</a></li><li><a href="/post/tf2doc-ml-basic-regression.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">回归问题</a></li><li><a href="/post/tf2doc-ml-basic-overfit.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">过拟合与欠拟合</a></li><li><a href="/post/tf2doc-ml-basic-save-model.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">保存与恢复模型</a></li><li><a href="/post/tf2doc-cnn-cifar10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">卷积神经网络 CNN</a></li><li><a href="/post/tf2doc-tfhub-image-tl.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">迁移学习 TF Hub</a></li><li><a href="/post/tf2doc-rnn-lstm-text.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">RNN 与 LSTM</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">数据挖掘</span></div><ul><li><a href="/post/pandas-dataframe-series.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Pandas 数据处理(一) - DataFrame 与 Series</a></li><li><a href="/post/pandas-select-data.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Pandas 数据处理(二) - 筛选数据</a></li><li><a href="/post/pandas-cheat-sheet-zh-cn.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Pandas 数据处理(三) - Cheat Sheet 中文版</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">速查表</span></div><ul><li><a href="/post/cheat-sheet-sqlite.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">SQLite 常用命令</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">潘多拉魔盒</span></div><ul><li><a href="/post/box-tools.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">百宝箱 - 值得收藏的工具网站</a></li><li><a href="/post/awesome-config.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">WSL, Git, Mircosoft Terminal 等常用工具配置</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">年度总结</span></div><ul><li><a href="/post/2020.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">2020 年终总结</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">建站经历</span></div><ul><li><a href="/post/blog-experience-1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(一) - 极致性能的尝试</a></li><li><a href="/post/blog-experience-2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(二) - 对搜索引擎的理解</a></li><li><a href="/post/blog-experience-3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(三) - 主题设计、彩蛋与阅读量翻倍</a></li><li><a href="/post/blog-experience-4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(四) - 原创资格是争取来的</a></li><li><a href="/post/blog-experience-5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(五) - 友链这件事，没那么简单</a></li><li><a href="/post/blog-experience-6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(六) - 不要为了流量忘记了初心</a></li><li><a href="/post/blog-experience-7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">博客折腾记(七) - Gitalk Plus</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/history" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 历史博客</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">Go Test 单元测试简明教程</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2020-02-10">2020-02-10</time><span aria-hidden="true">·</span><span>约 7 分钟</span><span class="flex flex-wrap gap-2"><a href="/tags/Go" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Go</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#1-如何写好单元测试" class="toc-link block text-muted" data-toc-depth="2">1 如何写好单元测试</a></li><li style="padding-left:0rem"><a href="#2-一个简单例子" class="toc-link block text-muted" data-toc-depth="2">2 一个简单例子</a></li><li style="padding-left:0rem"><a href="#3-子测试subtests" class="toc-link block text-muted" data-toc-depth="2">3 子测试(Subtests)</a></li><li style="padding-left:0rem"><a href="#4-帮助函数helpers" class="toc-link block text-muted" data-toc-depth="2">4 帮助函数(helpers)</a></li><li style="padding-left:0rem"><a href="#5-setup-和-teardown" class="toc-link block text-muted" data-toc-depth="2">5 setup 和 teardown</a></li><li style="padding-left:0rem"><a href="#6-网络测试network" class="toc-link block text-muted" data-toc-depth="2">6 网络测试(Network)</a></li><li style="padding-left:0.9rem"><a href="#61-tcphttp" class="toc-link block text-muted" data-toc-depth="3">6.1 TCP/HTTP</a></li><li style="padding-left:0.9rem"><a href="#62-httptest" class="toc-link block text-muted" data-toc-depth="3">6.2 httptest</a></li><li style="padding-left:0rem"><a href="#7-benchmark-基准测试" class="toc-link block text-muted" data-toc-depth="2">7 Benchmark 基准测试</a></li><li style="padding-left:0rem"><a href="#附-参考" class="toc-link block text-muted" data-toc-depth="2">附 参考</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><p><img alt="golang test" loading="lazy" decoding="async" width="700" height="357" src="/_astro/go_test.CUJTEn53_20z4Hl.webp" srcset=""></p>
+<h2 id="1-如何写好单元测试">1 如何写好单元测试</h2>
+<p>单元测试(Unit Tests, UT) 是一个优秀项目不可或缺的一部分，特别是在一些频繁变动和多人合作开发的项目中尤为重要。你或多或少都会有因为自己的提交，导致应用挂掉或服务宕机的经历。如果这个时候你的修改导致测试用例失败，你再重新审视自己的修改，发现之前的修改还有一些特殊场景没有包含，恭喜你减少了一次上库失误。也会有这样的情况，项目很大，启动环境很复杂，你优化了一个函数的性能，或是添加了某个新的特性，如果部署在正式环境上之后再进行测试，成本太高。对于这种场景，几个小小的测试用例或许就能够覆盖大部分的测试场景。而且在开发过程中，效率最高的莫过于所见即所得了，单元测试也能够帮助你做到这一点，试想一下，假如你一口气写完一千行代码，debug 的过程也不会轻松，如果在这个过程中，对于一些逻辑较为复杂的函数，同时添加一些测试用例，即时确保正确性，最后集成的时候，会是另外一番体验。</p>
 <p>如何写好单元测试呢？</p>
 <p>首先，学会写测试用例。比如如何测试单个函数/方法；比如如何做基准测试；比如如何写出简洁精炼的测试代码；再比如遇到数据库访问等的方法调用时，如何 <code>mock</code>。</p>
 <p>然后，写可测试的代码。<code>高内聚，低耦合</code>是软件工程的原则，同样，对测试而言，函数/方法写法不同，测试难度也是不一样的。职责单一，参数类型简单，与其他函数耦合度低的函数往往更容易测试。我们经常会说，“这种代码没法测试”，这种时候，就得思考函数的写法可不可以改得更好一些。为了代码可测试而重构是值得的。</p>
 <p>接下来将介绍如何使用 Go 语言的标准库 <code>testing</code> 进行单元测试。</p>
-<h2 id="2-一个简单例子"><a href="#2-一个简单例子" class="headerlink" title="2 一个简单例子"></a>2 一个简单例子</h2><p>Go 语言推荐测试文件和源代码文件放在一块，测试文件以 <code>_test.go</code> 结尾。比如，当前 package 有 <code>calc.go</code> 一个文件，我们想测试 <code>calc.go</code> 中的 <code>Add</code> 和 <code>Mul</code> 函数，那么应该新建 <code>calc_test.go</code> 作为测试文件。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">example/</span><br><span class="line">   |--calc.go</span><br><span class="line">   |--calc_test.go</span><br></pre></td></tr></table></figure>
-
+<h2 id="2-一个简单例子">2 一个简单例子</h2>
+<p>Go 语言推荐测试文件和源代码文件放在一块，测试文件以 <code>_test.go</code> 结尾。比如，当前 package 有 <code>calc.go</code> 一个文件，我们想测试 <code>calc.go</code> 中的 <code>Add</code> 和 <code>Mul</code> 函数，那么应该新建 <code>calc_test.go</code> 作为测试文件。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">example/</span></span>
+<span class="line"><span style="color:#D73A49">   |</span><span style="color:#6F42C1">--calc.go</span></span>
+<span class="line"><span style="color:#D73A49">   |</span><span style="color:#6F42C1">--calc_test.go</span></span></code></pre>
 <p>假如 <code>calc.go</code> 的代码如下：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Add</span><span class="params">(a <span class="type">int</span>, b <span class="type">int</span>)</span></span> <span class="type">int</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> a + b</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Mul</span><span class="params">(a <span class="type">int</span>, b <span class="type">int</span>)</span></span> <span class="type">int</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> a * b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Add</span><span style="color:#24292E">(</span><span style="color:#E36209">a</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">b</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) </span><span style="color:#D73A49">int</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> a </span><span style="color:#D73A49">+</span><span style="color:#24292E"> b</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Mul</span><span style="color:#24292E">(</span><span style="color:#E36209">a</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">b</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) </span><span style="color:#D73A49">int</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> a </span><span style="color:#D73A49">*</span><span style="color:#24292E"> b</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>那么 <code>calc_test.go</code> 中的测试用例可以这么写：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">&quot;testing&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestAdd</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> ans := Add(<span class="number">1</span>, <span class="number">2</span>); ans != <span class="number">3</span> &#123;</span><br><span class="line">		t.Errorf(<span class="string">&quot;1 + 2 expected be 3, but %d got&quot;</span>, ans)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ans := Add(<span class="number">-10</span>, <span class="number">-20</span>); ans != <span class="number">-30</span> &#123;</span><br><span class="line">		t.Errorf(<span class="string">&quot;-10 + -20 expected be -30, but %d got&quot;</span>, ans)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#032F62"> "</span><span style="color:#6F42C1">testing</span><span style="color:#032F62">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> TestAdd</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> ans </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> Add</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">); ans </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> 3</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		t.</span><span style="color:#6F42C1">Errorf</span><span style="color:#24292E">(</span><span style="color:#032F62">"1 + 2 expected be 3, but </span><span style="color:#005CC5">%d</span><span style="color:#032F62"> got"</span><span style="color:#24292E">, ans)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> ans </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> Add</span><span style="color:#24292E">(</span><span style="color:#D73A49">-</span><span style="color:#005CC5">10</span><span style="color:#24292E">, </span><span style="color:#D73A49">-</span><span style="color:#005CC5">20</span><span style="color:#24292E">); ans </span><span style="color:#D73A49">!=</span><span style="color:#D73A49"> -</span><span style="color:#005CC5">30</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		t.</span><span style="color:#6F42C1">Errorf</span><span style="color:#24292E">(</span><span style="color:#032F62">"-10 + -20 expected be -30, but </span><span style="color:#005CC5">%d</span><span style="color:#032F62"> got"</span><span style="color:#24292E">, ans)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>测试用例名称一般命名为 <code>Test</code> 加上待测试的方法名。</li>
 <li>测试用的参数有且只有一个，在这里是 <code>t *testing.T</code>。</li>
 <li>基准测试(benchmark)的参数是 <code>*testing.B</code>，TestMain 的参数是 <code>*testing.M</code> 类型。</li>
 </ul>
 <p>运行 <code>go test</code>，该 package 下所有的测试用例都会被执行。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span></span><br><span class="line">ok      example 0.009s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 0.009s</span></span></code></pre>
 <p>或 <code>go test -v</code>，<code>-v</code> 参数会显示每个用例的测试结果，另外 <code>-cover</code> 参数可以查看覆盖率。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -v</span><br><span class="line">=== RUN   TestAdd</span><br><span class="line">--- PASS: TestAdd (0.00s)</span><br><span class="line">=== RUN   TestMul</span><br><span class="line">--- PASS: TestMul (0.00s)</span><br><span class="line">PASS</span><br><span class="line">ok      example 0.007s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -v</span></span>
+<span class="line"><span style="color:#032F62">===</span><span style="color:#032F62"> RUN</span><span style="color:#032F62">   TestAdd</span></span>
+<span class="line"><span style="color:#6F42C1">---</span><span style="color:#032F62"> PASS:</span><span style="color:#032F62"> TestAdd</span><span style="color:#24292E"> (0.00s)</span></span>
+<span class="line"><span style="color:#032F62">===</span><span style="color:#032F62"> RUN</span><span style="color:#032F62">   TestMul</span></span>
+<span class="line"><span style="color:#6F42C1">---</span><span style="color:#032F62"> PASS:</span><span style="color:#032F62"> TestMul</span><span style="color:#24292E"> (0.00s)</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 0.007s</span></span></code></pre>
 <p>如果只想运行其中的一个用例，例如 <code>TestAdd</code>，可以用 <code>-run</code> 参数指定，该参数支持通配符 <code>*</code>，和部分正则表达式，例如 <code>^</code>、<code>$</code>。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -run TestAdd -v</span><br><span class="line">=== RUN   TestAdd</span><br><span class="line">--- PASS: TestAdd (0.00s)</span><br><span class="line">PASS</span><br><span class="line">ok      example 0.007s</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="3-子测试-Subtests"><a href="#3-子测试-Subtests" class="headerlink" title="3 子测试(Subtests)"></a>3 子测试(Subtests)</h2><p>子测试是 Go 语言内置支持的，可以在某个测试用例中，根据测试场景使用 <code>t.Run</code>创建不同的子测试用例：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// calc_test.go</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestMul</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	t.Run(<span class="string">&quot;pos&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> Mul(<span class="number">2</span>, <span class="number">3</span>) != <span class="number">6</span> &#123;</span><br><span class="line">			t.Fatal(<span class="string">&quot;fail&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">	&#125;)</span><br><span class="line">	t.Run(<span class="string">&quot;neg&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> Mul(<span class="number">2</span>, <span class="number">-3</span>) != <span class="number">-6</span> &#123;</span><br><span class="line">			t.Fatal(<span class="string">&quot;fail&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -run</span><span style="color:#032F62"> TestAdd</span><span style="color:#005CC5"> -v</span></span>
+<span class="line"><span style="color:#032F62">===</span><span style="color:#032F62"> RUN</span><span style="color:#032F62">   TestAdd</span></span>
+<span class="line"><span style="color:#6F42C1">---</span><span style="color:#032F62"> PASS:</span><span style="color:#032F62"> TestAdd</span><span style="color:#24292E"> (0.00s)</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 0.007s</span></span></code></pre>
+<h2 id="3-子测试subtests">3 子测试(Subtests)</h2>
+<p>子测试是 Go 语言内置支持的，可以在某个测试用例中，根据测试场景使用 <code>t.Run</code>创建不同的子测试用例：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// calc_test.go</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> TestMul</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	t.</span><span style="color:#6F42C1">Run</span><span style="color:#24292E">(</span><span style="color:#032F62">"pos"</span><span style="color:#24292E">, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">		if</span><span style="color:#6F42C1"> Mul</span><span style="color:#24292E">(</span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">) </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> 6</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">			t.</span><span style="color:#6F42C1">Fatal</span><span style="color:#24292E">(</span><span style="color:#032F62">"fail"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">	})</span></span>
+<span class="line"><span style="color:#24292E">	t.</span><span style="color:#6F42C1">Run</span><span style="color:#24292E">(</span><span style="color:#032F62">"neg"</span><span style="color:#24292E">, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">		if</span><span style="color:#6F42C1"> Mul</span><span style="color:#24292E">(</span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#D73A49">-</span><span style="color:#005CC5">3</span><span style="color:#24292E">) </span><span style="color:#D73A49">!=</span><span style="color:#D73A49"> -</span><span style="color:#005CC5">6</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">			t.</span><span style="color:#6F42C1">Fatal</span><span style="color:#24292E">(</span><span style="color:#032F62">"fail"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#24292E">	})</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>之前的例子测试失败时使用 <code>t.Error/t.Errorf</code>，这个例子中使用 <code>t.Fatal/t.Fatalf</code>，区别在于前者遇错不停，还会继续执行其他的测试用例，后者遇错即停。</li>
 </ul>
 <p>运行某个测试用例的子测试：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -run TestMul/pos -v</span><br><span class="line">=== RUN   TestMul</span><br><span class="line">=== RUN   TestMul/pos</span><br><span class="line">--- PASS: TestMul (0.00s)</span><br><span class="line">    --- PASS: TestMul/pos (0.00s)</span><br><span class="line">PASS</span><br><span class="line">ok      example 0.008s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -run</span><span style="color:#032F62"> TestMul/pos</span><span style="color:#005CC5"> -v</span></span>
+<span class="line"><span style="color:#032F62">===</span><span style="color:#032F62"> RUN</span><span style="color:#032F62">   TestMul</span></span>
+<span class="line"><span style="color:#032F62">===</span><span style="color:#032F62"> RUN</span><span style="color:#032F62">   TestMul/pos</span></span>
+<span class="line"><span style="color:#6F42C1">---</span><span style="color:#032F62"> PASS:</span><span style="color:#032F62"> TestMul</span><span style="color:#24292E"> (0.00s)</span></span>
+<span class="line"><span style="color:#6F42C1">    ---</span><span style="color:#032F62"> PASS:</span><span style="color:#032F62"> TestMul/pos</span><span style="color:#24292E"> (0.00s)</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 0.008s</span></span></code></pre>
 <p>对于多个子测试的场景，更推荐如下的写法(table-driven tests)：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  calc_test.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestMul</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	cases := []<span class="keyword">struct</span> &#123;</span><br><span class="line">		Name           <span class="type">string</span></span><br><span class="line">		A, B, Expected <span class="type">int</span></span><br><span class="line">	&#125;&#123;</span><br><span class="line">		&#123;<span class="string">&quot;pos&quot;</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">6</span>&#125;,</span><br><span class="line">		&#123;<span class="string">&quot;neg&quot;</span>, <span class="number">2</span>, <span class="number">-3</span>, <span class="number">-6</span>&#125;,</span><br><span class="line">		&#123;<span class="string">&quot;zero&quot;</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>&#125;,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, c := <span class="keyword">range</span> cases &#123;</span><br><span class="line">		t.Run(c.Name, <span class="function"><span class="keyword">func</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">			<span class="keyword">if</span> ans := Mul(c.A, c.B); ans != c.Expected &#123;</span><br><span class="line">				t.Fatalf(<span class="string">&quot;%d * %d expected %d, but %d got&quot;</span>,</span><br><span class="line">					c.A, c.B, c.Expected, ans)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">//  calc_test.go</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> TestMul</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	cases </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> []</span><span style="color:#D73A49">struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		Name           </span><span style="color:#D73A49">string</span></span>
+<span class="line"><span style="color:#24292E">		A, B, Expected </span><span style="color:#D73A49">int</span></span>
+<span class="line"><span style="color:#24292E">	}{</span></span>
+<span class="line"><span style="color:#24292E">		{</span><span style="color:#032F62">"pos"</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">, </span><span style="color:#005CC5">6</span><span style="color:#24292E">},</span></span>
+<span class="line"><span style="color:#24292E">		{</span><span style="color:#032F62">"neg"</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#D73A49">-</span><span style="color:#005CC5">3</span><span style="color:#24292E">, </span><span style="color:#D73A49">-</span><span style="color:#005CC5">6</span><span style="color:#24292E">},</span></span>
+<span class="line"><span style="color:#24292E">		{</span><span style="color:#032F62">"zero"</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">},</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> _, c </span><span style="color:#D73A49">:=</span><span style="color:#D73A49"> range</span><span style="color:#24292E"> cases {</span></span>
+<span class="line"><span style="color:#24292E">		t.</span><span style="color:#6F42C1">Run</span><span style="color:#24292E">(c.Name, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> ans </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> Mul</span><span style="color:#24292E">(c.A, c.B); ans </span><span style="color:#D73A49">!=</span><span style="color:#24292E"> c.Expected {</span></span>
+<span class="line"><span style="color:#24292E">				t.</span><span style="color:#6F42C1">Fatalf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%d</span><span style="color:#032F62"> * </span><span style="color:#005CC5">%d</span><span style="color:#032F62"> expected </span><span style="color:#005CC5">%d</span><span style="color:#032F62">, but </span><span style="color:#005CC5">%d</span><span style="color:#032F62"> got"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">					c.A, c.B, c.Expected, ans)</span></span>
+<span class="line"><span style="color:#24292E">			}</span></span>
+<span class="line"><span style="color:#24292E">		})</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>所有用例的数据组织在切片 <code>cases</code> 中，看起来就像一张表，借助循环创建子测试。这样写的好处有：</p>
 <ul>
 <li>新增用例非常简单，只需给 cases 新增一条测试数据即可。</li>
@@ -362,28 +120,85 @@
 <li>用例失败时，报错信息的格式比较统一，测试报告易于阅读。</li>
 </ul>
 <p>如果数据量较大，或是一些二进制数据，推荐使用相对路径从文件中读取。</p>
-<h2 id="4-帮助函数-helpers"><a href="#4-帮助函数-helpers" class="headerlink" title="4 帮助函数(helpers)"></a>4 帮助函数(helpers)</h2><p>对一些重复的逻辑，抽取出来作为公共的帮助函数(helpers)，可以增加测试代码的可读性和可维护性。 借助帮助函数，可以让测试用例的主逻辑看起来更清晰。</p>
+<h2 id="4-帮助函数helpers">4 帮助函数(helpers)</h2>
+<p>对一些重复的逻辑，抽取出来作为公共的帮助函数(helpers)，可以增加测试代码的可读性和可维护性。 借助帮助函数，可以让测试用例的主逻辑看起来更清晰。</p>
 <p>例如，我们可以将创建子测试的逻辑抽取出来：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// calc_test.go</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">&quot;testing&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> calcCase <span class="keyword">struct</span>&#123; A, B, Expected <span class="type">int</span> &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">createMulTestCase</span><span class="params">(t *testing.T, c *calcCase)</span></span> &#123;</span><br><span class="line">	<span class="comment">// t.Helper()</span></span><br><span class="line">	<span class="keyword">if</span> ans := Mul(c.A, c.B); ans != c.Expected &#123;</span><br><span class="line">		t.Fatalf(<span class="string">&quot;%d * %d expected %d, but %d got&quot;</span>,</span><br><span class="line">			c.A, c.B, c.Expected, ans)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestMul</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	createMulTestCase(t, &amp;calcCase&#123;<span class="number">2</span>, <span class="number">3</span>, <span class="number">6</span>&#125;)</span><br><span class="line">	createMulTestCase(t, &amp;calcCase&#123;<span class="number">2</span>, <span class="number">-3</span>, <span class="number">-6</span>&#125;)</span><br><span class="line">	createMulTestCase(t, &amp;calcCase&#123;<span class="number">2</span>, <span class="number">0</span>, <span class="number">1</span>&#125;) <span class="comment">// wrong case</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// calc_test.go</span></span>
+<span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#032F62"> "</span><span style="color:#6F42C1">testing</span><span style="color:#032F62">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> calcCase</span><span style="color:#D73A49"> struct</span><span style="color:#24292E">{ A, B, Expected </span><span style="color:#D73A49">int</span><span style="color:#24292E"> }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> createMulTestCase</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">, </span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">calcCase</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#6A737D">	// t.Helper()</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> ans </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> Mul</span><span style="color:#24292E">(c.A, c.B); ans </span><span style="color:#D73A49">!=</span><span style="color:#24292E"> c.Expected {</span></span>
+<span class="line"><span style="color:#24292E">		t.</span><span style="color:#6F42C1">Fatalf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%d</span><span style="color:#032F62"> * </span><span style="color:#005CC5">%d</span><span style="color:#032F62"> expected </span><span style="color:#005CC5">%d</span><span style="color:#032F62">, but </span><span style="color:#005CC5">%d</span><span style="color:#032F62"> got"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">			c.A, c.B, c.Expected, ans)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> TestMul</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#6F42C1">	createMulTestCase</span><span style="color:#24292E">(t, </span><span style="color:#D73A49">&#x26;</span><span style="color:#6F42C1">calcCase</span><span style="color:#24292E">{</span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">, </span><span style="color:#005CC5">6</span><span style="color:#24292E">})</span></span>
+<span class="line"><span style="color:#6F42C1">	createMulTestCase</span><span style="color:#24292E">(t, </span><span style="color:#D73A49">&#x26;</span><span style="color:#6F42C1">calcCase</span><span style="color:#24292E">{</span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#D73A49">-</span><span style="color:#005CC5">3</span><span style="color:#24292E">, </span><span style="color:#D73A49">-</span><span style="color:#005CC5">6</span><span style="color:#24292E">})</span></span>
+<span class="line"><span style="color:#6F42C1">	createMulTestCase</span><span style="color:#24292E">(t, </span><span style="color:#D73A49">&#x26;</span><span style="color:#6F42C1">calcCase</span><span style="color:#24292E">{</span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">1</span><span style="color:#24292E">}) </span><span style="color:#6A737D">// wrong case</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>在这里，我们故意创建了一个错误的测试用例，运行 <code>go test</code>，用例失败，会报告错误发生的文件和行号信息：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span></span><br><span class="line">--- FAIL: TestMul (0.00s)</span><br><span class="line">    calc_test.go:11: 2 * 0 expected 1, but 0 got</span><br><span class="line">FAIL</span><br><span class="line"><span class="built_in">exit</span> status 1</span><br><span class="line">FAIL    example 0.007s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span></span>
+<span class="line"><span style="color:#6F42C1">---</span><span style="color:#032F62"> FAIL:</span><span style="color:#032F62"> TestMul</span><span style="color:#24292E"> (0.00s)</span></span>
+<span class="line"><span style="color:#6F42C1">    calc_test.go:11:</span><span style="color:#005CC5"> 2</span><span style="color:#005CC5"> *</span><span style="color:#005CC5"> 0</span><span style="color:#032F62"> expected</span><span style="color:#032F62"> 1,</span><span style="color:#032F62"> but</span><span style="color:#005CC5"> 0</span><span style="color:#032F62"> got</span></span>
+<span class="line"><span style="color:#6F42C1">FAIL</span></span>
+<span class="line"><span style="color:#005CC5">exit</span><span style="color:#032F62"> status</span><span style="color:#005CC5"> 1</span></span>
+<span class="line"><span style="color:#6F42C1">FAIL</span><span style="color:#032F62">    example</span><span style="color:#032F62"> 0.007s</span></span></code></pre>
 <p>可以看到，错误发生在第11行，也就是帮助函数 <code>createMulTestCase</code> 内部。18, 19, 20行都调用了该方法，我们第一时间并不能够确定是哪一行发生了错误。有些帮助函数还可能在不同的函数中被调用，报错信息都在同一处，不方便问题定位。因此，Go 语言在 1.9 版本中引入了 <code>t.Helper()</code>，用于标注该函数是帮助函数，报错时将输出帮助函数调用者的信息，而不是帮助函数的内部信息。</p>
 <p>修改 <code>createMulTestCase</code>，调用 <code>t.Helper()</code></p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">createMulTestCase</span><span class="params">(c *calcCase, t *testing.T)</span></span> &#123;</span><br><span class="line">    t.Helper()</span><br><span class="line">	t.Run(c.Name, <span class="function"><span class="keyword">func</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> ans := Mul(c.A, c.B); ans != c.Expected &#123;</span><br><span class="line">			t.Fatalf(<span class="string">&quot;%d * %d expected %d, but %d got&quot;</span>,</span><br><span class="line">				c.A, c.B, c.Expected, ans)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> createMulTestCase</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">calcCase</span><span style="color:#24292E">, </span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">    t.</span><span style="color:#6F42C1">Helper</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	t.</span><span style="color:#6F42C1">Run</span><span style="color:#24292E">(c.Name, </span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">		if</span><span style="color:#24292E"> ans </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> Mul</span><span style="color:#24292E">(c.A, c.B); ans </span><span style="color:#D73A49">!=</span><span style="color:#24292E"> c.Expected {</span></span>
+<span class="line"><span style="color:#24292E">			t.</span><span style="color:#6F42C1">Fatalf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%d</span><span style="color:#032F62"> * </span><span style="color:#005CC5">%d</span><span style="color:#032F62"> expected </span><span style="color:#005CC5">%d</span><span style="color:#032F62">, but </span><span style="color:#005CC5">%d</span><span style="color:#032F62"> got"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">				c.A, c.B, c.Expected, ans)</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#24292E">	})</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>运行 <code>go test</code>，报错信息如下，可以非常清晰地知道，错误发生在第 20 行。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span></span><br><span class="line">--- FAIL: TestMul (0.00s)</span><br><span class="line">    calc_test.go:20: 2 * 0 expected 1, but 0 got</span><br><span class="line">FAIL</span><br><span class="line"><span class="built_in">exit</span> status 1</span><br><span class="line">FAIL    example 0.006s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span></span>
+<span class="line"><span style="color:#6F42C1">---</span><span style="color:#032F62"> FAIL:</span><span style="color:#032F62"> TestMul</span><span style="color:#24292E"> (0.00s)</span></span>
+<span class="line"><span style="color:#6F42C1">    calc_test.go:20:</span><span style="color:#005CC5"> 2</span><span style="color:#005CC5"> *</span><span style="color:#005CC5"> 0</span><span style="color:#032F62"> expected</span><span style="color:#032F62"> 1,</span><span style="color:#032F62"> but</span><span style="color:#005CC5"> 0</span><span style="color:#032F62"> got</span></span>
+<span class="line"><span style="color:#6F42C1">FAIL</span></span>
+<span class="line"><span style="color:#005CC5">exit</span><span style="color:#032F62"> status</span><span style="color:#005CC5"> 1</span></span>
+<span class="line"><span style="color:#6F42C1">FAIL</span><span style="color:#032F62">    example</span><span style="color:#032F62"> 0.006s</span></span></code></pre>
 <p>关于 <code>helper</code> 函数的 2 个建议：</p>
 <ul>
 <li>不要返回错误， 帮助函数内部直接使用 <code>t.Error</code> 或 <code>t.Fatal</code> 即可，在用例主逻辑中不会因为太多的错误处理代码，影响可读性。</li>
 <li>调用 <code>t.Helper()</code> 让报错信息更准确，有助于定位。</li>
 </ul>
-<h2 id="5-setup-和-teardown"><a href="#5-setup-和-teardown" class="headerlink" title="5 setup 和 teardown"></a>5 setup 和 teardown</h2><p>如果在同一个测试文件中，每一个测试用例运行前后的逻辑是相同的，一般会写在 setup 和 teardown 函数中。例如执行前需要实例化待测试的对象，如果这个对象比较复杂，很适合将这一部分逻辑提取出来；执行后，可能会做一些资源回收类的工作，例如关闭网络连接，释放文件等。标准库 <code>testing</code> 提供了这样的机制：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">setup</span><span class="params">()</span></span> &#123;</span><br><span class="line">	fmt.Println(<span class="string">&quot;Before all tests&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">teardown</span><span class="params">()</span></span> &#123;</span><br><span class="line">	fmt.Println(<span class="string">&quot;After all tests&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Test1</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	fmt.Println(<span class="string">&quot;I&#x27;m test1&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Test2</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	fmt.Println(<span class="string">&quot;I&#x27;m test2&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestMain</span><span class="params">(m *testing.M)</span></span> &#123;</span><br><span class="line">	setup()</span><br><span class="line">	code := m.Run()</span><br><span class="line">	teardown()</span><br><span class="line">	os.Exit(code)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
+<h2 id="5-setup-和-teardown">5 setup 和 teardown</h2>
+<p>如果在同一个测试文件中，每一个测试用例运行前后的逻辑是相同的，一般会写在 setup 和 teardown 函数中。例如执行前需要实例化待测试的对象，如果这个对象比较复杂，很适合将这一部分逻辑提取出来；执行后，可能会做一些资源回收类的工作，例如关闭网络连接，释放文件等。标准库 <code>testing</code> 提供了这样的机制：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> setup</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"Before all tests"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> teardown</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"After all tests"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Test1</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"I'm test1"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> Test2</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"I'm test2"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> TestMain</span><span style="color:#24292E">(</span><span style="color:#E36209">m</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">M</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#6F42C1">	setup</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	code </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> m.</span><span style="color:#6F42C1">Run</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#6F42C1">	teardown</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	os.</span><span style="color:#6F42C1">Exit</span><span style="color:#24292E">(code)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span></code></pre>
 <ul>
 <li>在这个测试文件中，包含有2个测试用例，<code>Test1</code> 和 <code>Test2</code>。</li>
 <li>如果测试文件中包含函数 <code>TestMain</code>，那么生成的测试将调用 TestMain(m)，而不是直接运行测试。</li>
@@ -391,967 +206,213 @@
 <li>因此可以在调用 <code>m.Run()</code> 前后做一些额外的准备(setup)和回收(teardown)工作。</li>
 </ul>
 <p>执行 <code>go test</code>，将会输出</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span></span><br><span class="line">Before all tests</span><br><span class="line">I<span class="string">&#x27;m test1</span></span><br><span class="line"><span class="string">I&#x27;</span>m test2</span><br><span class="line">PASS</span><br><span class="line">After all tests</span><br><span class="line">ok      example 0.006s</span><br></pre></td></tr></table></figure>
-
-<h2 id="6-网络测试-Network"><a href="#6-网络测试-Network" class="headerlink" title="6 网络测试(Network)"></a>6 网络测试(Network)</h2><h3 id="6-1-TCP-HTTP"><a href="#6-1-TCP-HTTP" class="headerlink" title="6.1 TCP/HTTP"></a>6.1 TCP/HTTP</h3><p>假设需要测试某个 API 接口的 handler 能够正常工作，例如 helloHandler </p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">helloHandler</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">	w.Write([]<span class="type">byte</span>(<span class="string">&quot;hello world&quot;</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span></span>
+<span class="line"><span style="color:#6F42C1">Before</span><span style="color:#032F62"> all</span><span style="color:#032F62"> tests</span></span>
+<span class="line"><span style="color:#6F42C1">I</span><span style="color:#6F42C1">'m test1</span></span>
+<span class="line"><span style="color:#6F42C1">I'</span><span style="color:#6F42C1">m</span><span style="color:#032F62"> test2</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">After</span><span style="color:#032F62"> all</span><span style="color:#032F62"> tests</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 0.006s</span></span></code></pre>
+<h2 id="6-网络测试network">6 网络测试(Network)</h2>
+<h3 id="61-tcphttp">6.1 TCP/HTTP</h3>
+<p>假设需要测试某个 API 接口的 handler 能够正常工作，例如 helloHandler</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> helloHandler</span><span style="color:#24292E">(</span><span style="color:#E36209">w</span><span style="color:#6F42C1"> http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ResponseWriter</span><span style="color:#24292E">, </span><span style="color:#E36209">r</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">http</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Request</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	w.</span><span style="color:#6F42C1">Write</span><span style="color:#24292E">([]</span><span style="color:#D73A49">byte</span><span style="color:#24292E">(</span><span style="color:#032F62">"hello world"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>那我们可以创建真实的网络连接进行测试：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// test code</span></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;io/ioutil&quot;</span></span><br><span class="line">	<span class="string">&quot;net&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;testing&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">handleError</span><span class="params">(t *testing.T, err <span class="type">error</span>)</span></span> &#123;</span><br><span class="line">	t.Helper()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		t.Fatal(<span class="string">&quot;failed&quot;</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestConn</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	ln, err := net.Listen(<span class="string">&quot;tcp&quot;</span>, <span class="string">&quot;127.0.0.1:0&quot;</span>)</span><br><span class="line">	handleError(t, err)</span><br><span class="line">	<span class="keyword">defer</span> ln.Close()</span><br><span class="line"></span><br><span class="line">	http.HandleFunc(<span class="string">&quot;/hello&quot;</span>, helloHandler)</span><br><span class="line">	<span class="keyword">go</span> http.Serve(ln, <span class="literal">nil</span>)</span><br><span class="line"></span><br><span class="line">	resp, err := http.Get(<span class="string">&quot;http://&quot;</span> + ln.Addr().String() + <span class="string">&quot;/hello&quot;</span>)</span><br><span class="line">	handleError(t, err)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">defer</span> resp.Body.Close()</span><br><span class="line">	body, err := ioutil.ReadAll(resp.Body)</span><br><span class="line">	handleError(t, err)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="type">string</span>(body) != <span class="string">&quot;hello world&quot;</span> &#123;</span><br><span class="line">		t.Fatal(<span class="string">&quot;expected hello world, but got&quot;</span>, <span class="type">string</span>(body))</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// test code</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">io/ioutil</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">net</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">net/http</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">testing</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> handleError</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">, </span><span style="color:#E36209">err</span><span style="color:#D73A49"> error</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	t.</span><span style="color:#6F42C1">Helper</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		t.</span><span style="color:#6F42C1">Fatal</span><span style="color:#24292E">(</span><span style="color:#032F62">"failed"</span><span style="color:#24292E">, err)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> TestConn</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	ln, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> net.</span><span style="color:#6F42C1">Listen</span><span style="color:#24292E">(</span><span style="color:#032F62">"tcp"</span><span style="color:#24292E">, </span><span style="color:#032F62">"127.0.0.1:0"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6F42C1">	handleError</span><span style="color:#24292E">(t, err)</span></span>
+<span class="line"><span style="color:#D73A49">	defer</span><span style="color:#24292E"> ln.</span><span style="color:#6F42C1">Close</span><span style="color:#24292E">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">	http.</span><span style="color:#6F42C1">HandleFunc</span><span style="color:#24292E">(</span><span style="color:#032F62">"/hello"</span><span style="color:#24292E">, helloHandler)</span></span>
+<span class="line"><span style="color:#D73A49">	go</span><span style="color:#24292E"> http.</span><span style="color:#6F42C1">Serve</span><span style="color:#24292E">(ln, </span><span style="color:#005CC5">nil</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">	resp, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> http.</span><span style="color:#6F42C1">Get</span><span style="color:#24292E">(</span><span style="color:#032F62">"http://"</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> ln.</span><span style="color:#6F42C1">Addr</span><span style="color:#24292E">().</span><span style="color:#6F42C1">String</span><span style="color:#24292E">() </span><span style="color:#D73A49">+</span><span style="color:#032F62"> "/hello"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6F42C1">	handleError</span><span style="color:#24292E">(t, err)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">	defer</span><span style="color:#24292E"> resp.Body.</span><span style="color:#6F42C1">Close</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	body, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> ioutil.</span><span style="color:#6F42C1">ReadAll</span><span style="color:#24292E">(resp.Body)</span></span>
+<span class="line"><span style="color:#6F42C1">	handleError</span><span style="color:#24292E">(t, err)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#D73A49"> string</span><span style="color:#24292E">(body) </span><span style="color:#D73A49">!=</span><span style="color:#032F62"> "hello world"</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		t.</span><span style="color:#6F42C1">Fatal</span><span style="color:#24292E">(</span><span style="color:#032F62">"expected hello world, but got"</span><span style="color:#24292E">, </span><span style="color:#D73A49">string</span><span style="color:#24292E">(body))</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
-<li><code>net.Listen(&quot;tcp&quot;, &quot;127.0.0.1:0&quot;)</code>：监听一个未被占用的端口，并返回 Listener。</li>
+<li><code>net.Listen("tcp", "127.0.0.1:0")</code>：监听一个未被占用的端口，并返回 Listener。</li>
 <li>调用 <code>http.Serve(ln, nil)</code> 启动 http 服务。</li>
 <li>使用 <code>http.Get</code> 发起一个 Get 请求，检查返回值是否正确。</li>
 <li>尽量不对 <code>http</code> 和 <code>net</code> 库使用 mock，这样可以覆盖较为真实的场景。</li>
 </ul>
-<h3 id="6-2-httptest"><a href="#6-2-httptest" class="headerlink" title="6.2 httptest"></a>6.2 httptest</h3><p>针对 http 开发的场景，使用标准库 <code>net/http/httptest</code> 进行测试更为高效。</p>
+<h3 id="62-httptest">6.2 httptest</h3>
+<p>针对 http 开发的场景，使用标准库 <code>net/http/httptest</code> 进行测试更为高效。</p>
 <p>上述的测试用例改写如下：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// test code</span></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;io/ioutil&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http/httptest&quot;</span></span><br><span class="line">	<span class="string">&quot;testing&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestConn</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">	req := httptest.NewRequest(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;http://example.com/foo&quot;</span>, <span class="literal">nil</span>)</span><br><span class="line">	w := httptest.NewRecorder()</span><br><span class="line">	helloHandler(w, req)</span><br><span class="line">	bytes, _ := ioutil.ReadAll(w.Result().Body)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> <span class="type">string</span>(bytes) != <span class="string">&quot;hello world&quot;</span> &#123;</span><br><span class="line">		t.Fatal(<span class="string">&quot;expected hello world, but got&quot;</span>, <span class="type">string</span>(bytes))</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// test code</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">io/ioutil</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">net/http</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">net/http/httptest</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">testing</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> TestConn</span><span style="color:#24292E">(</span><span style="color:#E36209">t</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">T</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	req </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> httptest.</span><span style="color:#6F42C1">NewRequest</span><span style="color:#24292E">(</span><span style="color:#032F62">"GET"</span><span style="color:#24292E">, </span><span style="color:#032F62">"http://example.com/foo"</span><span style="color:#24292E">, </span><span style="color:#005CC5">nil</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	w </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> httptest.</span><span style="color:#6F42C1">NewRecorder</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#6F42C1">	helloHandler</span><span style="color:#24292E">(w, req)</span></span>
+<span class="line"><span style="color:#24292E">	bytes, _ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> ioutil.</span><span style="color:#6F42C1">ReadAll</span><span style="color:#24292E">(w.</span><span style="color:#6F42C1">Result</span><span style="color:#24292E">().Body)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#D73A49"> string</span><span style="color:#24292E">(bytes) </span><span style="color:#D73A49">!=</span><span style="color:#032F62"> "hello world"</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		t.</span><span style="color:#6F42C1">Fatal</span><span style="color:#24292E">(</span><span style="color:#032F62">"expected hello world, but got"</span><span style="color:#24292E">, </span><span style="color:#D73A49">string</span><span style="color:#24292E">(bytes))</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>使用 httptest 模拟请求对象(req)和响应对象(w)，达到了相同的目的。</p>
-<h2 id="7-Benchmark-基准测试"><a href="#7-Benchmark-基准测试" class="headerlink" title="7 Benchmark 基准测试"></a>7 Benchmark 基准测试</h2><p>基准测试用例的定义如下：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkName</span><span class="params">(b *testing.B)</span></span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h2 id="7-benchmark-基准测试">7 Benchmark 基准测试</h2>
+<p>基准测试用例的定义如下：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkName</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">){</span></span>
+<span class="line"><span style="color:#6A737D">    // ...</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>函数名必须以 <code>Benchmark</code> 开头，后面一般跟待测试的函数名</li>
 <li>参数为 <code>b *testing.B</code>。</li>
 <li>执行基准测试时，需要添加 <code>-bench</code> 参数。</li>
 </ul>
 <p>例如：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkHello</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">        fmt.Sprintf(<span class="string">&quot;hello&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -benchmem -bench .</span><br><span class="line">...</span><br><span class="line">BenchmarkHello-16   15991854   71.6 ns/op   5 B/op   1 allocs/op</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkHello</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        fmt.</span><span style="color:#6F42C1">Sprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"hello"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -benchmem</span><span style="color:#005CC5"> -bench</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#005CC5">...</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkHello-16</span><span style="color:#005CC5">   15991854</span><span style="color:#005CC5">   71.6</span><span style="color:#032F62"> ns/op</span><span style="color:#005CC5">   5</span><span style="color:#032F62"> B/op</span><span style="color:#005CC5">   1</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#005CC5">...</span></span></code></pre>
 <p>基准测试报告每一列值对应的含义如下：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> BenchmarkResult <span class="keyword">struct</span> &#123;</span><br><span class="line">    N         <span class="type">int</span>           <span class="comment">// 迭代次数</span></span><br><span class="line">    T         time.Duration <span class="comment">// 基准测试花费的时间</span></span><br><span class="line">    Bytes     <span class="type">int64</span>         <span class="comment">// 一次迭代处理的字节数</span></span><br><span class="line">    MemAllocs <span class="type">uint64</span>        <span class="comment">// 总的分配内存的次数</span></span><br><span class="line">    MemBytes  <span class="type">uint64</span>        <span class="comment">// 总的分配内存的字节数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> BenchmarkResult</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    N         </span><span style="color:#D73A49">int</span><span style="color:#6A737D">           // 迭代次数</span></span>
+<span class="line"><span style="color:#24292E">    T         </span><span style="color:#6F42C1">time</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Duration</span><span style="color:#6A737D"> // 基准测试花费的时间</span></span>
+<span class="line"><span style="color:#24292E">    Bytes     </span><span style="color:#D73A49">int64</span><span style="color:#6A737D">         // 一次迭代处理的字节数</span></span>
+<span class="line"><span style="color:#24292E">    MemAllocs </span><span style="color:#D73A49">uint64</span><span style="color:#6A737D">        // 总的分配内存的次数</span></span>
+<span class="line"><span style="color:#24292E">    MemBytes  </span><span style="color:#D73A49">uint64</span><span style="color:#6A737D">        // 总的分配内存的字节数</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>如果在运行前基准测试需要一些耗时的配置，则可以使用 <code>b.ResetTimer()</code> 先重置定时器，例如：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkHello</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">    ... <span class="comment">// 耗时操作</span></span><br><span class="line">    b.ResetTimer()</span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">        fmt.Sprintf(<span class="string">&quot;hello&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkHello</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">    ...</span><span style="color:#6A737D"> // 耗时操作</span></span>
+<span class="line"><span style="color:#24292E">    b.</span><span style="color:#6F42C1">ResetTimer</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        fmt.</span><span style="color:#6F42C1">Sprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"hello"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>使用 <code>RunParallel</code> 测试并发性能</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkParallel</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	templ := template.Must(template.New(<span class="string">&quot;test&quot;</span>).Parse(<span class="string">&quot;Hello, &#123;&#123;.&#125;&#125;!&quot;</span>))</span><br><span class="line">	b.RunParallel(<span class="function"><span class="keyword">func</span><span class="params">(pb *testing.PB)</span></span> &#123;</span><br><span class="line">		<span class="keyword">var</span> buf bytes.Buffer</span><br><span class="line">		<span class="keyword">for</span> pb.Next() &#123;</span><br><span class="line">			<span class="comment">// 所有 goroutine 一起，循环一共执行 b.N 次</span></span><br><span class="line">			buf.Reset()</span><br><span class="line">			templ.Execute(&amp;buf, <span class="string">&quot;World&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -benchmem -bench .</span><br><span class="line">...</span><br><span class="line">BenchmarkParallel-16   3325430     375 ns/op   272 B/op   8 allocs/op</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<h2 id="附-参考"><a href="#附-参考" class="headerlink" title="附 参考"></a>附 参考</h2><ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkParallel</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	templ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> template.</span><span style="color:#6F42C1">Must</span><span style="color:#24292E">(template.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(</span><span style="color:#032F62">"test"</span><span style="color:#24292E">).</span><span style="color:#6F42C1">Parse</span><span style="color:#24292E">(</span><span style="color:#032F62">"Hello, {{.}}!"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#24292E">	b.</span><span style="color:#6F42C1">RunParallel</span><span style="color:#24292E">(</span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">pb</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">PB</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">		var</span><span style="color:#24292E"> buf </span><span style="color:#6F42C1">bytes</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Buffer</span></span>
+<span class="line"><span style="color:#D73A49">		for</span><span style="color:#24292E"> pb.</span><span style="color:#6F42C1">Next</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#6A737D">			// 所有 goroutine 一起，循环一共执行 b.N 次</span></span>
+<span class="line"><span style="color:#24292E">			buf.</span><span style="color:#6F42C1">Reset</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">			templ.</span><span style="color:#6F42C1">Execute</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">buf, </span><span style="color:#032F62">"World"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#24292E">	})</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -benchmem</span><span style="color:#005CC5"> -bench</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#005CC5">...</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkParallel-16</span><span style="color:#005CC5">   3325430</span><span style="color:#005CC5">     375</span><span style="color:#032F62"> ns/op</span><span style="color:#005CC5">   272</span><span style="color:#032F62"> B/op</span><span style="color:#005CC5">   8</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#005CC5">...</span></span></code></pre>
+<h2 id="附-参考">附 参考</h2>
+<ul>
 <li><a href="https://geektutu.com/post/quick-gomock.html">Go Mock (gomock) 简明教程</a></li>
-<li><a target="_blank" rel="noopener" href="https://golang.org/pkg/testing/">testing - golang.org</a></li>
-<li><a target="_blank" rel="noopener" href="https://about.sourcegraph.com/go/advanced-testing-in-go">Advanced Testing in Go - sourcegraph.com</a></li>
-</ul>
+<li><a href="https://golang.org/pkg/testing/">testing - golang.org</a></li>
+<li><a href="https://about.sourcegraph.com/go/advanced-testing-in-go">Advanced Testing in Go - sourcegraph.com</a></li>
+</ul></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/quick-go-wasm.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">Go WebAssembly (Wasm) 简明教程</span></a><a href="/post/quick-gomock.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">Go Mock (gomock)简明教程</span></a></nav><script>(function(){const bookId = "history";
+const slug = "quick-go-test";
 
-        
-<script src="/js/qrious.min.js"></script>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "quick-go-test";
+const title = "Go Test 单元测试简明教程";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
 
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
 
-        <hr style="margin-top: 2rem;">
-        <div>
-            
-            <p>
-                <span>专题: </span>
-                
-                <a href="/series/#Go 简明教程">
-                    <code key="Go 简明教程" class="post-label">Go 简明教程</code>
-                </a>
-                
-            </p>
-            
-            <p>
-                <span>本文发表于 2020-02-10，最后修改于 2026-02-23。</span>
-            </p>
-            <!-- 文章末尾的提示 start -->
-            
-            <p>
-                本站永久域名「 <a
-                        href="/post/quick-go-test.html">geektutu.com</a>
-                    」，也可搜索「 极客兔兔 」找到我。
-            </p>
-            
-            
-                
-            <!-- 文章末尾的提示 end -->
-        </div>
-        <hr />
-        <p name="pagination" style="font-size: 1.2em">
-    
-    <a class="float-left" href="/post/geecache.html">上一篇 « 7天用Go从零实现分布式缓存GeeCache</a>
-    
-    
-    <a class="float-right" href="/post/geecache-day1.html">下一篇 » 动手写分布式缓存 - GeeCache第一天 LRU 缓存淘汰策略</a>
-    
-</p>
-    </article>
-    <!-- 赞赏 -->
-    <!--打赏-->
-
-<style>
-    #reward .reward-btn-wrapper {
-        width: 100px;
-        padding-top: 35px;
-        cursor: pointer;
-        margin: 0 auto;
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
     }
 
-    #reward .reward-btn {
-        padding: 2px 15px;
-        color: #fff;
-        background-color: #ea6f5a;
-        border-radius: 20px;
-    }
-
-    #reward .reward-code {
-        position: absolute;
-        top: -220px;
-        left: 50%;
-        display: none;
-        width: 360px;
-        height: 240px;
-        margin-left: -180px;
-        padding: 15px 20px;
-        border: 1px solid #e6e6e6;
-        background: #fff;
-        box-shadow: 0 1px 1px 1px #efefef;
-    }
-
-    #reward .reward-code:after,
-    #reward .reward-code:before {
-        position: absolute;
-        content: '';
-        border: 10px solid transparent
-    }
-
-    #reward .reward-code:after {
-        bottom: -19px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #fff
-    }
-
-    #reward .reward-code:before {
-        bottom: -20px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #e6e6e6
-    }
-
-    #reward .qr-code {
-        width: 50%;
-        float: left;
-        padding: 5px;
-    }
-
-    #reward .qr-code p {
-        margin-top: -6px;
-    }
-
-    #reward img {
-        transform: none;
-        -webkit-transform: none;
-        margin-left: 0;
-    }
-
-    #reward img[alt='i'] {
-        width: 20px;
-        height: 20px;
-        z-index: 2;
-        position: absolute;
-        margin: 65px 0 0 65px;
-    }
-
-    #reward img[alt="ali"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #0f9be0;
-    }
-
-    #reward img[alt="wechat"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #3db034;
-    }
-
-    #reward .reward-tip {
-        font-size: 1.2em;
-        margin-bottom: 0;
-        color: #ea6f5a;
-    }
-</style>
-<div id="reward" class="col-xs-12">
-    <div class="reward-btn-wrapper">
-        <div class="reward-btn text-center">赞赏支持</div>
-    </div>
-    <div class="reward-code text-center">
-        <p class="text-center reward-tip"><strong>请我吃胡萝卜 =^_^= </strong></p>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-ali" src="" alt="ali">
-            <p><small>支付宝</small></p>
-        </div>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-wechat" src="" alt="wechat">
-            <p><small>微信</small></p>
-        </div>
-    </div>
-</div>
-<script>
-    (function (window, document) {
-        var aliQr = new QRious({ value: 'HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8' });
-        var wechatQr = new QRious({ value: 'wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5' });
-        document.querySelector('#reward-ali').src = aliQr.toDataURL();
-        document.querySelector('#reward-wechat').src = wechatQr.toDataURL();
-
-        var rewardBtn = document.querySelector('#reward .reward-btn-wrapper');
-        var qrCode = document.querySelector('#reward .reward-code')
-        var activeFunc = function (e) {
-            qrCode.style.display = 'block';
-        }
-        var hideFunc = function (e) {
-            qrCode.style.display = 'none';
-        }
-
-        rewardBtn.addEventListener('mouseenter', activeFunc, false)
-        rewardBtn.addEventListener('mouseover', activeFunc, false)
-        rewardBtn.addEventListener('mouseleave', hideFunc, false)
-        qrCode.addEventListener('mouseenter', activeFunc, false)
-        qrCode.addEventListener('mouseover', activeFunc, false)
-        qrCode.addEventListener('mouseleave', hideFunc, false)
-    })(window, document);
-</script>
-
-    
-<div class="col-xs-12 text-center" style="margin-top: 30px;">
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://github.com/geektutu" title="Github"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/github.png" /></a>
-    
-    <a style="display:inline-block;" href="https://geektutu.com/feed.xml" title="RSS"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/rss.jpg" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie" title="知乎"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/zhihu.png" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://weibo.com/geektutu" title="微博"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/weibo.jpg" /></a>
-    
-</div>
-
-    <!-- 推荐阅读三篇文章 -->
-    <div class="col-xs-12">
-        <h3>推荐阅读</h3>
-        
-        <div class="post-preview">
-    <div class="post-img" style="background-image: url('/post/qa-golang/go_questions.jpg')"></div>
-    <div class="post-info">
-        <div class="post-info-center">
-            <div class="hidden-xs">
-                
-                
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#Go"
-                    title="Go">Go</a>
-                <span>/</span>
-                
-                
-            </div>
-            <a href="/post/qa-golang.html" class="title">
-                Go 语言笔试面试题汇总
-            </a>
-            <p class="text-gray">
-                <small>
-                    <span>发表于2020-09-04，</span>
-                    <span class="hidden-xs">全文1338字，</span>
-                    <span>阅读约5分钟</span>
-                </small>
-            </p>
-        </div>
-    </div>
-</div>
-        
-        <div class="post-preview">
-    <div class="post-img" style="background-image: url('/post/quick-go2/go2.jpg')"></div>
-    <div class="post-info">
-        <div class="post-info-center">
-            <div class="hidden-xs">
-                
-                
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#Go"
-                    title="Go">Go</a>
-                <span>/</span>
-                
-                
-            </div>
-            <a href="/post/quick-go2.html" class="title">
-                Go2 新特性简明教程
-            </a>
-            <p class="text-gray">
-                <small>
-                    <span>发表于2019-08-15，</span>
-                    <span class="hidden-xs">全文4860字，</span>
-                    <span>阅读约17分钟</span>
-                </small>
-            </p>
-        </div>
-    </div>
-</div>
-        
-        <div class="post-preview">
-    <div class="post-img" style="background-image: url('/post/quick-golang/golang.jpg')"></div>
-    <div class="post-info">
-        <div class="post-info-center">
-            <div class="hidden-xs">
-                
-                
-                <span>/</span>
-                
-                <a class="text-gray" href="/tags/#Go"
-                    title="Go">Go</a>
-                <span>/</span>
-                
-                
-            </div>
-            <a href="/post/quick-golang.html" class="title">
-                Go 语言简明教程
-            </a>
-            <p class="text-gray">
-                <small>
-                    <span>发表于2019-08-06，</span>
-                    <span class="hidden-xs">全文15305字，</span>
-                    <span>阅读约52分钟</span>
-                </small>
-            </p>
-        </div>
-    </div>
-</div>
-        
-    </div>
-    <div class="col-xs-12">
-        <!-- 标签列表 -->
-        <!-- Featured Tags -->
-<style>
-    #featured-tag .post-tag-item {
-        font-size: 12px;
-        line-height: 30px;
-        display: inline-block;
-        height: 30px;
-        margin: 5px 0px;
-        padding: 0 7px;
-        color: #333;
-        border-radius: 15px;
-        background: #f6f6f6;
-    }
-
-    #featured-tag .post-tag-item:hover {
-        color: #337ab7;
-    }
-</style>
-<div id="featured-tag">
-    
-    <a class="post-tag-item" href="/tags/#关于我" title="关于我"
-        rel="9">#关于我 (9) </a>
-    
-    <a class="post-tag-item" href="/tags/#Go" title="Go"
-        rel="48">#Go (48) </a>
-    
-    <a class="post-tag-item" href="/tags/#百宝箱" title="百宝箱"
-        rel="2">#百宝箱 (2) </a>
-    
-    <a class="post-tag-item" href="/tags/#Cheat Sheet" title="Cheat Sheet"
-        rel="1">#Cheat Sheet (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#Go语言高性能编程" title="Go语言高性能编程"
-        rel="20">#Go语言高性能编程 (20) </a>
-    
-    <a class="post-tag-item" href="/tags/#友链" title="友链"
-        rel="1">#友链 (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#Pandas" title="Pandas"
-        rel="3">#Pandas (3) </a>
-    
-    <a class="post-tag-item" href="/tags/#机器学习" title="机器学习"
-        rel="9">#机器学习 (9) </a>
-    
-    <a class="post-tag-item" href="/tags/#Python" title="Python"
-        rel="10">#Python (10) </a>
-    
-    <a class="post-tag-item" href="/tags/#Rust" title="Rust"
-        rel="1">#Rust (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#TensorFlow" title="TensorFlow"
-        rel="9">#TensorFlow (9) </a>
-    
-    <a class="post-tag-item" href="/tags/#mnist" title="mnist"
-        rel="5">#mnist (5) </a>
-    
-    <a class="post-tag-item" href="/tags/#强化学习" title="强化学习"
-        rel="3">#强化学习 (3) </a>
-    
-    <a class="post-tag-item" href="/tags/#OpenAI gym" title="OpenAI gym"
-        rel="4">#OpenAI gym (4) </a>
-    
-    <a class="post-tag-item" href="/tags/#DQN" title="DQN"
-        rel="1">#DQN (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#Q-Learning" title="Q-Learning"
-        rel="1">#Q-Learning (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#CNN" title="CNN"
-        rel="1">#CNN (1) </a>
-    
-    <a class="post-tag-item" href="/tags/#TensorFlow 2" title="TensorFlow 2"
-        rel="10">#TensorFlow 2 (10) </a>
-    
-    <a class="post-tag-item" href="/tags/#官方文档" title="官方文档"
-        rel="10">#官方文档 (10) </a>
-    
-</div>
-    </div>
-    <!-- 评论 -->
-    
-    <div class="col-xs-12">
-        
-<div class="col-xs-12 padding-0">
-    <div id="gitalk-container">
-        <div class="gt-container text-center" style="margin-top: 50px;">
-            <button class="gt-btn gt-btn-public"><span class="gt-btn-text">去 Github 评论</span></button>
-        </div>
-    </div>
-    <div id="gitalk-related"></div>
-</div>
-
-<link rel="stylesheet" href="/css/gitalk.css">
-
-
-<script src="/js/gitalk.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        function renderCommentUrl(data) {
-            var url = (data[window.location.pathname] || {}).url
-            url && getDom('#gitalk-container button').addEventListener('click', function (e) { window.open(url)})
-            url || (getDom('#gitalk-container').style.display = 'none')
-        }
-        const gitalk = new Gitalk({
-            clientID: 'c1fdd456a4caae5f7df0',
-            clientSecret: 'b2674451e21feae50520f99337ec15d2aebe7879',
-            accessToken: '513dc2f1e6df8c07a12fbf1547874f54679d9712',
-            repo: 'geektutu.github.io',
-            owner: 'geektutu',
-            admin: ['geektutu'],
-            id: window.location.pathname,
-            distractionFreeMode: false
-        });
-        fetch("https://api.github.com/user").then(function(resp){
-            gitalk.render('gitalk-container');
-        }).catch(function(e){
-            fetch('/tool/issues.json').then(function (r) { return r.json() }).then(renderCommentUrl).catch(function (e) { })
-        })
-        getDom('#gitalk-container').addEventListener('click', function (e) {
-            e && e.stopPropagation && e.stopPropagation();
-        });
-    })
-</script>
-<script>
-    window.addEventListener('load', function () {
-        function render(comments) {
-            var template = '<a href="${comment.url}?utm_source=gitalk" class="dis-item-url"><h3 class="dis-item-title">${comment.title}</h3>' +
-                '<p class="dis-item-des">${comment.count} 评论 ● ${comment.date}</p>' +
-                '<div class="dis-item-content"><img class="dis-item-img" src="${comment.icon}" alt="icon"><p><b><span class="dis-item-user">${comment.user}</span></b>&nbsp;——&nbsp;${comment.body}</p></div>' +
-                '</a>'
-
-            var wrapper = getDom('#gitalk-related');
-            comments = shuffle(comments);
-            comments.slice(0, 4).forEach(function (c) {
-                var div = document.createElement('div');
-                div.classList.add('dis-item');
-                div.innerHTML = template.replace("${comment.url}", c.url)
-                    .replace("${comment.title}", c.title)
-                    .replace("${comment.count}", c.count)
-                    .replace("${comment.date}", c.date)
-                    .replace("${comment.icon}", c.icon)
-                    .replace("${comment.user}", c.user)
-                    .replace("${comment.body}", c.body)
-                wrapper.appendChild(div)
-            })
-            var p = document.createElement('p')
-            p.innerHTML = '<a href="https://geektutu.com/post/blog-experience-7.html">Gitalk Plus</a>';
-            p.classList.add('dis-divide');
-            wrapper.appendChild(p);
-            wrapper.classList.add('dis-wrapper')
-        }
-        function shuffle(a) {
-            for (var i = a.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-        fetch('/tool/comments.json').then(function (r) { return r.json() }).then(render).catch(function (e) { })
-    })
-</script>
-
-    </div>
-    
-</div>
-<aside class="float-left gkt-sidebar hidden-xs hidden-sm">
-    <div style="clear: both"></div>
-    <div class="gkt-sidebar-wrapper">
-        <section class="box-shadow"><style>
-    .gkt-summary {
-        border: 1px solid #DDDDDD;
-        border-radius: 3px;
-        padding: 5px;
-        width: 100%;
-    }
-
-
-    .gkt-summary nav {
-        overflow: hidden;
-    }
-
-    .gkt-summary nav a {
-        display: inline-block;
-        text-align: center;
-        color: #333;
-        font-size: 12px;
-    }
-
-    .gkt-summary nav span {
-        display: block;
-    }
-
-    .gkt-summary nav .middle {
-        border-left: 1px solid #eaecef;
-        border-right: 1px solid #eaecef;
-    }
-
-    .gkt-summary .number {
-        font-weight: bold;
-    }
-
-    .gkt-summary .link-list {
-        margin-top: 5px;
-        margin-bottom: -5px;
-        padding-top: 7px;
-        border-top: 1px dashed #999;
-        display: flex;
-    }
-
-    .gkt-summary .link-list a {
-        flex: 1;
-    }
-
-    .gkt-summary .link-list img {
-        width: 25px;
-        height: 25px;
-    }
-</style>
-
-<div class="gkt-summary">
-    <nav>
-        <a href="/" class="col-xs-4">
-            <span class="number">108</span><span>文章</span>
-        </a>
-        <a href="/series" class="col-xs-4 middle">
-            <span class="number">23</span><span>专题</span>
-        </a>
-        <a href="/tags" class="col-xs-4">
-            <span class="number">19</span><span>标签</span>
-        </a>
-    </nav>
-
-    
-    <div class="link-list">
-        
-        <a target="_blank" rel="noopener" href="https://github.com/geektutu"><img src="/img/related_links/github.png" /></a>
-        
-        <a href="https://geektutu.com/feed.xml"><img src="/img/related_links/rss.jpg" /></a>
-        
-        <a target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie"><img src="/img/related_links/zhihu.png" /></a>
-        
-        <a target="_blank" rel="noopener" href="https://weibo.com/geektutu"><img src="/img/related_links/weibo.jpg" /></a>
-        
-    </div>
-    
-</div></section>
-        
-        
-        <section class="gkt-sidebar-content box-shadow">
-            <strong>Go 简明教程</strong>
-            <ul>
-                
-                <li>
-                    <a href="/post/quick-golang.html"
-                        class="">Go 语言简明教程</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-gin.html"
-                        class="">Go Gin 简明教程</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go2.html"
-                        class="">Go2 新特性简明教程</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-protobuf.html"
-                        class="">Go Protobuf 简明教程</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-rpc.html"
-                        class="">Go RPC &amp; TLS 鉴权简明教程</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-wasm.html"
-                        class="">Go WebAssembly (Wasm) 简明教程</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-test.html"
-                        class="gkt-sidebar-active">Go Test 单元测试简明教程</a>
-                    
-                    <!-- Table of Contents -->
-<div id="sidebar-toc">
-  <!-- TOC  -->
-  
-  
-  <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-%E5%A6%82%E4%BD%95%E5%86%99%E5%A5%BD%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95"><span class="toc-nav-text">1 如何写好单元测试</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E4%BE%8B%E5%AD%90"><span class="toc-nav-text">2 一个简单例子</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-%E5%AD%90%E6%B5%8B%E8%AF%95-Subtests"><span class="toc-nav-text">3 子测试(Subtests)</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-%E5%B8%AE%E5%8A%A9%E5%87%BD%E6%95%B0-helpers"><span class="toc-nav-text">4 帮助函数(helpers)</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5-setup-%E5%92%8C-teardown"><span class="toc-nav-text">5 setup 和 teardown</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#6-%E7%BD%91%E7%BB%9C%E6%B5%8B%E8%AF%95-Network"><span class="toc-nav-text">6 网络测试(Network)</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#7-Benchmark-%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95"><span class="toc-nav-text">7 Benchmark 基准测试</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%99%84-%E5%8F%82%E8%80%83"><span class="toc-nav-text">附 参考</span></a></li></ol>
-  
-</div>
-
-<script>
-  (function () {
-    var h2 = document.querySelectorAll('article h2');
-    var h3 = document.querySelectorAll('article h3');
-    var linkList = document.querySelectorAll('#sidebar-toc a');
-
-    function findLinkElement(name) {
-      for (var i = 0; i < linkList.length; i++) {
-        var items = linkList[i].href.split('#');
-        if (items && items[items.length - 1] === encodeURIComponent(name)) {
-          return i;
-        }
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
       }
-      return -1;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
     }
 
-    function activeLink(titleList) {
-      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      for (var i = titleList.length - 1; i >= 0; i--) {
-        if (scrollTop - titleList[i].offsetTop > 0) {
-          var index = findLinkElement(titleList[i].id);
-          index != -1 && linkList[index].classList.add('gkt-sidebar-active');
-          break;
-        }
-      }
-    }
-
-    window.addEventListener("scroll", function (e) {
-      [].slice.call(linkList).forEach(function (link) {
-        link.classList.remove('gkt-sidebar-active');
-      })
-      activeLink(h2);
-    })
-  })();
-</script>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/quick-gomock.html"
-                        class="">Go Mock (gomock)简明教程</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-mmap.html"
-                        class="">Go Mmap 文件内存映射简明教程</a>
-                    
-                </li>
-                
-                <li>
-                    <a href="/post/quick-go-context.html"
-                        class="">Go Context 并发编程简明教程</a>
-                    
-                </li>
-                
-            </ul>
-        </section>
-        
-        
-        <section class="gkt-sidebar-content box-shadow">
-            <strong>最近的文章</strong>
-            <ul>
-                
-                <li>
-                    <a href="/post/hpg-sync-cond.html">Go sync.Cond</a>
-                </li>
-                
-                <li>
-                    <a href="/post/hpg-dead-code-elimination.html">Go 死码消除与调试(debug)模式</a>
-                </li>
-                
-                <li>
-                    <a href="/post/hpg-sync-once.html">Go sync.Once</a>
-                </li>
-                
-            </ul>
-        </section>
-        
-    </div>
-</aside>
-
-<script>
-    (function () {
-        function resizeUArrow() {
-            var s = getDom('.u-arrow-wrapper').style
-            var pc = getDom('.post-container')
-            s.left = getPosition(pc).x + 'px';
-            s.width = pc.clientWidth + 'px';
-        }
-        resizeUArrow()
-        window.addEventListener('resize', resizeUArrow);
-    })();
-</script>
-
-    
-
-<script>
-    (function () {
-        var ele = getDom('.gkt-sidebar-content')
-        if(!ele) return;
-        var wrapper = getDom('.gkt-sidebar-wrapper')
-        var last = 0
-        ele.style.maxHeight = ((window.innerHeight || 798) - 200) + 'px'
-        var f = function (e) {
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            var isDown = scrollTop > last;
-            var pos = getPosition(ele).y - scrollTop;
-            var downLimit = 50;
-            var upLimit = -100;
-            // uarrow.style.marginTop = scrollTop + 'px';
-            isDown && pos <= downLimit && wrapper.classList.add("gkt-sidebar-fixed");
-            !isDown && pos > upLimit && wrapper.classList.remove("gkt-sidebar-fixed");
-            last = scrollTop
-        }
-        f()
-        window.addEventListener("scroll", f)
-    })();
-</script>
-
-</main>
-    </div>
-    <style>
-    img#go-top {
-        position: fixed;
-        bottom: 100px;
-        width: 50px;
-        cursor: pointer;
-        z-index: 9999;
-    }
-</style>
-<img id="go-top" src="/icon/top.png" class="hidden-xs" style="display: none" />
-<script>
-    (function () {
-        var goTop = document.getElementById('go-top');
-        var mainContainer = document.querySelector('.main-container');
-        
-        goTop.addEventListener('click', function () {
-            window.scroll(0, 0);
-        }, false);
-        window.addEventListener('scroll', function () {
-            var right = document.body.offsetWidth - mainContainer.getBoundingClientRect().right;
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            goTop.style.right = right + 10 + 'px'
-            scrollTop > 700 && (goTop.style.display = "block");
-            scrollTop <= 700 && (goTop.style.display = "none");
-        });
-    })();
-</script>
-    <style>
-    #geektutu-click-img-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        text-align: center;
-        width: 100%;
-        display: none;
-        z-index: 9999;
-    }
-
-    #geektutu-click-img-container img {
-        object-fit: contain;
-        background: #eaecef;
-        padding: 15px;
-        border-radius: 10px;
-        height: auto;
-        width: auto;
-        vertical-align: middle;
-    }
-</style>
-
-
-<div id="geektutu-click-img-container">
-    <img src="" alt="Big Image">
-</div>
-
-<script>
-    (function () {
-        var container = document.querySelector('#geektutu-click-img-container')
-        var targetImg = container.querySelector('img')
-        var imgs = document.querySelectorAll('article img');
-        targetImg.addEventListener('click', function (e) {
-            container.style.display = 'none';
-            e && e.stopPropagation && e.stopPropagation();
-        }, false);
-
-        for (var i = 0; i < imgs.length; ++i) {
-            var img = imgs[i];
-            img.addEventListener('click', (function (src, rate) {
-                return function (e) {
-                    e && e.stopPropagation && e.stopPropagation();
-                    if (window.innerWidth < 980) {
-                        return
-                    }
-                    targetImg.style.height = targetImg.style.width = 'auto';
-                    if (window.innerWidth / window.innerHeight > rate) {
-                        targetImg.style.height = (window.innerHeight - 20) + 'px';
-                    } else {
-                        targetImg.style.width = (window.innerWidth - 20) + 'px';
-                    }
-                    container.style.height = window.innerHeight + 'px'
-                    container.style.lineHeight = window.innerHeight + 'px'
-                    container.style.display = 'block';
-                    targetImg.src = src;
-                };
-            }(img.src, img.width / img.height)), false)
-        }
-    })();
-</script>
-    <!-- Footer -->
-    <!-- Footer -->
-<style>
-    footer {
-        width: 100%;
-        line-height: 1.5;
-        padding: 20px;
-    }
-
-    footer a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    .footer-hexo img {
-        height: 20px;
-        margin-bottom: -5px;
-    }
-
-    .footer-hexo a {
-        color: #337ab7;
-    }
-</style>
-<footer class="text-center col-xs-12">
-    <p>
-        <small>© 2026 - 极客兔兔 - </small>
-        <small>
-            <a target="_blank" rel="nofollow noopener" href="http://beian.miit.gov.cn/">沪ICP备18001798号-1</a>
-        </small>
-    </p>
-    <p class="footer-hexo">
-        <!-- 但若直接使用或修改主题，请务必保留这段声明 -->
-        <small>Powered by <a target="_blank" href="https://hexo.io">Hexo</a> | Theme
-            <a target="_blank" href="https://geektutu.com">Geektutu</a>
-            <a target="_blank" rel="noopener" href="https://github.com/geektutu/hexo-theme-geektutu">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIACIAUAMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQQFBwIDBgj/2gAIAQEAAAAA9KrHSgAYL5/z6zZGuJd12uugbhq3uKtmuRtix20IS7lTLAfAAAn/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oACAECEAAAAAAB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAxAAAAAAAf/EADEQAAICAQIEBQEGBwAAAAAAAAECAwQFAAYREhORBxQhUlQxQVFic5KxJDJCYYGC0f/aAAgBAQABPwCFHnjWUzuvN6hV4cANSRLGjO9yRVUcSzMoA7jVXJYe5N0a2dhmk9kc0bN2GvLN8mbuNeWb5M3ca8s3yZu415Y/Jm7jXlm+TN3H/NeVPyZu40vOk3TZywK8wJ+v3EHVM/wsI/Dq2lrxN3Nnca16eti8chSAIoMbzByhMwP14kHVfwIiSaF5c96J6kwwCOTnHsYk8uvCrdmQy1TI4rJuz3cZLyGR/wCd4+YoOf8AEpUjXitubLYPG4paFsUxcuiGe7yc5gTW3LW44szXmobsi3Dhmic2+Z4+vCVH9CpraPiQ+QvbgTJrPFBWd5YpWrmNIIEXiRO32Pqt4p7cnfHk18lFBdmEVW1LVdIZGOrniTt6plrWKaO69yCykDRxwF+LMAewB0Txtr+Sf31VI8tEPw62fZt7N3Humtbpzz13ucX6CGSWMSuzpLyD1eNgeUka3PuvHbaxq3biTMHfkiSNCS78CwU+3Xg7Vu3MhuTcU6cq3Zemn3Eh2dv8Lzcut+29x1atKbHYqLJUhLwyNMwiZ3j9yDWOxUOV3tgb+3No5LDx1pi9+aeIwRlNY6bc+Jv+IFGrhLxtXJZ7VKcw81diiAAEn0JOrkWZyNfbEr0tz27UGQgkuGzXdIIvyowq99bRxk9ffO/L81SZBPZgEEroQroIxxMZOgeNsfkn99QypHGqO4Vl9CDrN4LDZkwyzyyQ2IgRHZrzGCZVP1XnQglT9oOtw4LC7iqV6uRkZoYpxKFSQpzFRw4EjVRMfSrQ1qqwxQxKFjjTgFUD7BoWYR6iVe+mtxt9Zwf9teaj4AdccPu5tedX5A/VrzUR+sy/q1CwksF19VEfDj/cnQRW+qg66cfsXtrpx+xe2unH7F7a6cfsXtrpx+xe2unH7F7a6cfsXtoxx+xe2gAAOA1//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwB//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwB//9k="
-                    alt="Github Star">
-            </a>
-        </small>
-    </p>
-    
-    <p>
-        <small>
-            <span id="busuanzi_container_site_pv">👁<span id="busuanzi_value_site_pv"></span></span> &nbsp;
-            <span id="busuanzi_container_page_pv">📚<span id="busuanzi_value_page_pv"></span></span>
-        </small>
-    </p>
-    
-    
-
-</footer>
-
-
-<script>
-    window.addEventListener('load', function () {
-        globalAddScript('//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js');
-    })
-</script>
-
-<!-- Baidu Tongji -->
-
-<script>
-    window.addEventListener('load', function () {
-        var _hmt = _hmt || [];
-        globalAddScript('//hm.baidu.com/hm.js?1a0ec38c52c08db815b0046c2783b1aa')
-    })
-</script>
-
-
-
-<!-- baidu auto push for seo -->
-<script>
-    window.addEventListener('load', function () {
-        var src = 'http://push.zhanzhang.baidu.com/push.js'
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        globalAddScript(src);
-    })
-</script>
-
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-142641425-1');
-
-    window.addEventListener('load', function () {
-        globalAddScript('https://www.googletagmanager.com/gtag/js?id=UA-142641425-1');
-    });
-</script>
-
-
-    <script>
-        // 非本站网址，新开tab页签
-        (function () {
-            var stopBubble = function (e) {
-                e && e.stopPropagation && e.stopPropagation();
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
             }
-            var links = document.querySelectorAll('a');
-            [].slice.call(links).forEach(function (item) {
-                if (item.href && item.href.indexOf(window.location.host) === -1) {
-                    item.target = '_blank'
-                }
-                // 阻止冒泡，不触发彩蛋。
-                item.addEventListener('click', stopBubble, false);
-            });
-            var article = document.querySelector('article');
-            article && article.addEventListener('click', stopBubble, false)
-        })();
-    </script>
-    
-</body>
-
-</html>
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

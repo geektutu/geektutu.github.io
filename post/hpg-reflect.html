@@ -1,1151 +1,309 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
-<!-- Head tag -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="referrer" content="no-referrer-when-downgrade">
-  
-  <meta name="baidu-site-verification" content="p7Pz3jlx4t" />
-  <meta name="google-site-verification" content="X31OY0d2sKImNbS2x8-OpITWRK4nn7nZCcXe3_hA9ew" />
-  <meta name="msvalidate.01" content="7E2AEE3378AC93764DEAB411177A21A1" />
-  <meta name="360-site-verification" content="1d1e81a1a48a1ed2e3308d7cb8e548e7" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- if page has tags, then add tags to keyword -->
-  
-  
-  <meta name="keywords" content="geektutu,jiketutu,Go语言,golang,python,Go语言高性能编程,golang,reflect">
-  <!-- page.description has higher priority -->
-  <meta name="description" content="Go 语言/golang 高性能编程，Go 语言进阶教程，Go 语言高性能编程(high performance go)。本文介绍了反射的使用场景，并测试了反射的性能，以及某些场景下的替代方式。">
-  <link rel="shortcut icon" href="/img/icon.png">
-  <title>
-    
-    Go Reflect 提高反射性能 | Go 语言高性能编程 | 极客兔兔
-    
-  </title>
-
-  <link rel="canonical" href="https://geektutu.com/post/hpg-reflect.html">
-  
-<link rel="stylesheet" href="/css/geektutu.css">
-
-  <!-- global function -->
-  <script>
-    window.globalAddScript = function (url, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = url;
-      onload && (s.onload = onload);
-      onerror && (s.onerror = onerror);
-      document.body.appendChild(s);
-    }
-    window.globalAddCss = function (url) {
-      var s = document.createElement('link');
-      s.rel = 'stylesheet';
-      s.href = url;
-      document.body.appendChild(s);
-    }
-    window.getPosition = function (ele) {
-      var x = 0, y = 0;
-      while (ele) {
-        x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-        y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-        ele = ele.offsetParent;
-      }
-      return { x: x, y: y };
-    }
-    window.getDom = function (str) { return document.querySelector(str) }
-  </script>
-  <!-- google ad -->
-  
-<meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/feed.xml" title="极客兔兔" type="application/rss+xml">
-</head>
-
-<body>
-    
-<style>
-    body {
-        background: white;
-    }
-    .gkt-header-placeholder, .gkt-header {
-        display: none;
-    }
-    .main-container {
-        width: 100%;
-        padding-top: 0;
-        max-width: 100%;
-    }
-</style>
-
-<header class="gkt-header col-xs-12 padding-0">
-    <div id="gkt-nav" class="gkt-header-container">
-        <a href="/" class="gkt-header-title float-left">
-            <img class="float-left" src="/img/icon.png" alt="">
-            <span>极客兔兔</span>
-        </a>
-        <nav class="gkt-header-nav text-right">
-            <ul>
-                <li><a class="hidden-xs" href="/feed.xml">订阅</a></li>
-                <li><a href="/series/">专题</a></li>
-                <li><a href="/archives/">归档</a></li>
-                <li><a href="/post/link.html">友链</a></li>
-                <li><a href="/post/about.html">关于</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="gkt-cate-nav" class="gkt-header-container hidden-xs">
-        
-        <nav class="gkt-header-nav float-left">
-            <ul>
-                
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/tensorflow-mnist-simplest.html">简明教程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tensorflow-mnist-simplest.html">TensorFlow 教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/pandas-dataframe-series.html">Pandas 数据处理</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tf2doc.html">TensorFlow2 文档</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-golang.html">Go 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-rust.html">Rust 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-python.html">Python 简明教程</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/blog-experience-1.html">杂谈 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/blog-experience-1.html">建站经历</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/2020.html">年终总结</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/qa-ml.html">面试 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-ml.html">机器学习面试题</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-golang.html">Go 语言面试题</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/gee.html">从零实现 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/gee.html">Web框架 - Gee</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geecache.html">分布式缓存 - GeeCache</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geeorm.html">ORM框架 - GeeORM</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geerpc.html">RPC框架 - GeeRPC</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/7days-golang-q1.html">7days-golang Q &amp; A</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/box-tools.html">百宝箱 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/box-tools.html">工具</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/cheat-sheet-sqlite.html">SQLite 速查表</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left active">
-                    <a class="float-left" href="/post/high-performance-go.html">高性能编程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/high-performance-go.html">序言</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-benchmark.html">性能分析</a></li>
-                        
-                        <li class="gkt-sub-cate-name active"><a class="float-left"
-                                href="/post/hpg-string-concat.html">常用数据结构</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-mutex.html">并发编程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-reduce-size.html">编译优化</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-gotchas-array-slice.html">语言陷阱</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-            </ul>
-        </nav>
-    </div>
-</header>
-<div class="gkt-header-placeholder" style="height: 44px"></div>
-<div class="gkt-header-placeholder hidden-xs" style="height: 44px"></div>
-<script>
-    (function () {
-        window.addEventListener('scroll', function () {
-            if (window.innerWidth < 768) {
-                return;
-            }
-            var nav = document.querySelector('#gkt-nav');
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            scrollTop > 50 && (nav.classList.add('hide'));
-            scrollTop <= 50 && (nav.classList.remove('hide'));
-        });
-        var cateNavs = document.querySelectorAll('#gkt-cate-nav>nav>ul>li');
-        [].slice.call(cateNavs).forEach(function (item) {
-            var sub = item.querySelector('.gkt-sub-cate');
-            if (!sub) return;
-            item.addEventListener('mouseenter', function (e) { sub.style.display = 'block'; }, false);
-            item.addEventListener('mouseleave', function (e) { sub.style.display = 'none'; }, false);
-        })
-    })();
-</script>
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Main Content -->
-<main class="col-xs-12 padding-0 markdown-it">
-    <!-- Post Container -->
-    
-    
-    <!-- Post Content -->
-<style>
-  .markdown-it article h1, .markdown-it article h2, .markdown-it article h3 {
-    padding-top: 5px;
-    margin-top: 0px;
-  }
-  .post-container {
-    padding: 0 !important;
-    width: 100%;
-  }
-  .post-container article {
-    padding: 0 15px !important;
-  }
-  .gkt-book {
-    max-width: 80rem;
-    margin: 1rem auto;
-    display: flex;
-  }
-  .gkt-book-title {
-    color: #343a40;
-    font-size: 1.2em;
-  }
-  .gkt-sidebar-wrapper {
-    position: fixed;
-    margin-top: 15px;
-  }
-  .gkt-book-menu {
-    flex: 0 0 16rem;
-    padding-left: 15px;
-    padding-top: 5px;
-    z-index: 999;
-  }
-  .gkt-book-menu a {
-    color: #343a40;
-  }
-  .gkt-book-menu a.active {
-    color: #337ab7;
-  }
-  .gkt-book-menu > nav {
-    position: fixed;
-    overflow: auto;
-    padding-right: 15px;
-    height: 95%;
-    font-size: 0.85em;
-    line-height: 2;
-    -ms-overflow-style: none;
-    overflow: -moz-scrollbars-none;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-    border-left: 1px solid #eee;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-thumb {
-      background-color: #c1c1c1;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar {
-    width: 5px !important;
-  }
-  .gkt-book-menu hr {
-    padding: 2px;
-  }
-  .gkt-book-menu > nav > ul {
-    padding-left: 0;
-  }
-  .gkt-book-menu > nav ul,
-  .gkt-book-toc ul,
-  .gkt-book-toc ol {
-    list-style: none !important;
-  }
-  @media (min-width: 992px) {
-    .gkt-book-page {
-      width: calc(100% - 32rem);
-    }
-  }
-  .gkt-book-page {
-    min-width: 20rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-  .gkt-page-tips {
-    color: #555;
-    margin-top: -10px;
-  }
-  .gkt-book-toc {
-    flex: 0 0 16rem;
-    font-size: 0.85em;
-  }
-  .gkt-book .series_links {
-    border: 1px solid #eaecef;
-    padding: 0 15px;
-    background-color: #fff8dc;
-    margin-bottom: 20px;
-    border-radius: 5px;
-  }
-  .gkt-book-menu-icon {
-    padding: 0 15px;
-    font-size: 16px;
-    overflow: hidden;
-    cursor: pointer;
-  }
-  @media (max-width: 767px) {
-    .gkt-book-menu-hidden {
-      margin-left: -16rem;
-    }
-  }
-  .gkt-book-menu-checked {
-    opacity: 0.4;
-    margin-right: -16rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-</style>
-<div class="gkt-book post-container">
-  <aside class="gkt-book-menu gkt-book-menu-hidden">
-    <nav>
-      
-      <h3 class="text-center">
-        <a class="gkt-book-title" href="/post/high-performance-go.html">Go 语言高性能编程</a>
-      </h3>
-      
-      <ul class="col-xs-12 text-center">
-        <li><a href="/">极客兔兔</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://github.com/geektutu">Github</a></li>
-        
-        <li><a href="https://geektutu.com/feed.xml">RSS</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie">知乎</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://weibo.com/geektutu">微博</a></li>
-        
-      </ul>
-      
-      <hr />
-      
-      <ul>
-        
-        <li>
-          <a>序言</a>
-          <ul>
-            
-            <li><a href="/post/high-performance-go.html" class=" ">关于本书</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>性能分析</a>
-          <ul>
-            
-            <li><a href="/post/hpg-benchmark.html" class=" ">benchmark 基准测试</a></li>
-            
-            <li><a href="/post/hpg-pprof.html" class=" ">pprof 性能分析</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>常用数据结构</a>
-          <ul>
-            
-            <li><a href="/post/hpg-string-concat.html" class=" ">字符串拼接性能及原理</a></li>
-            
-            <li><a href="/post/hpg-slice.html" class=" ">切片(slice)性能及陷阱</a></li>
-            
-            <li><a href="/post/hpg-range.html" class=" ">for 和 range 的性能比较</a></li>
-            
-            <li><a href="/post/hpg-reflect.html" class="active ">反射(reflect)性能</a></li>
-            
-            <li><a href="/post/hpg-empty-struct.html" class=" ">使用空结构体节省内存</a></li>
-            
-            <li><a href="/post/hpg-struct-alignment.html" class=" ">内存对齐对性能的影响</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>并发编程</a>
-          <ul>
-            
-            <li><a href="/post/hpg-mutex.html" class=" ">读写锁和互斥锁的性能比较</a></li>
-            
-            <li><a href="/post/hpg-timeout-goroutine.html" class=" ">如何退出协程(超时场景)</a></li>
-            
-            <li><a href="/post/hpg-exit-goroutine.html" class=" ">如何退出协程(其他场景)</a></li>
-            
-            <li><a href="/post/hpg-concurrency-control.html" class=" ">控制协程的并发数量</a></li>
-            
-            <li><a href="/post/hpg-sync-pool.html" class=" ">sync.Pool 复用对象</a></li>
-            
-            <li><a href="/post/hpg-sync-once.html" class=" ">sync.Once 如何提升性能</a></li>
-            
-            <li><a href="/post/hpg-sync-cond.html" class=" ">sync.Cond 条件变量</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>编译优化</a>
-          <ul>
-            
-            <li><a href="/post/hpg-reduce-size.html" class=" ">减小编译体积</a></li>
-            
-            <li><a href="/post/hpg-escape-analysis.html" class=" ">逃逸分析对性能的影响</a></li>
-            
-            <li><a href="/post/hpg-dead-code-elimination.html" class=" ">死码消除与调试模式</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>语言陷阱</a>
-          <ul>
-            
-            <li><a href="/post/hpg-gotchas-array-slice.html" class=" ">数组和切片</a></li>
-            
-          </ul>
-        </li>
-        
-      </ul>
-    </nav>
-  </aside>
-  <div class="gkt-book-page">
-    <div class="hidden-sm hidden-md hidden-lg gkt-book-menu-icon">
-      <label for="book-menu">
-        <svg class="float-left" name="book-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0V0z"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-      </label>
-      <strong class="float-right">Go 语言高性能编程</strong>
-    </div>
-    <div class="u-arrow-wrapper hidden-xs">
-        
-        <a class="float-left" href="/post/hpg-mutex.html"><i class="u-arrow-left"></i></a>
-        
-        
-        <a class="float-right" href="/post/hpg-reduce-size.html"><i class="u-arrow-right"></i></a>
-        
-    </div>
-    <article class="col-xs-12">
-      <h1>Go Reflect 提高反射性能</h1>
-       
-      <div class="hidden-lg hidden-md hidden-sm series_links">
-        <p><strong> 常用数据结构系列文章链接：</strong></p>
-        <ul>
-          
-          <li>
-            <a href="/post/hpg-string-concat.html">字符串拼接性能及原理</a>
-            <span class="post-item-date">(Nov 24, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-slice.html">切片(slice)性能及陷阱</a>
-            <span class="post-item-date">(Nov 30, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-range.html">for 和 range 的性能比较</a>
-            <span class="post-item-date">(Dec 1, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-reflect.html">Go Reflect 提高反射性能</a>
-            <span class="post-item-date">(Dec 6, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-empty-struct.html">Go 空结构体 struct{} 的使用</a>
-            <span class="post-item-date">(Dec 25, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-struct-alignment.html">Go struct 内存对齐</a>
-            <span class="post-item-date">(Dec 27, 2020)</span>
-          </li>
-          
-        </ul>
-      </div>
-       
-      <blockquote>
-        <p>
-          源代码/数据集已上传到
-          <a href="https://github.com/geektutu/high-performance-go" target="_blank" rel="noopener">Github - high-performance-go</a>
-        </p>
-      </blockquote>
-      
-      <div class="gkt-article-start"></div>
-      <p><img src="hpg-string-concat/data-structure.jpg" alt="high performance go - data structure"></p>
-<h2 id="1-反射的用途"><a href="#1-反射的用途" class="headerlink" title="1 反射的用途"></a>1 反射的用途</h2><p>标准库 <a target="_blank" rel="noopener" href="https://golang.org/pkg/reflect/">reflect</a> 为 Go 语言提供了运行时动态获取对象的类型和值以及动态创建对象的能力。反射可以帮助抽象和简化代码，提高开发效率。</p>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Go 语言/golang 高性能编程，Go 语言进阶教程，Go 语言高性能编程(high performance go)。本文介绍了反射的使用场景，并测试了反射的性能，以及某些场景下的替代方式。"><title>Go Reflect 提高反射性能 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.B88FlGyz.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-baseline gap-2"><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔<span class="text-accent">.</span></span><span class="hidden text-xs text-faint sm:inline">写书式技术博客</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/high-performance-go" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">Go 语言高性能编程</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">序言</span></div><ul><li><a href="/post/high-performance-go.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言高性能编程</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">性能分析</span></div><ul><li><a href="/post/hpg-benchmark.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">benchmark 基准测试</a></li><li><a href="/post/hpg-pprof.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">pprof 性能分析</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">常用数据结构</span></div><ul><li><a href="/post/hpg-string-concat.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">字符串拼接性能及原理</a></li><li><a href="/post/hpg-slice.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">切片(slice)性能及陷阱</a></li><li><a href="/post/hpg-range.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">for 和 range 的性能比较</a></li><li><a href="/post/hpg-reflect.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Go Reflect 提高反射性能</a></li><li><a href="/post/hpg-empty-struct.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 空结构体 struct{} 的使用</a></li><li><a href="/post/hpg-struct-alignment.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go struct 内存对齐</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">并发编程</span></div><ul><li><a href="/post/hpg-mutex.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">读写锁和互斥锁的性能比较</a></li><li><a href="/post/hpg-timeout-goroutine.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">如何退出协程 goroutine (超时场景)</a></li><li><a href="/post/hpg-exit-goroutine.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">如何退出协程 goroutine (其他场景)</a></li><li><a href="/post/hpg-concurrency-control.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">控制协程(goroutine)的并发数量</a></li><li><a href="/post/hpg-sync-pool.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Pool</a></li><li><a href="/post/hpg-sync-once.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Once</a></li><li><a href="/post/hpg-sync-cond.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Cond</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">编译优化</span></div><ul><li><a href="/post/hpg-reduce-size.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">减小 Go 代码编译后的二进制体积</a></li><li><a href="/post/hpg-escape-analysis.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 逃逸分析</a></li><li><a href="/post/hpg-dead-code-elimination.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 死码消除与调试(debug)模式</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">语言陷阱</span></div><ul><li><a href="/post/hpg-gotchas-array-slice.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言陷阱 - 数组和切片</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/high-performance-go" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> Go 语言高性能编程</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">Go Reflect 提高反射性能</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2020-12-06">2020-12-06</time><span aria-hidden="true">·</span><span>约 6 分钟</span><a href="https://github.com/geektutu/high-performance-go" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/high-performance-go" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/high-performance-go</a><span class="flex flex-wrap gap-2"><a href="/tags/Go语言高性能编程" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Go语言高性能编程</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#1-反射的用途" class="toc-link block text-muted" data-toc-depth="2">1 反射的用途</a></li><li style="padding-left:0rem"><a href="#2-反射如何简化代码" class="toc-link block text-muted" data-toc-depth="2">2 反射如何简化代码</a></li><li style="padding-left:0rem"><a href="#3-反射的性能" class="toc-link block text-muted" data-toc-depth="2">3 反射的性能</a></li><li style="padding-left:0.9rem"><a href="#31-创建对象" class="toc-link block text-muted" data-toc-depth="3">3.1 创建对象</a></li><li style="padding-left:0.9rem"><a href="#32-修改字段的值" class="toc-link block text-muted" data-toc-depth="3">3.2 修改字段的值</a></li><li style="padding-left:0.9rem"><a href="#33-fieldbyname-和-field-性能差距" class="toc-link block text-muted" data-toc-depth="3">3.3 FieldByName 和 Field 性能差距</a></li><li style="padding-left:0rem"><a href="#4-如何提高性能" class="toc-link block text-muted" data-toc-depth="2">4 如何提高性能</a></li><li style="padding-left:0.9rem"><a href="#41-避免使用反射" class="toc-link block text-muted" data-toc-depth="3">4.1 避免使用反射</a></li><li style="padding-left:0.9rem"><a href="#42-缓存" class="toc-link block text-muted" data-toc-depth="3">4.2 缓存</a></li><li style="padding-left:0rem"><a href="#附-推荐与参考" class="toc-link block text-muted" data-toc-depth="2">附 推荐与参考</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><p><img alt="high performance go - data structure" loading="lazy" decoding="async" width="1706" height="888" src="/_astro/data-structure.CGScMXCx_Z2tblOy.webp" srcset=""></p>
+<h2 id="1-反射的用途">1 反射的用途</h2>
+<p>标准库 <a href="https://golang.org/pkg/reflect/">reflect</a> 为 Go 语言提供了运行时动态获取对象的类型和值以及动态创建对象的能力。反射可以帮助抽象和简化代码，提高开发效率。</p>
 <p>Go 语言标准库以及很多开源软件中都使用了 Go 语言的反射能力，例如用于序列化和反序列化的 <code>json</code>、ORM 框架 <code>gorm/xorm</code> 等。</p>
-<p>在 <a target="_blank" rel="noopener" href="https://github.com/geektutu/7days-golang">7days-golang</a> 这个项目中，也有好几处用到了反射。在 <a href="https://geektutu.com/post/geerpc.html">七天用Go从零实现RPC框架</a> 中，我们使用反射在服务端，利用接收到的二进制报文动态创建对象，例如利用反射实现函数的动态调用。在 <a href="https://geektutu.com/post/geeorm.html">7天用Go从零实现ORM框架GeeORM</a> 中，我们使用反射，实现了结构体(struct)类型和数据库表名的映射，结构体字段和数据库字段的映射。同样利用反射动态创建对象的能力，将数据库中查询到的记录转换为 Go 语言中的对象。</p>
-<h2 id="2-反射如何简化代码"><a href="#2-反射如何简化代码" class="headerlink" title="2 反射如何简化代码"></a>2 反射如何简化代码</h2><p>接下来呢，我们利用反射实现一个简单的功能，来看看反射如何帮助我们简化代码的。</p>
+<p>在 <a href="https://github.com/geektutu/7days-golang">7days-golang</a> 这个项目中，也有好几处用到了反射。在 <a href="https://geektutu.com/post/geerpc.html">七天用Go从零实现RPC框架</a> 中，我们使用反射在服务端，利用接收到的二进制报文动态创建对象，例如利用反射实现函数的动态调用。在 <a href="https://geektutu.com/post/geeorm.html">7天用Go从零实现ORM框架GeeORM</a> 中，我们使用反射，实现了结构体(struct)类型和数据库表名的映射，结构体字段和数据库字段的映射。同样利用反射动态创建对象的能力，将数据库中查询到的记录转换为 Go 语言中的对象。</p>
+<h2 id="2-反射如何简化代码">2 反射如何简化代码</h2>
+<p>接下来呢，我们利用反射实现一个简单的功能，来看看反射如何帮助我们简化代码的。</p>
 <p>假设有一个配置类 Config，每个字段是一个配置项。为了简化实现，假设字段均为 string 类型：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Config <span class="keyword">struct</span> &#123;</span><br><span class="line">	Name    <span class="type">string</span> <span class="string">`json:&quot;server-name&quot;`</span></span><br><span class="line">	IP      <span class="type">string</span> <span class="string">`json:&quot;server-ip&quot;`</span></span><br><span class="line">	URL     <span class="type">string</span> <span class="string">`json:&quot;server-url&quot;`</span></span><br><span class="line">	Timeout <span class="type">string</span> <span class="string">`json:&quot;timeout&quot;`</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Config</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	Name    </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"server-name"`</span></span>
+<span class="line"><span style="color:#24292E">	IP      </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"server-ip"`</span></span>
+<span class="line"><span style="color:#24292E">	URL     </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"server-url"`</span></span>
+<span class="line"><span style="color:#24292E">	Timeout </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"timeout"`</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>配置默认从 <code>json</code> 文件中读取，如果环境变量中设置了某个配置项，则以环境变量中的配置为准。配置项和环境变量对应的规则非常简单：将 json 字段的字母转为大写，将 <code>-</code> 转为下划线，并添加 <code>CONFIG_</code> 前缀。</p>
 <p>最终的对应结果如下：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Config <span class="keyword">struct</span> &#123;</span><br><span class="line">	Name    <span class="type">string</span> <span class="string">`json:&quot;server-name&quot;`</span> <span class="comment">// CONFIG_SERVER_NAME</span></span><br><span class="line">	IP      <span class="type">string</span> <span class="string">`json:&quot;server-ip&quot;`</span>   <span class="comment">// CONFIG_SERVER_IP</span></span><br><span class="line">	URL     <span class="type">string</span> <span class="string">`json:&quot;server-url&quot;`</span>  <span class="comment">// CONFIG_SERVER_URL</span></span><br><span class="line">	Timeout <span class="type">string</span> <span class="string">`json:&quot;timeout&quot;`</span>     <span class="comment">// CONFIG_TIMEOUT</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Config</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	Name    </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"server-name"`</span><span style="color:#6A737D"> // CONFIG_SERVER_NAME</span></span>
+<span class="line"><span style="color:#24292E">	IP      </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"server-ip"`</span><span style="color:#6A737D">   // CONFIG_SERVER_IP</span></span>
+<span class="line"><span style="color:#24292E">	URL     </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"server-url"`</span><span style="color:#6A737D">  // CONFIG_SERVER_URL</span></span>
+<span class="line"><span style="color:#24292E">	Timeout </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `json:"timeout"`</span><span style="color:#6A737D">     // CONFIG_TIMEOUT</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>实现这个功能非常简单，使用 <code>switch case</code> 或者 <code>if else</code> 硬编码很快就搞定了。但是，如果使用硬编码，<code>Config</code> 结构发生改变，例如修改 <code>json</code> 对应的字段，删除或新增了一个配置项，这块逻辑也需要发生改变。而更大的问题在于：容易出错，不好测试！！！</p>
 <p>这个时候，就有了 reflect 的用武之地了。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">readConfig</span><span class="params">()</span></span> *Config &#123;</span><br><span class="line">	<span class="comment">// read from xxx.json，省略</span></span><br><span class="line">	config := Config&#123;&#125;</span><br><span class="line">	typ := reflect.TypeOf(config)</span><br><span class="line">	value := reflect.Indirect(reflect.ValueOf(&amp;config))</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; typ.NumField(); i++ &#123;</span><br><span class="line">		f := typ.Field(i)</span><br><span class="line">		<span class="keyword">if</span> v, ok := f.Tag.Lookup(<span class="string">&quot;json&quot;</span>); ok &#123;</span><br><span class="line">			key := fmt.Sprintf(<span class="string">&quot;CONFIG_%s&quot;</span>, strings.ReplaceAll(strings.ToUpper(v), <span class="string">&quot;-&quot;</span>, <span class="string">&quot;_&quot;</span>))</span><br><span class="line">			<span class="keyword">if</span> env, exist := os.LookupEnv(key); exist &#123;</span><br><span class="line">				value.FieldByName(f.Name).Set(reflect.ValueOf(env))</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> &amp;config</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	os.Setenv(<span class="string">&quot;CONFIG_SERVER_NAME&quot;</span>, <span class="string">&quot;global_server&quot;</span>)</span><br><span class="line">	os.Setenv(<span class="string">&quot;CONFIG_SERVER_IP&quot;</span>, <span class="string">&quot;10.0.0.1&quot;</span>)</span><br><span class="line">	os.Setenv(<span class="string">&quot;CONFIG_SERVER_URL&quot;</span>, <span class="string">&quot;geektutu.com&quot;</span>)</span><br><span class="line">	c := readConfig()</span><br><span class="line">	fmt.Printf(<span class="string">&quot;%+v&quot;</span>, c)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> readConfig</span><span style="color:#24292E">() </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Config</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">	// read from xxx.json，省略</span></span>
+<span class="line"><span style="color:#24292E">	config </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> Config</span><span style="color:#24292E">{}</span></span>
+<span class="line"><span style="color:#24292E">	typ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> reflect.</span><span style="color:#6F42C1">TypeOf</span><span style="color:#24292E">(config)</span></span>
+<span class="line"><span style="color:#24292E">	value </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> reflect.</span><span style="color:#6F42C1">Indirect</span><span style="color:#24292E">(reflect.</span><span style="color:#6F42C1">ValueOf</span><span style="color:#24292E">(</span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E">config))</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> typ.</span><span style="color:#6F42C1">NumField</span><span style="color:#24292E">(); i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		f </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> typ.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">(i)</span></span>
+<span class="line"><span style="color:#D73A49">		if</span><span style="color:#24292E"> v, ok </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> f.Tag.</span><span style="color:#6F42C1">Lookup</span><span style="color:#24292E">(</span><span style="color:#032F62">"json"</span><span style="color:#24292E">); ok {</span></span>
+<span class="line"><span style="color:#24292E">			key </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> fmt.</span><span style="color:#6F42C1">Sprintf</span><span style="color:#24292E">(</span><span style="color:#032F62">"CONFIG_</span><span style="color:#005CC5">%s</span><span style="color:#032F62">"</span><span style="color:#24292E">, strings.</span><span style="color:#6F42C1">ReplaceAll</span><span style="color:#24292E">(strings.</span><span style="color:#6F42C1">ToUpper</span><span style="color:#24292E">(v), </span><span style="color:#032F62">"-"</span><span style="color:#24292E">, </span><span style="color:#032F62">"_"</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> env, exist </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> os.</span><span style="color:#6F42C1">LookupEnv</span><span style="color:#24292E">(key); exist {</span></span>
+<span class="line"><span style="color:#24292E">				value.</span><span style="color:#6F42C1">FieldByName</span><span style="color:#24292E">(f.Name).</span><span style="color:#6F42C1">Set</span><span style="color:#24292E">(reflect.</span><span style="color:#6F42C1">ValueOf</span><span style="color:#24292E">(env))</span></span>
+<span class="line"><span style="color:#24292E">			}</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#D73A49"> &#x26;</span><span style="color:#24292E">config</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	os.</span><span style="color:#6F42C1">Setenv</span><span style="color:#24292E">(</span><span style="color:#032F62">"CONFIG_SERVER_NAME"</span><span style="color:#24292E">, </span><span style="color:#032F62">"global_server"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	os.</span><span style="color:#6F42C1">Setenv</span><span style="color:#24292E">(</span><span style="color:#032F62">"CONFIG_SERVER_IP"</span><span style="color:#24292E">, </span><span style="color:#032F62">"10.0.0.1"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	os.</span><span style="color:#6F42C1">Setenv</span><span style="color:#24292E">(</span><span style="color:#032F62">"CONFIG_SERVER_URL"</span><span style="color:#24292E">, </span><span style="color:#032F62">"geektutu.com"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	c </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> readConfig</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	fmt.</span><span style="color:#6F42C1">Printf</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">%+v</span><span style="color:#032F62">"</span><span style="color:#24292E">, c)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>实现逻辑其实是非常简单的：</p>
 <ul>
 <li>在运行时，利用反射获取到 <code>Config</code> 的每个字段的 <code>Tag</code> 属性，拼接出对应的环境变量的名称。</li>
 <li>查看该环境变量是否存在，如果存在，则将环境变量的值赋值给该字段。</li>
 </ul>
 <p>运行该程序，输出为：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&amp;&#123;Name:global_server IP:10.0.0.1 URL:geektutu.com Timeout:&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#24292E">&#x26;{Name:global_server IP:10.0.0.1 URL:geektutu.com Timeout:}</span></span></code></pre>
 <p>可以看到，环境变量中设置的三个配置项已经生效。之后无论结构体 <code>Config</code> 内部的字段发生任何改变，这部分代码无需任何修改即可完美的适配，出错概率也极大地降低。</p>
-<h2 id="3-反射的性能"><a href="#3-反射的性能" class="headerlink" title="3 反射的性能"></a>3 反射的性能</h2><p>毫无疑问的是，反射会增加额外的代码指令，对性能肯定会产生影响的。具体影响有多大，我们可以使用 Benchmark 来测试一番。</p>
-<h3 id="3-1-创建对象"><a href="#3-1-创建对象" class="headerlink" title="3.1 创建对象"></a>3.1 创建对象</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkNew</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> config *Config</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		config = <span class="built_in">new</span>(Config)</span><br><span class="line">	&#125;</span><br><span class="line">	_ = config</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkReflectNew</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> config *Config</span><br><span class="line">	typ := reflect.TypeOf(Config&#123;&#125;)</span><br><span class="line">	b.ResetTimer()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		config, _ = reflect.New(typ).Interface().(*Config)</span><br><span class="line">	&#125;</span><br><span class="line">	_ = config</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h2 id="3-反射的性能">3 反射的性能</h2>
+<p>毫无疑问的是，反射会增加额外的代码指令，对性能肯定会产生影响的。具体影响有多大，我们可以使用 Benchmark 来测试一番。</p>
+<h3 id="31-创建对象">3.1 创建对象</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkNew</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> config </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Config</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		config </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> new</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Config</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">	_ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> config</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkReflectNew</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> config </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Config</span></span>
+<span class="line"><span style="color:#24292E">	typ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> reflect.</span><span style="color:#6F42C1">TypeOf</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Config</span><span style="color:#24292E">{})</span></span>
+<span class="line"><span style="color:#24292E">	b.</span><span style="color:#6F42C1">ResetTimer</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		config, _ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> reflect.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(typ).</span><span style="color:#6F42C1">Interface</span><span style="color:#24292E">().(</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">Config</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">	_ </span><span style="color:#D73A49">=</span><span style="color:#24292E"> config</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>测试结果如下：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench .          </span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example/hpg-reflect</span><br><span class="line">BenchmarkNew-8                  26478909                40.9 ns/op</span><br><span class="line">BenchmarkReflectNew-8           18983700                62.1 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example/hpg-reflect     2.382s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench</span><span style="color:#032F62"> .</span><span style="color:#24292E">          </span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example/hpg-reflect</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkNew-8</span><span style="color:#005CC5">                  26478909</span><span style="color:#005CC5">                40.9</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkReflectNew-8</span><span style="color:#005CC5">           18983700</span><span style="color:#005CC5">                62.1</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example/hpg-reflect</span><span style="color:#032F62">     2.382s</span></span></code></pre>
 <p>通过反射创建对象的耗时约为 <code>new</code> 的 1.5 倍，相差不是特别大。</p>
-<h3 id="3-2-修改字段的值"><a href="#3-2-修改字段的值" class="headerlink" title="3.2 修改字段的值"></a>3.2 修改字段的值</h3><p>通过反射获取结构体的字段有两种方式，一种是 <code>FieldByName</code>，另一种是 <code>Field</code>(按照下标)。前面的例子中，我们使用的是 <code>FieldByName</code>。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkSet</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	config := <span class="built_in">new</span>(Config)</span><br><span class="line">	b.ResetTimer()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		config.Name = <span class="string">&quot;name&quot;</span></span><br><span class="line">		config.IP = <span class="string">&quot;ip&quot;</span></span><br><span class="line">		config.URL = <span class="string">&quot;url&quot;</span></span><br><span class="line">		config.Timeout = <span class="string">&quot;timeout&quot;</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkReflect_FieldSet</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	typ := reflect.TypeOf(Config&#123;&#125;)</span><br><span class="line">	ins := reflect.New(typ).Elem()</span><br><span class="line">	b.ResetTimer()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		ins.Field(<span class="number">0</span>).SetString(<span class="string">&quot;name&quot;</span>)</span><br><span class="line">		ins.Field(<span class="number">1</span>).SetString(<span class="string">&quot;ip&quot;</span>)</span><br><span class="line">		ins.Field(<span class="number">2</span>).SetString(<span class="string">&quot;url&quot;</span>)</span><br><span class="line">		ins.Field(<span class="number">3</span>).SetString(<span class="string">&quot;timeout&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkReflect_FieldByNameSet</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	typ := reflect.TypeOf(Config&#123;&#125;)</span><br><span class="line">	ins := reflect.New(typ).Elem()</span><br><span class="line">	b.ResetTimer()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		ins.FieldByName(<span class="string">&quot;Name&quot;</span>).SetString(<span class="string">&quot;name&quot;</span>)</span><br><span class="line">		ins.FieldByName(<span class="string">&quot;IP&quot;</span>).SetString(<span class="string">&quot;ip&quot;</span>)</span><br><span class="line">		ins.FieldByName(<span class="string">&quot;URL&quot;</span>).SetString(<span class="string">&quot;url&quot;</span>)</span><br><span class="line">		ins.FieldByName(<span class="string">&quot;Timeout&quot;</span>).SetString(<span class="string">&quot;timeout&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h3 id="32-修改字段的值">3.2 修改字段的值</h3>
+<p>通过反射获取结构体的字段有两种方式，一种是 <code>FieldByName</code>，另一种是 <code>Field</code>(按照下标)。前面的例子中，我们使用的是 <code>FieldByName</code>。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkSet</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	config </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> new</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Config</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	b.</span><span style="color:#6F42C1">ResetTimer</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		config.Name </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "name"</span></span>
+<span class="line"><span style="color:#24292E">		config.IP </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "ip"</span></span>
+<span class="line"><span style="color:#24292E">		config.URL </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "url"</span></span>
+<span class="line"><span style="color:#24292E">		config.Timeout </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "timeout"</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkReflect_FieldSet</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	typ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> reflect.</span><span style="color:#6F42C1">TypeOf</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Config</span><span style="color:#24292E">{})</span></span>
+<span class="line"><span style="color:#24292E">	ins </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> reflect.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(typ).</span><span style="color:#6F42C1">Elem</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	b.</span><span style="color:#6F42C1">ResetTimer</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"name"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"ip"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">(</span><span style="color:#005CC5">2</span><span style="color:#24292E">).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"url"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">(</span><span style="color:#005CC5">3</span><span style="color:#24292E">).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"timeout"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkReflect_FieldByNameSet</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	typ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> reflect.</span><span style="color:#6F42C1">TypeOf</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Config</span><span style="color:#24292E">{})</span></span>
+<span class="line"><span style="color:#24292E">	ins </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> reflect.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(typ).</span><span style="color:#6F42C1">Elem</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	b.</span><span style="color:#6F42C1">ResetTimer</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">FieldByName</span><span style="color:#24292E">(</span><span style="color:#032F62">"Name"</span><span style="color:#24292E">).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"name"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">FieldByName</span><span style="color:#24292E">(</span><span style="color:#032F62">"IP"</span><span style="color:#24292E">).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"ip"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">FieldByName</span><span style="color:#24292E">(</span><span style="color:#032F62">"URL"</span><span style="color:#24292E">).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"url"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">FieldByName</span><span style="color:#24292E">(</span><span style="color:#032F62">"Timeout"</span><span style="color:#24292E">).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"timeout"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>测试结果如下：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench=<span class="string">&quot;Set$&quot;</span> .          </span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example/hpg-reflect</span><br><span class="line">BenchmarkSet-8                          1000000000               0.302 ns/op</span><br><span class="line">BenchmarkReflect_FieldSet-8             33913672                34.5 ns/op</span><br><span class="line">BenchmarkReflect_FieldByNameSet-8        3775234               316 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example/hpg-reflect     3.066s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">"Set$"</span><span style="color:#032F62"> .</span><span style="color:#24292E">          </span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example/hpg-reflect</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkSet-8</span><span style="color:#005CC5">                          1000000000</span><span style="color:#005CC5">               0.302</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkReflect_FieldSet-8</span><span style="color:#005CC5">             33913672</span><span style="color:#005CC5">                34.5</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkReflect_FieldByNameSet-8</span><span style="color:#005CC5">        3775234</span><span style="color:#005CC5">               316</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example/hpg-reflect</span><span style="color:#032F62">     3.066s</span></span></code></pre>
 <ul>
 <li>三种场景下，对象已经提前创建好，测试的均为给字段赋值所消耗的时间。</li>
 <li>普通的赋值操作，每次耗时约为 0.3 ns，通过下标找到对应的字段再赋值，每次耗时约为 30 ns，通过名称找到对应字段再赋值，每次耗时约为 300 ns。</li>
 </ul>
 <p>总结一下，对于一个普通的拥有 4 个字段的结构体 <code>Config</code> 来说，使用反射给每个字段赋值，相比直接赋值，性能劣化约 100 - 1000 倍。其中，<code>FieldByName</code> 的性能相比 <code>Field</code> 劣化 10 倍。</p>
-<h3 id="3-3-FieldByName-和-Field-性能差距"><a href="#3-3-FieldByName-和-Field-性能差距" class="headerlink" title="3.3 FieldByName 和 Field 性能差距"></a>3.3 FieldByName 和 Field 性能差距</h3><p><code>FieldByName</code> 和 <code>Field</code> 十倍的性能差距让我对 <code>FieldByName</code> 的内部实现比较好奇，打开源代码一探究竟：</p>
+<h3 id="33-fieldbyname-和-field-性能差距">3.3 FieldByName 和 Field 性能差距</h3>
+<p><code>FieldByName</code> 和 <code>Field</code> 十倍的性能差距让我对 <code>FieldByName</code> 的内部实现比较好奇，打开源代码一探究竟：</p>
 <ul>
 <li>reflect/value.go</li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// FieldByName returns the struct field with the given name.</span></span><br><span class="line"><span class="comment">// It returns the zero Value if no field was found.</span></span><br><span class="line"><span class="comment">// It panics if v&#x27;s Kind is not struct.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(v Value)</span></span> FieldByName(name <span class="type">string</span>) Value &#123;</span><br><span class="line">	v.mustBe(Struct)</span><br><span class="line">	<span class="keyword">if</span> f, ok := v.typ.FieldByName(name); ok &#123;</span><br><span class="line">		<span class="keyword">return</span> v.FieldByIndex(f.Index)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> Value&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// FieldByName returns the struct field with the given name.</span></span>
+<span class="line"><span style="color:#6A737D">// It returns the zero Value if no field was found.</span></span>
+<span class="line"><span style="color:#6A737D">// It panics if v's Kind is not struct.</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">v </span><span style="color:#6F42C1">Value</span><span style="color:#24292E">) </span><span style="color:#6F42C1">FieldByName</span><span style="color:#24292E">(</span><span style="color:#E36209">name</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#6F42C1">Value</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	v.</span><span style="color:#6F42C1">mustBe</span><span style="color:#24292E">(Struct)</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> f, ok </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> v.typ.</span><span style="color:#6F42C1">FieldByName</span><span style="color:#24292E">(name); ok {</span></span>
+<span class="line"><span style="color:#D73A49">		return</span><span style="color:#24292E"> v.</span><span style="color:#6F42C1">FieldByIndex</span><span style="color:#24292E">(f.Index)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#6F42C1"> Value</span><span style="color:#24292E">{}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>reflect/type.go</li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *rtype)</span></span> FieldByName(name <span class="type">string</span>) (StructField, <span class="type">bool</span>) &#123;</span><br><span class="line">	<span class="keyword">if</span> t.Kind() != Struct &#123;</span><br><span class="line">		<span class="built_in">panic</span>(<span class="string">&quot;reflect: FieldByName of non-struct type&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	tt := (*structType)(unsafe.Pointer(t))</span><br><span class="line">	<span class="keyword">return</span> tt.FieldByName(name)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// FieldByName returns the struct field with the given name</span></span><br><span class="line"><span class="comment">// and a boolean to indicate if the field was found.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(t *structType)</span></span> FieldByName(name <span class="type">string</span>) (f StructField, present <span class="type">bool</span>) &#123;</span><br><span class="line">	<span class="comment">// Quick check for top-level name, or struct without embedded fields.</span></span><br><span class="line">	hasEmbeds := <span class="literal">false</span></span><br><span class="line">	<span class="keyword">if</span> name != <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">		<span class="keyword">for</span> i := <span class="keyword">range</span> t.fields &#123;</span><br><span class="line">			tf := &amp;t.fields[i]</span><br><span class="line">			<span class="keyword">if</span> tf.name.name() == name &#123;</span><br><span class="line">				<span class="keyword">return</span> t.Field(i), <span class="literal">true</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> tf.embedded() &#123;</span><br><span class="line">				hasEmbeds = <span class="literal">true</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> !hasEmbeds &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> t.FieldByNameFunc(<span class="function"><span class="keyword">func</span><span class="params">(s <span class="type">string</span>)</span></span> <span class="type">bool</span> &#123; <span class="keyword">return</span> s == name &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">t </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">rtype</span><span style="color:#24292E">) </span><span style="color:#6F42C1">FieldByName</span><span style="color:#24292E">(</span><span style="color:#E36209">name</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) (</span><span style="color:#6F42C1">StructField</span><span style="color:#24292E">, </span><span style="color:#D73A49">bool</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> t.</span><span style="color:#6F42C1">Kind</span><span style="color:#24292E">() </span><span style="color:#D73A49">!=</span><span style="color:#24292E"> Struct {</span></span>
+<span class="line"><span style="color:#6F42C1">		panic</span><span style="color:#24292E">(</span><span style="color:#032F62">"reflect: FieldByName of non-struct type"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">	tt </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> (</span><span style="color:#D73A49">*</span><span style="color:#6F42C1">structType</span><span style="color:#24292E">)(unsafe.</span><span style="color:#6F42C1">Pointer</span><span style="color:#24292E">(t))</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> tt.</span><span style="color:#6F42C1">FieldByName</span><span style="color:#24292E">(name)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// FieldByName returns the struct field with the given name</span></span>
+<span class="line"><span style="color:#6A737D">// and a boolean to indicate if the field was found.</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#24292E"> (</span><span style="color:#E36209">t </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">structType</span><span style="color:#24292E">) </span><span style="color:#6F42C1">FieldByName</span><span style="color:#24292E">(</span><span style="color:#E36209">name</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) (</span><span style="color:#E36209">f</span><span style="color:#6F42C1"> StructField</span><span style="color:#24292E">, </span><span style="color:#E36209">present</span><span style="color:#D73A49"> bool</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#6A737D">	// Quick check for top-level name, or struct without embedded fields.</span></span>
+<span class="line"><span style="color:#24292E">	hasEmbeds </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> name </span><span style="color:#D73A49">!=</span><span style="color:#032F62"> ""</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">		for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#D73A49"> range</span><span style="color:#24292E"> t.fields {</span></span>
+<span class="line"><span style="color:#24292E">			tf </span><span style="color:#D73A49">:=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#24292E">t.fields[i]</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> tf.name.</span><span style="color:#6F42C1">name</span><span style="color:#24292E">() </span><span style="color:#D73A49">==</span><span style="color:#24292E"> name {</span></span>
+<span class="line"><span style="color:#D73A49">				return</span><span style="color:#24292E"> t.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">(i), </span><span style="color:#005CC5">true</span></span>
+<span class="line"><span style="color:#24292E">			}</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> tf.</span><span style="color:#6F42C1">embedded</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">				hasEmbeds </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> true</span></span>
+<span class="line"><span style="color:#24292E">			}</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#D73A49"> !</span><span style="color:#24292E">hasEmbeds {</span></span>
+<span class="line"><span style="color:#D73A49">		return</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> t.</span><span style="color:#6F42C1">FieldByNameFunc</span><span style="color:#24292E">(</span><span style="color:#D73A49">func</span><span style="color:#24292E">(</span><span style="color:#E36209">s</span><span style="color:#D73A49"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">bool</span><span style="color:#24292E"> { </span><span style="color:#D73A49">return</span><span style="color:#24292E"> s </span><span style="color:#D73A49">==</span><span style="color:#24292E"> name })</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>整个调用链条是比较简单的：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(v Value) FieldByName -&gt; (t *rtype) FieldByName -&gt; (t *structType) FieldByName</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#24292E">(</span><span style="color:#6F42C1">v</span><span style="color:#032F62"> Value</span><span style="color:#24292E">) </span><span style="color:#6F42C1">FieldByName</span><span style="color:#24292E"> -</span><span style="color:#D73A49">></span><span style="color:#24292E"> (t </span><span style="color:#005CC5">*</span><span style="color:#032F62">rtype</span><span style="color:#24292E">) FieldByName -</span><span style="color:#D73A49">></span><span style="color:#24292E"> (</span><span style="color:#6F42C1">t</span><span style="color:#005CC5"> *</span><span style="color:#032F62">structType</span><span style="color:#24292E">) FieldByName</span></span></code></pre>
 <p>而 <code>(t *structType) FieldByName</code> 中使用 for 循环，逐个字段查找，字段名匹配时返回。也就是说，在反射的内部，字段是按顺序存储的，因此按照下标访问查询效率为 O(1)，而按照 <code>Name</code> 访问，则需要遍历所有字段，查询效率为 O(N)。结构体所包含的字段(包括方法)越多，那么两者之间的效率差距则越大。</p>
-<h2 id="4-如何提高性能"><a href="#4-如何提高性能" class="headerlink" title="4 如何提高性能"></a>4 如何提高性能</h2><h3 id="4-1-避免使用反射"><a href="#4-1-避免使用反射" class="headerlink" title="4.1 避免使用反射"></a>4.1 避免使用反射</h3><p>使用反射赋值，效率非常低下，如果有替代方案，尽可能避免使用反射，特别是会被反复调用的热点代码。例如 RPC 协议中，需要对结构体进行序列化和反序列化，这个时候避免使用 Go 语言自带的 <code>json</code> 的 <code>Marshal</code> 和 <code>Unmarshal</code> 方法，因为标准库中的 json 序列化和反序列化是利用反射实现的。可选的替代方案有 <a target="_blank" rel="noopener" href="https://github.com/mailru/easyjson">easyjson</a>，在大部分场景下，相比标准库，有 5 倍左右的性能提升。</p>
-<h3 id="4-2-缓存"><a href="#4-2-缓存" class="headerlink" title="4.2 缓存"></a>4.2 缓存</h3><p>在上面的例子中可以看到，<code>FieldByName</code> 相比于 <code>Field</code> 有一个数量级的性能劣化。那在实际的应用中，就要避免直接调用 <code>FieldByName</code>。我们可以利用字典将 <code>Name</code> 和 <code>Index</code> 的映射缓存起来。避免每次反复查找，耗费大量的时间。</p>
+<h2 id="4-如何提高性能">4 如何提高性能</h2>
+<h3 id="41-避免使用反射">4.1 避免使用反射</h3>
+<p>使用反射赋值，效率非常低下，如果有替代方案，尽可能避免使用反射，特别是会被反复调用的热点代码。例如 RPC 协议中，需要对结构体进行序列化和反序列化，这个时候避免使用 Go 语言自带的 <code>json</code> 的 <code>Marshal</code> 和 <code>Unmarshal</code> 方法，因为标准库中的 json 序列化和反序列化是利用反射实现的。可选的替代方案有 <a href="https://github.com/mailru/easyjson">easyjson</a>，在大部分场景下，相比标准库，有 5 倍左右的性能提升。</p>
+<h3 id="42-缓存">4.2 缓存</h3>
+<p>在上面的例子中可以看到，<code>FieldByName</code> 相比于 <code>Field</code> 有一个数量级的性能劣化。那在实际的应用中，就要避免直接调用 <code>FieldByName</code>。我们可以利用字典将 <code>Name</code> 和 <code>Index</code> 的映射缓存起来。避免每次反复查找，耗费大量的时间。</p>
 <p>我们利用缓存，优化下刚才的测试用例：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkReflect_FieldByNameCacheSet</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	typ := reflect.TypeOf(Config&#123;&#125;)</span><br><span class="line">	cache := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; typ.NumField(); i++ &#123;</span><br><span class="line">		cache[typ.Field(i).Name] = i</span><br><span class="line">	&#125;</span><br><span class="line">	ins := reflect.New(typ).Elem()</span><br><span class="line">	b.ResetTimer()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		ins.Field(cache[<span class="string">&quot;Name&quot;</span>]).SetString(<span class="string">&quot;name&quot;</span>)</span><br><span class="line">		ins.Field(cache[<span class="string">&quot;IP&quot;</span>]).SetString(<span class="string">&quot;ip&quot;</span>)</span><br><span class="line">		ins.Field(cache[<span class="string">&quot;URL&quot;</span>]).SetString(<span class="string">&quot;url&quot;</span>)</span><br><span class="line">		ins.Field(cache[<span class="string">&quot;Timeout&quot;</span>]).SetString(<span class="string">&quot;timeout&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkReflect_FieldByNameCacheSet</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	typ </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> reflect.</span><span style="color:#6F42C1">TypeOf</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Config</span><span style="color:#24292E">{})</span></span>
+<span class="line"><span style="color:#24292E">	cache </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> make</span><span style="color:#24292E">(</span><span style="color:#D73A49">map</span><span style="color:#24292E">[</span><span style="color:#D73A49">string</span><span style="color:#24292E">]</span><span style="color:#D73A49">int</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> typ.</span><span style="color:#6F42C1">NumField</span><span style="color:#24292E">(); i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		cache[typ.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">(i).Name] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> i</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">	ins </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> reflect.</span><span style="color:#6F42C1">New</span><span style="color:#24292E">(typ).</span><span style="color:#6F42C1">Elem</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">	b.</span><span style="color:#6F42C1">ResetTimer</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">(cache[</span><span style="color:#032F62">"Name"</span><span style="color:#24292E">]).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"name"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">(cache[</span><span style="color:#032F62">"IP"</span><span style="color:#24292E">]).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"ip"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">(cache[</span><span style="color:#032F62">"URL"</span><span style="color:#24292E">]).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"url"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		ins.</span><span style="color:#6F42C1">Field</span><span style="color:#24292E">(cache[</span><span style="color:#032F62">"Timeout"</span><span style="color:#24292E">]).</span><span style="color:#6F42C1">SetString</span><span style="color:#24292E">(</span><span style="color:#032F62">"timeout"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>测试结果如下：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench=<span class="string">&quot;Set$&quot;</span> . -v</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example/hpg-reflect</span><br><span class="line">BenchmarkSet-8                                  1000000000               0.303 ns/op</span><br><span class="line">BenchmarkReflect_FieldSet-8                     33429990                34.1 ns/op</span><br><span class="line">BenchmarkReflect_FieldByNameSet-8                3612130               331 ns/op</span><br><span class="line">BenchmarkReflect_FieldByNameCacheSet-8          14575906                78.2 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example/hpg-reflect     4.280s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">"Set$"</span><span style="color:#032F62"> .</span><span style="color:#005CC5"> -v</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example/hpg-reflect</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkSet-8</span><span style="color:#005CC5">                                  1000000000</span><span style="color:#005CC5">               0.303</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkReflect_FieldSet-8</span><span style="color:#005CC5">                     33429990</span><span style="color:#005CC5">                34.1</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkReflect_FieldByNameSet-8</span><span style="color:#005CC5">                3612130</span><span style="color:#005CC5">               331</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkReflect_FieldByNameCacheSet-8</span><span style="color:#005CC5">          14575906</span><span style="color:#005CC5">                78.2</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example/hpg-reflect</span><span style="color:#032F62">     4.280s</span></span></code></pre>
 <p>消耗时间从原来的 10 倍，缩小到了 2 倍。</p>
-<h2 id="附-推荐与参考"><a href="#附-推荐与参考" class="headerlink" title="附 推荐与参考"></a>附 推荐与参考</h2><ul>
+<h2 id="附-推荐与参考">附 推荐与参考</h2>
+<ul>
 <li><a href="https://geektutu.com/post/qa-golang.html">Go 语言笔试面试题汇总</a></li>
 <li><a href="https://geektutu.com/post/gee.html">七天用Go从零实现系列</a></li>
-</ul>
+</ul></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/hpg-range.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">for 和 range 的性能比较</span></a><a href="/post/hpg-empty-struct.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">Go 空结构体 struct{} 的使用</span></a></nav><script>(function(){const bookId = "high-performance-go";
+const slug = "hpg-reflect";
 
-      
-<script src="/js/qrious.min.js"></script>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "hpg-reflect";
+const title = "Go Reflect 提高反射性能";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
 
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
 
-      <hr />
-      <p>
-        <a target="_blank" rel="noopener" href="https://github.com/geektutu/high-performance-go/blob/master/charpter-2/hpg-reflect.md"><span class="float-left gkt-page-tips">edit this page</span></a>
-        <span class="float-right gkt-page-tips">last updated at 2026-02-23</span>
-      </p>
-    </article>
-    <!-- 赞赏 -->
-    <!--打赏-->
-
-<style>
-    #reward .reward-btn-wrapper {
-        width: 100px;
-        padding-top: 35px;
-        cursor: pointer;
-        margin: 0 auto;
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
     }
 
-    #reward .reward-btn {
-        padding: 2px 15px;
-        color: #fff;
-        background-color: #ea6f5a;
-        border-radius: 20px;
-    }
-
-    #reward .reward-code {
-        position: absolute;
-        top: -220px;
-        left: 50%;
-        display: none;
-        width: 360px;
-        height: 240px;
-        margin-left: -180px;
-        padding: 15px 20px;
-        border: 1px solid #e6e6e6;
-        background: #fff;
-        box-shadow: 0 1px 1px 1px #efefef;
-    }
-
-    #reward .reward-code:after,
-    #reward .reward-code:before {
-        position: absolute;
-        content: '';
-        border: 10px solid transparent
-    }
-
-    #reward .reward-code:after {
-        bottom: -19px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #fff
-    }
-
-    #reward .reward-code:before {
-        bottom: -20px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #e6e6e6
-    }
-
-    #reward .qr-code {
-        width: 50%;
-        float: left;
-        padding: 5px;
-    }
-
-    #reward .qr-code p {
-        margin-top: -6px;
-    }
-
-    #reward img {
-        transform: none;
-        -webkit-transform: none;
-        margin-left: 0;
-    }
-
-    #reward img[alt='i'] {
-        width: 20px;
-        height: 20px;
-        z-index: 2;
-        position: absolute;
-        margin: 65px 0 0 65px;
-    }
-
-    #reward img[alt="ali"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #0f9be0;
-    }
-
-    #reward img[alt="wechat"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #3db034;
-    }
-
-    #reward .reward-tip {
-        font-size: 1.2em;
-        margin-bottom: 0;
-        color: #ea6f5a;
-    }
-</style>
-<div id="reward" class="col-xs-12">
-    <div class="reward-btn-wrapper">
-        <div class="reward-btn text-center">赞赏支持</div>
-    </div>
-    <div class="reward-code text-center">
-        <p class="text-center reward-tip"><strong>请我吃胡萝卜 =^_^= </strong></p>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-ali" src="" alt="ali">
-            <p><small>支付宝</small></p>
-        </div>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-wechat" src="" alt="wechat">
-            <p><small>微信</small></p>
-        </div>
-    </div>
-</div>
-<script>
-    (function (window, document) {
-        var aliQr = new QRious({ value: 'HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8' });
-        var wechatQr = new QRious({ value: 'wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5' });
-        document.querySelector('#reward-ali').src = aliQr.toDataURL();
-        document.querySelector('#reward-wechat').src = wechatQr.toDataURL();
-
-        var rewardBtn = document.querySelector('#reward .reward-btn-wrapper');
-        var qrCode = document.querySelector('#reward .reward-code')
-        var activeFunc = function (e) {
-            qrCode.style.display = 'block';
-        }
-        var hideFunc = function (e) {
-            qrCode.style.display = 'none';
-        }
-
-        rewardBtn.addEventListener('mouseenter', activeFunc, false)
-        rewardBtn.addEventListener('mouseover', activeFunc, false)
-        rewardBtn.addEventListener('mouseleave', hideFunc, false)
-        qrCode.addEventListener('mouseenter', activeFunc, false)
-        qrCode.addEventListener('mouseover', activeFunc, false)
-        qrCode.addEventListener('mouseleave', hideFunc, false)
-    })(window, document);
-</script>
-
-    
-<div class="col-xs-12 text-center" style="margin-top: 30px;">
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://github.com/geektutu" title="Github"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/github.png" /></a>
-    
-    <a style="display:inline-block;" href="https://geektutu.com/feed.xml" title="RSS"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/rss.jpg" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie" title="知乎"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/zhihu.png" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://weibo.com/geektutu" title="微博"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/weibo.jpg" /></a>
-    
-</div>
-
-    <!-- 评论 -->
-    
-    <div class="col-xs-12">
-      
-<div class="col-xs-12 padding-0">
-    <div id="gitalk-container">
-        <div class="gt-container text-center" style="margin-top: 50px;">
-            <button class="gt-btn gt-btn-public"><span class="gt-btn-text">去 Github 评论</span></button>
-        </div>
-    </div>
-    <div id="gitalk-related"></div>
-</div>
-
-<link rel="stylesheet" href="/css/gitalk.css">
-
-
-<script src="/js/gitalk.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        function renderCommentUrl(data) {
-            var url = (data[window.location.pathname] || {}).url
-            url && getDom('#gitalk-container button').addEventListener('click', function (e) { window.open(url)})
-            url || (getDom('#gitalk-container').style.display = 'none')
-        }
-        const gitalk = new Gitalk({
-            clientID: 'c1fdd456a4caae5f7df0',
-            clientSecret: 'b2674451e21feae50520f99337ec15d2aebe7879',
-            accessToken: '513dc2f1e6df8c07a12fbf1547874f54679d9712',
-            repo: 'geektutu.github.io',
-            owner: 'geektutu',
-            admin: ['geektutu'],
-            id: window.location.pathname,
-            distractionFreeMode: false
-        });
-        fetch("https://api.github.com/user").then(function(resp){
-            gitalk.render('gitalk-container');
-        }).catch(function(e){
-            fetch('/tool/issues.json').then(function (r) { return r.json() }).then(renderCommentUrl).catch(function (e) { })
-        })
-        getDom('#gitalk-container').addEventListener('click', function (e) {
-            e && e.stopPropagation && e.stopPropagation();
-        });
-    })
-</script>
-<script>
-    window.addEventListener('load', function () {
-        function render(comments) {
-            var template = '<a href="${comment.url}?utm_source=gitalk" class="dis-item-url"><h3 class="dis-item-title">${comment.title}</h3>' +
-                '<p class="dis-item-des">${comment.count} 评论 ● ${comment.date}</p>' +
-                '<div class="dis-item-content"><img class="dis-item-img" src="${comment.icon}" alt="icon"><p><b><span class="dis-item-user">${comment.user}</span></b>&nbsp;——&nbsp;${comment.body}</p></div>' +
-                '</a>'
-
-            var wrapper = getDom('#gitalk-related');
-            comments = shuffle(comments);
-            comments.slice(0, 4).forEach(function (c) {
-                var div = document.createElement('div');
-                div.classList.add('dis-item');
-                div.innerHTML = template.replace("${comment.url}", c.url)
-                    .replace("${comment.title}", c.title)
-                    .replace("${comment.count}", c.count)
-                    .replace("${comment.date}", c.date)
-                    .replace("${comment.icon}", c.icon)
-                    .replace("${comment.user}", c.user)
-                    .replace("${comment.body}", c.body)
-                wrapper.appendChild(div)
-            })
-            var p = document.createElement('p')
-            p.innerHTML = '<a href="https://geektutu.com/post/blog-experience-7.html">Gitalk Plus</a>';
-            p.classList.add('dis-divide');
-            wrapper.appendChild(p);
-            wrapper.classList.add('dis-wrapper')
-        }
-        function shuffle(a) {
-            for (var i = a.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-        fetch('/tool/comments.json').then(function (r) { return r.json() }).then(render).catch(function (e) { })
-    })
-</script>
-
-    </div>
-    
-  </div>
-  <aside class="gkt-book-toc hidden-xs hidden-sm">
-    <div style="clear: both"></div>
-    <div class="gkt-sidebar-wrapper">
-      <!-- Table of Contents -->
-<div id="sidebar-toc">
-  <!-- TOC  -->
-  
-  
-  <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-%E5%8F%8D%E5%B0%84%E7%9A%84%E7%94%A8%E9%80%94"><span class="toc-nav-text">1 反射的用途</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-%E5%8F%8D%E5%B0%84%E5%A6%82%E4%BD%95%E7%AE%80%E5%8C%96%E4%BB%A3%E7%A0%81"><span class="toc-nav-text">2 反射如何简化代码</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-%E5%8F%8D%E5%B0%84%E7%9A%84%E6%80%A7%E8%83%BD"><span class="toc-nav-text">3 反射的性能</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-1-%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1"><span class="toc-nav-text">3.1 创建对象</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-2-%E4%BF%AE%E6%94%B9%E5%AD%97%E6%AE%B5%E7%9A%84%E5%80%BC"><span class="toc-nav-text">3.2 修改字段的值</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-3-FieldByName-%E5%92%8C-Field-%E6%80%A7%E8%83%BD%E5%B7%AE%E8%B7%9D"><span class="toc-nav-text">3.3 FieldByName 和 Field 性能差距</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4-%E5%A6%82%E4%BD%95%E6%8F%90%E9%AB%98%E6%80%A7%E8%83%BD"><span class="toc-nav-text">4 如何提高性能</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#4-1-%E9%81%BF%E5%85%8D%E4%BD%BF%E7%94%A8%E5%8F%8D%E5%B0%84"><span class="toc-nav-text">4.1 避免使用反射</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#4-2-%E7%BC%93%E5%AD%98"><span class="toc-nav-text">4.2 缓存</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%99%84-%E6%8E%A8%E8%8D%90%E4%B8%8E%E5%8F%82%E8%80%83"><span class="toc-nav-text">附 推荐与参考</span></a></li></ol>
-  
-</div>
-
-<script>
-  (function () {
-    var h2 = document.querySelectorAll('article h2');
-    var h3 = document.querySelectorAll('article h3');
-    var linkList = document.querySelectorAll('#sidebar-toc a');
-
-    function findLinkElement(name) {
-      for (var i = 0; i < linkList.length; i++) {
-        var items = linkList[i].href.split('#');
-        if (items && items[items.length - 1] === encodeURIComponent(name)) {
-          return i;
-        }
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
       }
-      return -1;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
     }
 
-    function activeLink(titleList) {
-      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      for (var i = titleList.length - 1; i >= 0; i--) {
-        if (scrollTop - titleList[i].offsetTop > 0) {
-          var index = findLinkElement(titleList[i].id);
-          index != -1 && linkList[index].classList.add('gkt-sidebar-active');
-          break;
-        }
-      }
-    }
-
-    window.addEventListener("scroll", function (e) {
-      [].slice.call(linkList).forEach(function (link) {
-        link.classList.remove('gkt-sidebar-active');
-      })
-      activeLink(h2);
-    })
-  })();
-</script>
-    </div>
-  </aside>
-</div>
-<script>
-    (function () {
-        function resizeUArrow() {
-            var s = getDom('.u-arrow-wrapper').style
-            var pc = getDom('.gkt-book-page')
-            s.left = getPosition(pc).x - 15 + 'px';
-            s.width = pc.clientWidth + 30 + 'px';
-        }
-        resizeUArrow()
-        window.addEventListener('resize', resizeUArrow);
-        var nav = getDom('.gkt-book-menu nav');
-        var key = 'gkt_book_Go 语言高性能编程_' + parseInt(new Date().getTime()/1000/3600/24/7)
-        nav.scrollTo(0, localStorage.getItem(key) * 1)
-        nav.addEventListener('scroll', function(){ localStorage.setItem(key, nav.scrollTop) })
-    })();
-    (function(){
-      getDom(".gkt-book-menu-icon").addEventListener('click', function() {
-        var menu = getDom(".gkt-book-menu").classList
-        var article = getDom(".gkt-book-page").classList
-        if (menu.contains("gkt-book-menu-hidden")) {
-          menu.remove('gkt-book-menu-hidden')
-          article.add('gkt-book-menu-checked')
-        } else {
-          menu.add('gkt-book-menu-hidden')
-          article.remove('gkt-book-menu-checked')
-        }
-      })
-    })();
-</script>
-
-
-    
-
-</main>
-    </div>
-    <style>
-    img#go-top {
-        position: fixed;
-        bottom: 100px;
-        width: 50px;
-        cursor: pointer;
-        z-index: 9999;
-    }
-</style>
-<img id="go-top" src="/icon/top.png" class="hidden-xs" style="display: none" />
-<script>
-    (function () {
-        var goTop = document.getElementById('go-top');
-        var mainContainer = document.querySelector('.main-container');
-        
-        goTop.addEventListener('click', function () {
-            window.scroll(0, 0);
-        }, false);
-        window.addEventListener('scroll', function () {
-            var right = document.body.offsetWidth - mainContainer.getBoundingClientRect().right;
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            goTop.style.right = right + 10 + 'px'
-            scrollTop > 700 && (goTop.style.display = "block");
-            scrollTop <= 700 && (goTop.style.display = "none");
-        });
-    })();
-</script>
-    <style>
-    #geektutu-click-img-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        text-align: center;
-        width: 100%;
-        display: none;
-        z-index: 9999;
-    }
-
-    #geektutu-click-img-container img {
-        object-fit: contain;
-        background: #eaecef;
-        padding: 15px;
-        border-radius: 10px;
-        height: auto;
-        width: auto;
-        vertical-align: middle;
-    }
-</style>
-
-
-<div id="geektutu-click-img-container">
-    <img src="" alt="Big Image">
-</div>
-
-<script>
-    (function () {
-        var container = document.querySelector('#geektutu-click-img-container')
-        var targetImg = container.querySelector('img')
-        var imgs = document.querySelectorAll('article img');
-        targetImg.addEventListener('click', function (e) {
-            container.style.display = 'none';
-            e && e.stopPropagation && e.stopPropagation();
-        }, false);
-
-        for (var i = 0; i < imgs.length; ++i) {
-            var img = imgs[i];
-            img.addEventListener('click', (function (src, rate) {
-                return function (e) {
-                    e && e.stopPropagation && e.stopPropagation();
-                    if (window.innerWidth < 980) {
-                        return
-                    }
-                    targetImg.style.height = targetImg.style.width = 'auto';
-                    if (window.innerWidth / window.innerHeight > rate) {
-                        targetImg.style.height = (window.innerHeight - 20) + 'px';
-                    } else {
-                        targetImg.style.width = (window.innerWidth - 20) + 'px';
-                    }
-                    container.style.height = window.innerHeight + 'px'
-                    container.style.lineHeight = window.innerHeight + 'px'
-                    container.style.display = 'block';
-                    targetImg.src = src;
-                };
-            }(img.src, img.width / img.height)), false)
-        }
-    })();
-</script>
-    <!-- Footer -->
-    <!-- Footer -->
-<style>
-    footer {
-        width: 100%;
-        line-height: 1.5;
-        padding: 20px;
-    }
-
-    footer a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    .footer-hexo img {
-        height: 20px;
-        margin-bottom: -5px;
-    }
-
-    .footer-hexo a {
-        color: #337ab7;
-    }
-</style>
-<footer class="text-center col-xs-12">
-    <p>
-        <small>© 2026 - 极客兔兔 - </small>
-        <small>
-            <a target="_blank" rel="nofollow noopener" href="http://beian.miit.gov.cn/">沪ICP备18001798号-1</a>
-        </small>
-    </p>
-    <p class="footer-hexo">
-        <!-- 但若直接使用或修改主题，请务必保留这段声明 -->
-        <small>Powered by <a target="_blank" href="https://hexo.io">Hexo</a> | Theme
-            <a target="_blank" href="https://geektutu.com">Geektutu</a>
-            <a target="_blank" rel="noopener" href="https://github.com/geektutu/hexo-theme-geektutu">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIACIAUAMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQQFBwIDBgj/2gAIAQEAAAAA9KrHSgAYL5/z6zZGuJd12uugbhq3uKtmuRtix20IS7lTLAfAAAn/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oACAECEAAAAAAB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAxAAAAAAAf/EADEQAAICAQIEBQEGBwAAAAAAAAECAwQFAAYREhORBxQhUlQxQVFic5KxJDJCYYGC0f/aAAgBAQABPwCFHnjWUzuvN6hV4cANSRLGjO9yRVUcSzMoA7jVXJYe5N0a2dhmk9kc0bN2GvLN8mbuNeWb5M3ca8s3yZu415Y/Jm7jXlm+TN3H/NeVPyZu40vOk3TZywK8wJ+v3EHVM/wsI/Dq2lrxN3Nnca16eti8chSAIoMbzByhMwP14kHVfwIiSaF5c96J6kwwCOTnHsYk8uvCrdmQy1TI4rJuz3cZLyGR/wCd4+YoOf8AEpUjXitubLYPG4paFsUxcuiGe7yc5gTW3LW44szXmobsi3Dhmic2+Z4+vCVH9CpraPiQ+QvbgTJrPFBWd5YpWrmNIIEXiRO32Pqt4p7cnfHk18lFBdmEVW1LVdIZGOrniTt6plrWKaO69yCykDRxwF+LMAewB0Txtr+Sf31VI8tEPw62fZt7N3Humtbpzz13ucX6CGSWMSuzpLyD1eNgeUka3PuvHbaxq3biTMHfkiSNCS78CwU+3Xg7Vu3MhuTcU6cq3Zemn3Eh2dv8Lzcut+29x1atKbHYqLJUhLwyNMwiZ3j9yDWOxUOV3tgb+3No5LDx1pi9+aeIwRlNY6bc+Jv+IFGrhLxtXJZ7VKcw81diiAAEn0JOrkWZyNfbEr0tz27UGQgkuGzXdIIvyowq99bRxk9ffO/L81SZBPZgEEroQroIxxMZOgeNsfkn99QypHGqO4Vl9CDrN4LDZkwyzyyQ2IgRHZrzGCZVP1XnQglT9oOtw4LC7iqV6uRkZoYpxKFSQpzFRw4EjVRMfSrQ1qqwxQxKFjjTgFUD7BoWYR6iVe+mtxt9Zwf9teaj4AdccPu5tedX5A/VrzUR+sy/q1CwksF19VEfDj/cnQRW+qg66cfsXtrpx+xe2unH7F7a6cfsXtrpx+xe2unH7F7a6cfsXtoxx+xe2gAAOA1//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwB//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwB//9k="
-                    alt="Github Star">
-            </a>
-        </small>
-    </p>
-    
-    <p>
-        <small>
-            <span id="busuanzi_container_site_pv">👁<span id="busuanzi_value_site_pv"></span></span> &nbsp;
-            <span id="busuanzi_container_page_pv">📚<span id="busuanzi_value_page_pv"></span></span>
-        </small>
-    </p>
-    
-    
-
-</footer>
-
-
-<script>
-    window.addEventListener('load', function () {
-        globalAddScript('//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js');
-    })
-</script>
-
-<!-- Baidu Tongji -->
-
-<script>
-    window.addEventListener('load', function () {
-        var _hmt = _hmt || [];
-        globalAddScript('//hm.baidu.com/hm.js?1a0ec38c52c08db815b0046c2783b1aa')
-    })
-</script>
-
-
-
-<!-- baidu auto push for seo -->
-<script>
-    window.addEventListener('load', function () {
-        var src = 'http://push.zhanzhang.baidu.com/push.js'
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        globalAddScript(src);
-    })
-</script>
-
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-142641425-1');
-
-    window.addEventListener('load', function () {
-        globalAddScript('https://www.googletagmanager.com/gtag/js?id=UA-142641425-1');
-    });
-</script>
-
-
-    <script>
-        // 非本站网址，新开tab页签
-        (function () {
-            var stopBubble = function (e) {
-                e && e.stopPropagation && e.stopPropagation();
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
             }
-            var links = document.querySelectorAll('a');
-            [].slice.call(links).forEach(function (item) {
-                if (item.href && item.href.indexOf(window.location.host) === -1) {
-                    item.target = '_blank'
-                }
-                // 阻止冒泡，不触发彩蛋。
-                item.addEventListener('click', stopBubble, false);
-            });
-            var article = document.querySelector('article');
-            article && article.addEventListener('click', stopBubble, false)
-        })();
-    </script>
-    
-</body>
-
-</html>
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

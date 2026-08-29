@@ -1,586 +1,137 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
-<!-- Head tag -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="referrer" content="no-referrer-when-downgrade">
-  
-  <meta name="baidu-site-verification" content="p7Pz3jlx4t" />
-  <meta name="google-site-verification" content="X31OY0d2sKImNbS2x8-OpITWRK4nn7nZCcXe3_hA9ew" />
-  <meta name="msvalidate.01" content="7E2AEE3378AC93764DEAB411177A21A1" />
-  <meta name="360-site-verification" content="1d1e81a1a48a1ed2e3308d7cb8e548e7" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- if page has tags, then add tags to keyword -->
-  
-  
-  <meta name="keywords" content="geektutu,jiketutu,Go语言,golang,python,Go语言高性能编程,golang,死码消除,死代码,Dead code elimination">
-  <!-- page.description has higher priority -->
-  <meta name="description" content="Go 语言/golang 高性能编程，Go 语言进阶教程，Go 语言高性能编程(high performance go)。本文介绍了编译器在死码消除(Dead code elimination, DCE) 方面的优化，在实际编程中如何利用这一优化提高程序性能。并结合构建标记(build tags) 增加调试模式。">
-  <link rel="shortcut icon" href="/img/icon.png">
-  <title>
-    
-    Go 死码消除与调试(debug)模式 | Go 语言高性能编程 | 极客兔兔
-    
-  </title>
-
-  <link rel="canonical" href="https://geektutu.com/post/hpg-dead-code-elimination.html">
-  
-<link rel="stylesheet" href="/css/geektutu.css">
-
-  <!-- global function -->
-  <script>
-    window.globalAddScript = function (url, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = url;
-      onload && (s.onload = onload);
-      onerror && (s.onerror = onerror);
-      document.body.appendChild(s);
-    }
-    window.globalAddCss = function (url) {
-      var s = document.createElement('link');
-      s.rel = 'stylesheet';
-      s.href = url;
-      document.body.appendChild(s);
-    }
-    window.getPosition = function (ele) {
-      var x = 0, y = 0;
-      while (ele) {
-        x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-        y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-        ele = ele.offsetParent;
-      }
-      return { x: x, y: y };
-    }
-    window.getDom = function (str) { return document.querySelector(str) }
-  </script>
-  <!-- google ad -->
-  
-<meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/feed.xml" title="极客兔兔" type="application/rss+xml">
-</head>
-
-<body>
-    
-<style>
-    body {
-        background: white;
-    }
-    .gkt-header-placeholder, .gkt-header {
-        display: none;
-    }
-    .main-container {
-        width: 100%;
-        padding-top: 0;
-        max-width: 100%;
-    }
-</style>
-
-<header class="gkt-header col-xs-12 padding-0">
-    <div id="gkt-nav" class="gkt-header-container">
-        <a href="/" class="gkt-header-title float-left">
-            <img class="float-left" src="/img/icon.png" alt="">
-            <span>极客兔兔</span>
-        </a>
-        <nav class="gkt-header-nav text-right">
-            <ul>
-                <li><a class="hidden-xs" href="/feed.xml">订阅</a></li>
-                <li><a href="/series/">专题</a></li>
-                <li><a href="/archives/">归档</a></li>
-                <li><a href="/post/link.html">友链</a></li>
-                <li><a href="/post/about.html">关于</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="gkt-cate-nav" class="gkt-header-container hidden-xs">
-        
-        <nav class="gkt-header-nav float-left">
-            <ul>
-                
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/tensorflow-mnist-simplest.html">简明教程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tensorflow-mnist-simplest.html">TensorFlow 教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/pandas-dataframe-series.html">Pandas 数据处理</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tf2doc.html">TensorFlow2 文档</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-golang.html">Go 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-rust.html">Rust 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-python.html">Python 简明教程</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/blog-experience-1.html">杂谈 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/blog-experience-1.html">建站经历</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/2020.html">年终总结</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/qa-ml.html">面试 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-ml.html">机器学习面试题</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-golang.html">Go 语言面试题</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/gee.html">从零实现 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/gee.html">Web框架 - Gee</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geecache.html">分布式缓存 - GeeCache</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geeorm.html">ORM框架 - GeeORM</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geerpc.html">RPC框架 - GeeRPC</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/7days-golang-q1.html">7days-golang Q &amp; A</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/box-tools.html">百宝箱 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/box-tools.html">工具</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/cheat-sheet-sqlite.html">SQLite 速查表</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left active">
-                    <a class="float-left" href="/post/high-performance-go.html">高性能编程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/high-performance-go.html">序言</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-benchmark.html">性能分析</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-string-concat.html">常用数据结构</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-mutex.html">并发编程</a></li>
-                        
-                        <li class="gkt-sub-cate-name active"><a class="float-left"
-                                href="/post/hpg-reduce-size.html">编译优化</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-gotchas-array-slice.html">语言陷阱</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-            </ul>
-        </nav>
-    </div>
-</header>
-<div class="gkt-header-placeholder" style="height: 44px"></div>
-<div class="gkt-header-placeholder hidden-xs" style="height: 44px"></div>
-<script>
-    (function () {
-        window.addEventListener('scroll', function () {
-            if (window.innerWidth < 768) {
-                return;
-            }
-            var nav = document.querySelector('#gkt-nav');
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            scrollTop > 50 && (nav.classList.add('hide'));
-            scrollTop <= 50 && (nav.classList.remove('hide'));
-        });
-        var cateNavs = document.querySelectorAll('#gkt-cate-nav>nav>ul>li');
-        [].slice.call(cateNavs).forEach(function (item) {
-            var sub = item.querySelector('.gkt-sub-cate');
-            if (!sub) return;
-            item.addEventListener('mouseenter', function (e) { sub.style.display = 'block'; }, false);
-            item.addEventListener('mouseleave', function (e) { sub.style.display = 'none'; }, false);
-        })
-    })();
-</script>
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Main Content -->
-<main class="col-xs-12 padding-0 markdown-it">
-    <!-- Post Container -->
-    
-    
-    <!-- Post Content -->
-<style>
-  .markdown-it article h1, .markdown-it article h2, .markdown-it article h3 {
-    padding-top: 5px;
-    margin-top: 0px;
-  }
-  .post-container {
-    padding: 0 !important;
-    width: 100%;
-  }
-  .post-container article {
-    padding: 0 15px !important;
-  }
-  .gkt-book {
-    max-width: 80rem;
-    margin: 1rem auto;
-    display: flex;
-  }
-  .gkt-book-title {
-    color: #343a40;
-    font-size: 1.2em;
-  }
-  .gkt-sidebar-wrapper {
-    position: fixed;
-    margin-top: 15px;
-  }
-  .gkt-book-menu {
-    flex: 0 0 16rem;
-    padding-left: 15px;
-    padding-top: 5px;
-    z-index: 999;
-  }
-  .gkt-book-menu a {
-    color: #343a40;
-  }
-  .gkt-book-menu a.active {
-    color: #337ab7;
-  }
-  .gkt-book-menu > nav {
-    position: fixed;
-    overflow: auto;
-    padding-right: 15px;
-    height: 95%;
-    font-size: 0.85em;
-    line-height: 2;
-    -ms-overflow-style: none;
-    overflow: -moz-scrollbars-none;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-    border-left: 1px solid #eee;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-thumb {
-      background-color: #c1c1c1;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar {
-    width: 5px !important;
-  }
-  .gkt-book-menu hr {
-    padding: 2px;
-  }
-  .gkt-book-menu > nav > ul {
-    padding-left: 0;
-  }
-  .gkt-book-menu > nav ul,
-  .gkt-book-toc ul,
-  .gkt-book-toc ol {
-    list-style: none !important;
-  }
-  @media (min-width: 992px) {
-    .gkt-book-page {
-      width: calc(100% - 32rem);
-    }
-  }
-  .gkt-book-page {
-    min-width: 20rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-  .gkt-page-tips {
-    color: #555;
-    margin-top: -10px;
-  }
-  .gkt-book-toc {
-    flex: 0 0 16rem;
-    font-size: 0.85em;
-  }
-  .gkt-book .series_links {
-    border: 1px solid #eaecef;
-    padding: 0 15px;
-    background-color: #fff8dc;
-    margin-bottom: 20px;
-    border-radius: 5px;
-  }
-  .gkt-book-menu-icon {
-    padding: 0 15px;
-    font-size: 16px;
-    overflow: hidden;
-    cursor: pointer;
-  }
-  @media (max-width: 767px) {
-    .gkt-book-menu-hidden {
-      margin-left: -16rem;
-    }
-  }
-  .gkt-book-menu-checked {
-    opacity: 0.4;
-    margin-right: -16rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-</style>
-<div class="gkt-book post-container">
-  <aside class="gkt-book-menu gkt-book-menu-hidden">
-    <nav>
-      
-      <h3 class="text-center">
-        <a class="gkt-book-title" href="/post/high-performance-go.html">Go 语言高性能编程</a>
-      </h3>
-      
-      <ul class="col-xs-12 text-center">
-        <li><a href="/">极客兔兔</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://github.com/geektutu">Github</a></li>
-        
-        <li><a href="https://geektutu.com/feed.xml">RSS</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie">知乎</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://weibo.com/geektutu">微博</a></li>
-        
-      </ul>
-      
-      <hr />
-      
-      <ul>
-        
-        <li>
-          <a>序言</a>
-          <ul>
-            
-            <li><a href="/post/high-performance-go.html" class=" ">关于本书</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>性能分析</a>
-          <ul>
-            
-            <li><a href="/post/hpg-benchmark.html" class=" ">benchmark 基准测试</a></li>
-            
-            <li><a href="/post/hpg-pprof.html" class=" ">pprof 性能分析</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>常用数据结构</a>
-          <ul>
-            
-            <li><a href="/post/hpg-string-concat.html" class=" ">字符串拼接性能及原理</a></li>
-            
-            <li><a href="/post/hpg-slice.html" class=" ">切片(slice)性能及陷阱</a></li>
-            
-            <li><a href="/post/hpg-range.html" class=" ">for 和 range 的性能比较</a></li>
-            
-            <li><a href="/post/hpg-reflect.html" class=" ">反射(reflect)性能</a></li>
-            
-            <li><a href="/post/hpg-empty-struct.html" class=" ">使用空结构体节省内存</a></li>
-            
-            <li><a href="/post/hpg-struct-alignment.html" class=" ">内存对齐对性能的影响</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>并发编程</a>
-          <ul>
-            
-            <li><a href="/post/hpg-mutex.html" class=" ">读写锁和互斥锁的性能比较</a></li>
-            
-            <li><a href="/post/hpg-timeout-goroutine.html" class=" ">如何退出协程(超时场景)</a></li>
-            
-            <li><a href="/post/hpg-exit-goroutine.html" class=" ">如何退出协程(其他场景)</a></li>
-            
-            <li><a href="/post/hpg-concurrency-control.html" class=" ">控制协程的并发数量</a></li>
-            
-            <li><a href="/post/hpg-sync-pool.html" class=" ">sync.Pool 复用对象</a></li>
-            
-            <li><a href="/post/hpg-sync-once.html" class=" ">sync.Once 如何提升性能</a></li>
-            
-            <li><a href="/post/hpg-sync-cond.html" class=" ">sync.Cond 条件变量</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>编译优化</a>
-          <ul>
-            
-            <li><a href="/post/hpg-reduce-size.html" class=" ">减小编译体积</a></li>
-            
-            <li><a href="/post/hpg-escape-analysis.html" class=" ">逃逸分析对性能的影响</a></li>
-            
-            <li><a href="/post/hpg-dead-code-elimination.html" class="active ">死码消除与调试模式</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>语言陷阱</a>
-          <ul>
-            
-            <li><a href="/post/hpg-gotchas-array-slice.html" class=" ">数组和切片</a></li>
-            
-          </ul>
-        </li>
-        
-      </ul>
-    </nav>
-  </aside>
-  <div class="gkt-book-page">
-    <div class="hidden-sm hidden-md hidden-lg gkt-book-menu-icon">
-      <label for="book-menu">
-        <svg class="float-left" name="book-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0V0z"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-      </label>
-      <strong class="float-right">Go 语言高性能编程</strong>
-    </div>
-    <div class="u-arrow-wrapper hidden-xs">
-        
-        <a class="float-left" href="/post/hpg-sync-once.html"><i class="u-arrow-left"></i></a>
-        
-        
-        <a class="float-right" href="/post/hpg-sync-cond.html"><i class="u-arrow-right"></i></a>
-        
-    </div>
-    <article class="col-xs-12">
-      <h1>Go 死码消除与调试(debug)模式</h1>
-       
-      <div class="hidden-lg hidden-md hidden-sm series_links">
-        <p><strong> 编译优化系列文章链接：</strong></p>
-        <ul>
-          
-          <li>
-            <a href="/post/hpg-reduce-size.html">减小 Go 代码编译后的二进制体积</a>
-            <span class="post-item-date">(Dec 6, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-escape-analysis.html">Go 逃逸分析</a>
-            <span class="post-item-date">(Dec 31, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-dead-code-elimination.html">Go 死码消除与调试(debug)模式</a>
-            <span class="post-item-date">(Jan 11, 2021)</span>
-          </li>
-          
-        </ul>
-      </div>
-       
-      <blockquote>
-        <p>
-          源代码/数据集已上传到
-          <a href="https://github.com/geektutu/high-performance-go" target="_blank" rel="noopener">Github - high-performance-go</a>
-        </p>
-      </blockquote>
-      
-      <div class="gkt-article-start"></div>
-      <p><img src="hpg-reduce-size/compiler.jpg" alt="golang compiler optimization"></p>
-<h2 id="1-什么是死码消除"><a href="#1-什么是死码消除" class="headerlink" title="1 什么是死码消除"></a>1 什么是死码消除</h2><p>以下摘自内容 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Dead_code_elimination">Dead code elimination - wikipedia</a></p>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Go 语言/golang 高性能编程，Go 语言进阶教程，Go 语言高性能编程(high performance go)。本文介绍了编译器在死码消除(Dead code elimination, DCE) 方面的优化，在实际编程中如何利用这一优化提高程序性能。并结合构建标记(build tags) 增加调试模式。"><title>Go 死码消除与调试(debug)模式 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.B88FlGyz.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-baseline gap-2"><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔<span class="text-accent">.</span></span><span class="hidden text-xs text-faint sm:inline">写书式技术博客</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/high-performance-go" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">Go 语言高性能编程</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">序言</span></div><ul><li><a href="/post/high-performance-go.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言高性能编程</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">性能分析</span></div><ul><li><a href="/post/hpg-benchmark.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">benchmark 基准测试</a></li><li><a href="/post/hpg-pprof.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">pprof 性能分析</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">常用数据结构</span></div><ul><li><a href="/post/hpg-string-concat.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">字符串拼接性能及原理</a></li><li><a href="/post/hpg-slice.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">切片(slice)性能及陷阱</a></li><li><a href="/post/hpg-range.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">for 和 range 的性能比较</a></li><li><a href="/post/hpg-reflect.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Reflect 提高反射性能</a></li><li><a href="/post/hpg-empty-struct.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 空结构体 struct{} 的使用</a></li><li><a href="/post/hpg-struct-alignment.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go struct 内存对齐</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">并发编程</span></div><ul><li><a href="/post/hpg-mutex.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">读写锁和互斥锁的性能比较</a></li><li><a href="/post/hpg-timeout-goroutine.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">如何退出协程 goroutine (超时场景)</a></li><li><a href="/post/hpg-exit-goroutine.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">如何退出协程 goroutine (其他场景)</a></li><li><a href="/post/hpg-concurrency-control.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">控制协程(goroutine)的并发数量</a></li><li><a href="/post/hpg-sync-pool.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Pool</a></li><li><a href="/post/hpg-sync-once.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Once</a></li><li><a href="/post/hpg-sync-cond.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Cond</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">编译优化</span></div><ul><li><a href="/post/hpg-reduce-size.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">减小 Go 代码编译后的二进制体积</a></li><li><a href="/post/hpg-escape-analysis.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 逃逸分析</a></li><li><a href="/post/hpg-dead-code-elimination.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Go 死码消除与调试(debug)模式</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">语言陷阱</span></div><ul><li><a href="/post/hpg-gotchas-array-slice.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言陷阱 - 数组和切片</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/high-performance-go" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> Go 语言高性能编程</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">Go 死码消除与调试(debug)模式</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2021-01-11">2021-01-11</time><span aria-hidden="true">·</span><span>约 5 分钟</span><a href="https://github.com/geektutu/high-performance-go" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/high-performance-go" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/high-performance-go</a><span class="flex flex-wrap gap-2"><a href="/tags/Go语言高性能编程" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Go语言高性能编程</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#1-什么是死码消除" class="toc-link block text-muted" data-toc-depth="2">1 什么是死码消除</a></li><li style="padding-left:0rem"><a href="#2-go-语言中的应用" class="toc-link block text-muted" data-toc-depth="2">2 Go 语言中的应用</a></li><li style="padding-left:0.9rem"><a href="#21-使用常量提升性能" class="toc-link block text-muted" data-toc-depth="3">2.1 使用常量提升性能</a></li><li style="padding-left:0.9rem"><a href="#22-可推断的局部变量" class="toc-link block text-muted" data-toc-depth="3">2.2 可推断的局部变量</a></li><li style="padding-left:0.9rem"><a href="#23-调试debug模式" class="toc-link block text-muted" data-toc-depth="3">2.3 调试(debug)模式</a></li><li style="padding-left:0.9rem"><a href="#24-条件编译" class="toc-link block text-muted" data-toc-depth="3">2.4 条件编译</a></li><li style="padding-left:0rem"><a href="#附-推荐与参考" class="toc-link block text-muted" data-toc-depth="2">附 推荐与参考</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><p><img alt="golang compiler optimization" loading="lazy" decoding="async" width="1706" height="888" src="/_astro/compiler.BBDcWJJ__lSAsO.webp" srcset=""></p>
+<h2 id="1-什么是死码消除">1 什么是死码消除</h2>
+<p>以下摘自内容 <a href="https://en.wikipedia.org/wiki/Dead_code_elimination">Dead code elimination - wikipedia</a></p>
 <blockquote>
-<p>In compiler theory, dead code elimination (also known as DCE, dead code removal, dead code stripping, or dead code strip) is a compiler optimization to remove code which does not affect the program results. </p>
+<p>In compiler theory, dead code elimination (also known as DCE, dead code removal, dead code stripping, or dead code strip) is a compiler optimization to remove code which does not affect the program results.</p>
 </blockquote>
 <p>死码消除(dead code elimination, DCE)是一种编译器优化技术，用处是在编译阶段去掉对程序运行结果没有任何影响的代码。</p>
 <blockquote>
 <p>Removing such code has several benefits: it shrinks program size, an important consideration in some contexts, and it allows the running program to avoid executing irrelevant operations, which reduces its running time.</p>
 </blockquote>
 <p>死码消除有很多好处：减小程序体积，程序运行过程中避免执行无用的指令，缩短运行时间。</p>
-<h2 id="2-Go-语言中的应用"><a href="#2-Go-语言中的应用" class="headerlink" title="2 Go 语言中的应用"></a>2 Go 语言中的应用</h2><h3 id="2-1-使用常量提升性能"><a href="#2-1-使用常量提升性能" class="headerlink" title="2.1 使用常量提升性能"></a>2.1 使用常量提升性能</h3><p>在某些场景下，将变量替换为常量，性能会有很大的提升。</p>
+<h2 id="2-go-语言中的应用">2 Go 语言中的应用</h2>
+<h3 id="21-使用常量提升性能">2.1 使用常量提升性能</h3>
+<p>在某些场景下，将变量替换为常量，性能会有很大的提升。</p>
 <p>举一个简单的例子，以下是 <code>maxvar.go</code> 的代码：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// maxvar.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">max</span><span class="params">(num1, num2 <span class="type">int</span>)</span></span> <span class="type">int</span> &#123;</span><br><span class="line">	<span class="keyword">if</span> num1 &gt; num2 &#123;</span><br><span class="line">		<span class="keyword">return</span> num1</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> num2</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> a, b = <span class="number">10</span>, <span class="number">20</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> max(a, b) == a &#123;</span><br><span class="line">		fmt.Println(a)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// maxvar.go</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> max</span><span style="color:#24292E">(</span><span style="color:#E36209">num1</span><span style="color:#24292E">, </span><span style="color:#E36209">num2</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) </span><span style="color:#D73A49">int</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> num1 </span><span style="color:#D73A49">></span><span style="color:#24292E"> num2 {</span></span>
+<span class="line"><span style="color:#D73A49">		return</span><span style="color:#24292E"> num1</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> num2</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">var</span><span style="color:#24292E"> a, b </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 10</span><span style="color:#24292E">, </span><span style="color:#005CC5">20</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#6F42C1"> max</span><span style="color:#24292E">(a, b) </span><span style="color:#D73A49">==</span><span style="color:#24292E"> a {</span></span>
+<span class="line"><span style="color:#24292E">		fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(a)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>max 是一个非常简单的函数，返回两个值中的较大值。</li>
 <li>a 和 b 是两个全局变量，赋值为 10 和 20。</li>
 <li>如果 a 大于 b，那么将会调用 time.Sleep() 休眠 3 秒。</li>
 </ul>
 <p>拷贝 <code>maxvar.go</code> 为 <code>maxconst.go</code>，并将 <code>var a, b</code> 修改为 <code>const a, b</code>。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// maxconst.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">max</span><span class="params">(num1, num2 <span class="type">int</span>)</span></span> <span class="type">int</span> &#123;</span><br><span class="line">	<span class="keyword">if</span> num1 &gt; num2 &#123;</span><br><span class="line">		<span class="keyword">return</span> num1</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> num2</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> a, b = <span class="number">10</span>, <span class="number">20</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> max(a, b) == a &#123;</span><br><span class="line">		fmt.Println(a)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// maxconst.go</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> max</span><span style="color:#24292E">(</span><span style="color:#E36209">num1</span><span style="color:#24292E">, </span><span style="color:#E36209">num2</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) </span><span style="color:#D73A49">int</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> num1 </span><span style="color:#D73A49">></span><span style="color:#24292E"> num2 {</span></span>
+<span class="line"><span style="color:#D73A49">		return</span><span style="color:#24292E"> num1</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> num2</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> a</span><span style="color:#24292E">, </span><span style="color:#005CC5">b</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 10</span><span style="color:#24292E">, </span><span style="color:#005CC5">20</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#6F42C1"> max</span><span style="color:#24292E">(a, b) </span><span style="color:#D73A49">==</span><span style="color:#24292E"> a {</span></span>
+<span class="line"><span style="color:#24292E">		fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(a)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>编译 <code>maxvar.go</code> 和 <code>maxconst.go</code>，并比较编译后的二进制大小：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">go build -o maxvar maxvar.go</span><br><span class="line">go build -o maxconst maxconst.go</span><br><span class="line"><span class="built_in">ls</span> -l maxvar maxconst</span><br><span class="line">-rwxr-xr-x  1 x x 1895424 Jan 10 00:01 maxconst</span><br><span class="line">-rwxr-xr-x  1 x x 2120368 Jan 10 00:01 maxvar</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">go</span><span style="color:#032F62"> build</span><span style="color:#005CC5"> -o</span><span style="color:#032F62"> maxvar</span><span style="color:#032F62"> maxvar.go</span></span>
+<span class="line"><span style="color:#6F42C1">go</span><span style="color:#032F62"> build</span><span style="color:#005CC5"> -o</span><span style="color:#032F62"> maxconst</span><span style="color:#032F62"> maxconst.go</span></span>
+<span class="line"><span style="color:#6F42C1">ls</span><span style="color:#005CC5"> -l</span><span style="color:#032F62"> maxvar</span><span style="color:#032F62"> maxconst</span></span>
+<span class="line"><span style="color:#6F42C1">-rwxr-xr-x</span><span style="color:#005CC5">  1</span><span style="color:#032F62"> x</span><span style="color:#032F62"> x</span><span style="color:#005CC5"> 1895424</span><span style="color:#032F62"> Jan</span><span style="color:#005CC5"> 10</span><span style="color:#032F62"> 00:01</span><span style="color:#032F62"> maxconst</span></span>
+<span class="line"><span style="color:#6F42C1">-rwxr-xr-x</span><span style="color:#005CC5">  1</span><span style="color:#032F62"> x</span><span style="color:#032F62"> x</span><span style="color:#005CC5"> 2120368</span><span style="color:#032F62"> Jan</span><span style="color:#005CC5"> 10</span><span style="color:#032F62"> 00:01</span><span style="color:#032F62"> maxvar</span></span></code></pre>
 <p>我们可以看到 <code>maxconst</code> 比 <code>maxvar</code> 体积小了约 10% = 0.22 MB。</p>
 <p>为什么会出现 11% 的差异呢？</p>
 <p>我们使用 <code>-gcflags=-m</code> 参数看一下编译器做了哪些优化：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">go build -gcflags=-m  -o maxvar maxvar.go</span><br><span class="line"><span class="comment"># command-line-arguments</span></span><br><span class="line">./maxconst.go:7:6: can inline max</span><br><span class="line">./maxconst.go:17:8: inlining call to max</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">go</span><span style="color:#032F62"> build</span><span style="color:#005CC5"> -gcflags=-m</span><span style="color:#005CC5">  -o</span><span style="color:#032F62"> maxvar</span><span style="color:#032F62"> maxvar.go</span></span>
+<span class="line"><span style="color:#6A737D"># command-line-arguments</span></span>
+<span class="line"><span style="color:#6F42C1">./maxconst.go:7:6:</span><span style="color:#032F62"> can</span><span style="color:#032F62"> inline</span><span style="color:#032F62"> max</span></span>
+<span class="line"><span style="color:#6F42C1">./maxconst.go:17:8:</span><span style="color:#032F62"> inlining</span><span style="color:#032F62"> call</span><span style="color:#032F62"> to</span><span style="color:#032F62"> max</span></span></code></pre>
 <p>max 函数被内联了，即被展开了，手动展开后如下：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> result <span class="type">int</span></span><br><span class="line">	<span class="keyword">if</span> a &gt; b &#123;</span><br><span class="line">		result = a</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		result = b</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="keyword">if</span> result == a &#123;</span><br><span class="line">		fmt.Println(a)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> result </span><span style="color:#D73A49">int</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> a </span><span style="color:#D73A49">></span><span style="color:#24292E"> b {</span></span>
+<span class="line"><span style="color:#24292E">		result </span><span style="color:#D73A49">=</span><span style="color:#24292E"> a</span></span>
+<span class="line"><span style="color:#24292E">	} </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		result </span><span style="color:#D73A49">=</span><span style="color:#24292E"> b</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> result </span><span style="color:#D73A49">==</span><span style="color:#24292E"> a {</span></span>
+<span class="line"><span style="color:#24292E">		fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(a)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>那如果 a 和 b 均为常量（const）呢？那在编译阶段就可以直接进行计算：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> result <span class="type">int</span></span><br><span class="line">	<span class="keyword">if</span> <span class="number">10</span> &gt; <span class="number">20</span> &#123;</span><br><span class="line">		result = <span class="number">10</span></span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		result = <span class="number">20</span></span><br><span class="line">    &#125;</span><br><span class="line">	<span class="keyword">if</span> result == <span class="number">10</span> &#123;</span><br><span class="line">		fmt.Println(a)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>计算之后，<code>10 &gt; 20</code> 永远为假，那么分支消除后：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="number">20</span> == <span class="number">10</span> &#123;</span><br><span class="line">		fmt.Println(a)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> result </span><span style="color:#D73A49">int</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#005CC5"> 10</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 20</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		result </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 10</span></span>
+<span class="line"><span style="color:#24292E">	} </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		result </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 20</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> result </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> 10</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(a)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>计算之后，<code>10 > 20</code> 永远为假，那么分支消除后：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#005CC5"> 20</span><span style="color:#D73A49"> ==</span><span style="color:#005CC5"> 10</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(a)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>进一步，<code>20 == 10</code> 也永远为假，再次分支消除：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {}</span></span></code></pre>
 <p>但是如果全局变量 a、b 不为常量，即 <code>maxvar</code> 中声明的一样，编译器并不知道运行过程中 a、b 会不会发生改变，因此不能够进行死码消除，这部分代码被编译到最终的二进制程序中。因此 <code>maxvar</code> 比 <code>maxconst</code> 二进制体积大了约 10%。</p>
 <p>如果在 if 语句中，调用了更多的库，死码消除之后，体积差距会更大。</p>
 <p>因此，在声明全局变量时，如果能够确定为常量，尽量使用 const 而非 var，这样很多运算在编译器即可执行。死码消除后，既减小了二进制的体积，又可以提高运行时的效率，如果这部分代码是 <code>hot path</code>，那么对性能的提升会更加明显。</p>
-<h3 id="2-2-可推断的局部变量"><a href="#2-2-可推断的局部变量" class="headerlink" title="2.2 可推断的局部变量"></a>2.2 可推断的局部变量</h3><p>考虑另一种情况，a、b 作为局部变量呢？</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// maxvarlocal</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> a, b = <span class="number">10</span>, <span class="number">20</span></span><br><span class="line">	<span class="keyword">if</span> max(a, b) == a &#123;</span><br><span class="line">		fmt.Println(a)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h3 id="22-可推断的局部变量">2.2 可推断的局部变量</h3>
+<p>考虑另一种情况，a、b 作为局部变量呢？</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// maxvarlocal</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> a, b </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 10</span><span style="color:#24292E">, </span><span style="color:#005CC5">20</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#6F42C1"> max</span><span style="color:#24292E">(a, b) </span><span style="color:#D73A49">==</span><span style="color:#24292E"> a {</span></span>
+<span class="line"><span style="color:#24292E">		fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(a)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>编译结果如下，大小与 <code>varconst</code> 一致，即 a、b 作为局部变量时，编译器死码消除是生效的。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ go build -o maxvarlocal maxvarlocal.go</span><br><span class="line">$ <span class="built_in">ls</span> -l maxvarlocal                      </span><br><span class="line">-rwxr-xr-x  1 x x 1895424 Jan 10 00:05 maxvarlocal</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> build</span><span style="color:#005CC5"> -o</span><span style="color:#032F62"> maxvarlocal</span><span style="color:#032F62"> maxvarlocal.go</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> ls</span><span style="color:#005CC5"> -l</span><span style="color:#032F62"> maxvarlocal</span><span style="color:#24292E">                      </span></span>
+<span class="line"><span style="color:#6F42C1">-rwxr-xr-x</span><span style="color:#005CC5">  1</span><span style="color:#032F62"> x</span><span style="color:#032F62"> x</span><span style="color:#005CC5"> 1895424</span><span style="color:#032F62"> Jan</span><span style="color:#005CC5"> 10</span><span style="color:#032F62"> 00:05</span><span style="color:#032F62"> maxvarlocal</span></span></code></pre>
 <p>那如果再修改一下，函数中增加修改 a、b 变量的并发操作。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> a, b = <span class="number">10</span>, <span class="number">20</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		b, a = a, b</span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="keyword">if</span> max(a, b) == a &#123;</span><br><span class="line">		fmt.Println(a)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	var</span><span style="color:#24292E"> a, b </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 10</span><span style="color:#24292E">, </span><span style="color:#005CC5">20</span></span>
+<span class="line"><span style="color:#D73A49">	go</span><span style="color:#D73A49"> func</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">		b, a </span><span style="color:#D73A49">=</span><span style="color:#24292E"> a, b</span></span>
+<span class="line"><span style="color:#24292E">	}()</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#6F42C1"> max</span><span style="color:#24292E">(a, b) </span><span style="color:#D73A49">==</span><span style="color:#24292E"> a {</span></span>
+<span class="line"><span style="color:#24292E">		fmt.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(a)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>编译结果如下，大小增加了 10%，此时，a、b 的值不能有效推断，死码消除失效。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ go build -o maxvarlocal maxvarlocal.go</span><br><span class="line">$ <span class="built_in">ls</span> -l maxvarlocal                      </span><br><span class="line">-rwxr-xr-x  1 x x 2120352 Jan 10 00:05 maxvarlocal</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> build</span><span style="color:#005CC5"> -o</span><span style="color:#032F62"> maxvarlocal</span><span style="color:#032F62"> maxvarlocal.go</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> ls</span><span style="color:#005CC5"> -l</span><span style="color:#032F62"> maxvarlocal</span><span style="color:#24292E">                      </span></span>
+<span class="line"><span style="color:#6F42C1">-rwxr-xr-x</span><span style="color:#005CC5">  1</span><span style="color:#032F62"> x</span><span style="color:#032F62"> x</span><span style="color:#005CC5"> 2120352</span><span style="color:#032F62"> Jan</span><span style="color:#005CC5"> 10</span><span style="color:#032F62"> 00:05</span><span style="color:#032F62"> maxvarlocal</span></span></code></pre>
 <p>其实这个结果很好理解，包(package)级别的变量和函数内部的局部变量的推断难度是不一样的。函数内部的局部变量的修改只会发生在该函数中。但是如果是包级别的变量，对该变量的修改可能出现在：</p>
 <ul>
 <li>包初始化函数 init() 中，init() 函数可能有多个，且可能位于不同的 <code>.go</code> 源文件。</li>
@@ -591,584 +142,150 @@
 <blockquote>
 <p>以上例子，基于 go1.13.6 darwin/amd64</p>
 </blockquote>
-<h3 id="2-3-调试-debug-模式"><a href="#2-3-调试-debug-模式" class="headerlink" title="2.3 调试(debug)模式"></a>2.3 调试(debug)模式</h3><p>我们可以在源代码中，定义全局常量 debug，值设置为 <code>false</code>，在需要增加调试代码的地方，使用条件语句 <code>if debug</code> 包裹，例如下面的例子：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> debug = <span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> debug &#123;</span><br><span class="line">		log.Println(<span class="string">&quot;debug mode is enabled&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h3 id="23-调试debug模式">2.3 调试(debug)模式</h3>
+<p>我们可以在源代码中，定义全局常量 debug，值设置为 <code>false</code>，在需要增加调试代码的地方，使用条件语句 <code>if debug</code> 包裹，例如下面的例子：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> debug</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> false</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> debug {</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"debug mode is enabled"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>如果是正常编译，常量 debug 始终等于 <code>false</code>，调试语句在编译过程中会被消除，不会影响最终的二进制大小，也不会对运行效率产生任何影响。</p>
 <p>那如果我们想编译出 debug 版本的二进制呢？可以将 debug 修改为 true 之后编译。这对于开发者日常调试是非常有帮助的，日常开发过程中，在进行单元测试或者是简单的集成测试时，希望能够执行一些额外的操作，例如打印日志，或者是修改变量的值。提交代码时，再将 debug 修改为 false，开发过程中增加的额外的调试代码在编译时会被消除，不会对正式版本产生任何的影响。</p>
 <p>Go 语言源代码中有很多这样的例子：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ grep -nr <span class="string">&quot;const debug = false&quot;</span> <span class="string">&quot;<span class="subst">$(dirname $(which go)</span>)/../src&quot;</span></span><br><span class="line">/usr/local/go/bin/../src/cmd/go/internal/modfile/read.go:606:   const debug = <span class="literal">false</span></span><br><span class="line">/usr/local/go/bin/../src/cmd/compile/internal/syntax/parser.go:14:const debug = <span class="literal">false</span></span><br><span class="line"><span class="comment">#  ...</span></span><br><span class="line">/usr/local/go/bin/../src/net/http/transport_test.go:2037:       const debug = <span class="literal">false</span></span><br><span class="line">/usr/local/go/bin/../src/net/http/transport_test.go:2095:       const debug = <span class="literal">false</span></span><br><span class="line">/usr/local/go/bin/../src/go/types/initorder.go:23:      const debug = <span class="literal">false</span></span><br><span class="line">/usr/local/go/bin/../src/go/internal/gcimporter/gcimporter.go:22:const debug = <span class="literal">false</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="2-4-条件编译"><a href="#2-4-条件编译" class="headerlink" title="2.4 条件编译"></a>2.4 条件编译</h3><p>有没有不修改源代码，也能编译出 debug 版本的方式呢？</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> grep</span><span style="color:#005CC5"> -nr</span><span style="color:#032F62"> "const debug = false"</span><span style="color:#032F62"> "$(</span><span style="color:#6F42C1">dirname</span><span style="color:#032F62"> $(</span><span style="color:#005CC5">which</span><span style="color:#032F62"> go))/../src"</span></span>
+<span class="line"><span style="color:#6F42C1">/usr/local/go/bin/../src/cmd/go/internal/modfile/read.go:606:</span><span style="color:#032F62">   const</span><span style="color:#032F62"> debug</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#6F42C1">/usr/local/go/bin/../src/cmd/compile/internal/syntax/parser.go:14:const</span><span style="color:#032F62"> debug</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#6A737D">#  ...</span></span>
+<span class="line"><span style="color:#6F42C1">/usr/local/go/bin/../src/net/http/transport_test.go:2037:</span><span style="color:#032F62">       const</span><span style="color:#032F62"> debug</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#6F42C1">/usr/local/go/bin/../src/net/http/transport_test.go:2095:</span><span style="color:#032F62">       const</span><span style="color:#032F62"> debug</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#6F42C1">/usr/local/go/bin/../src/go/types/initorder.go:23:</span><span style="color:#032F62">      const</span><span style="color:#032F62"> debug</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> false</span></span>
+<span class="line"><span style="color:#6F42C1">/usr/local/go/bin/../src/go/internal/gcimporter/gcimporter.go:22:const</span><span style="color:#032F62"> debug</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> false</span></span></code></pre>
+<h3 id="24-条件编译">2.4 条件编译</h3>
+<p>有没有不修改源代码，也能编译出 debug 版本的方式呢？</p>
 <p>答案是肯定的：有，可结合 build tags 来实现条件编译。</p>
 <p>新建 <code>release.go</code> 和 <code>debug.go</code>：</p>
 <ul>
 <li>debug.go</li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// +build debug</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> debug = <span class="literal">true</span></span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// +build debug</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> debug</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> true</span></span></code></pre>
 <ul>
 <li>release.go</li>
 </ul>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// +build !debug</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> debug = <span class="literal">false</span></span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// +build !debug</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> debug</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> false</span></span></code></pre>
 <p>在 <code>main.go</code> 中去掉常量 debug 的定义：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">&quot;log&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> debug &#123;</span><br><span class="line">		log.Println(<span class="string">&quot;debug mode is enabled&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#032F62"> "</span><span style="color:#6F42C1">log</span><span style="color:#032F62">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> debug {</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Println</span><span style="color:#24292E">(</span><span style="color:#032F62">"debug mode is enabled"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li><code>// +build debug</code> 表示 build tags 中包含 debug 时，该源文件参与编译。</li>
 <li><code>// +build !debug</code> 表示 build tags 中不包含 debug 时，该源文件参与编译。</li>
 </ul>
 <p>一个源文件中可以有多个 build tags，同一行的空格隔开的 tag 之间是逻辑或的关系，不同行之间的 tag 是逻辑与的关系。例如下面的写法表示：此源文件只能在 linux/386 或者 darwin/386 平台下编译。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// +build linux darwin</span></span><br><span class="line"><span class="comment">// +build 386</span></span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// +build linux darwin</span></span>
+<span class="line"><span style="color:#6A737D">// +build 386</span></span></code></pre>
 <p>接下来，我们编译一个 debug 版本并运行：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ go build -tags debug -o debug .  </span><br><span class="line">$ ./debug </span><br><span class="line">2021/01/11 00:10:40 debug mode is enabled</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> build</span><span style="color:#005CC5"> -tags</span><span style="color:#032F62"> debug</span><span style="color:#005CC5"> -o</span><span style="color:#032F62"> debug</span><span style="color:#032F62"> .</span><span style="color:#24292E">  </span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> ./debug</span><span style="color:#24292E"> </span></span>
+<span class="line"><span style="color:#6F42C1">2021/01/11</span><span style="color:#032F62"> 00:10:40</span><span style="color:#032F62"> debug</span><span style="color:#032F62"> mode</span><span style="color:#032F62"> is</span><span style="color:#032F62"> enabled</span></span></code></pre>
 <p>编译 release 版本并运行：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ go build -o release .</span><br><span class="line">$ ./release</span><br><span class="line"><span class="comment"># no output</span></span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> build</span><span style="color:#005CC5"> -o</span><span style="color:#032F62"> release</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> ./release</span></span>
+<span class="line"><span style="color:#6A737D"># no output</span></span></code></pre>
 <p>除了全局布尔值常量 <code>debug</code> 以外，<code>debug.go</code> 和 <code>release.go</code> 还可以根据需要添加其他代码。例如，相同的函数定义，debug 和 release 模式下有不同的函数实现。</p>
-<h2 id="附-推荐与参考"><a href="#附-推荐与参考" class="headerlink" title="附 推荐与参考"></a>附 推荐与参考</h2><ul>
+<h2 id="附-推荐与参考">附 推荐与参考</h2>
+<ul>
 <li><a href="https://geektutu.com/post/qa-golang.html">Go 语言笔试面试题汇总</a></li>
 <li><a href="https://geektutu.com/post/gee.html">七天用Go从零实现系列</a></li>
-</ul>
+</ul></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/hpg-escape-analysis.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">Go 逃逸分析</span></a><a href="/post/hpg-gotchas-array-slice.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">Go 语言陷阱 - 数组和切片</span></a></nav><script>(function(){const bookId = "high-performance-go";
+const slug = "hpg-dead-code-elimination";
 
-      
-<script src="/js/qrious.min.js"></script>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "hpg-dead-code-elimination";
+const title = "Go 死码消除与调试(debug)模式";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
 
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
 
-      <hr />
-      <p>
-        <a target="_blank" rel="noopener" href="https://github.com/geektutu/high-performance-go/blob/master/charpter-4/hpg-dead-code-elimination.md"><span class="float-left gkt-page-tips">edit this page</span></a>
-        <span class="float-right gkt-page-tips">last updated at 2026-02-23</span>
-      </p>
-    </article>
-    <!-- 赞赏 -->
-    <!--打赏-->
-
-<style>
-    #reward .reward-btn-wrapper {
-        width: 100px;
-        padding-top: 35px;
-        cursor: pointer;
-        margin: 0 auto;
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
     }
 
-    #reward .reward-btn {
-        padding: 2px 15px;
-        color: #fff;
-        background-color: #ea6f5a;
-        border-radius: 20px;
-    }
-
-    #reward .reward-code {
-        position: absolute;
-        top: -220px;
-        left: 50%;
-        display: none;
-        width: 360px;
-        height: 240px;
-        margin-left: -180px;
-        padding: 15px 20px;
-        border: 1px solid #e6e6e6;
-        background: #fff;
-        box-shadow: 0 1px 1px 1px #efefef;
-    }
-
-    #reward .reward-code:after,
-    #reward .reward-code:before {
-        position: absolute;
-        content: '';
-        border: 10px solid transparent
-    }
-
-    #reward .reward-code:after {
-        bottom: -19px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #fff
-    }
-
-    #reward .reward-code:before {
-        bottom: -20px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #e6e6e6
-    }
-
-    #reward .qr-code {
-        width: 50%;
-        float: left;
-        padding: 5px;
-    }
-
-    #reward .qr-code p {
-        margin-top: -6px;
-    }
-
-    #reward img {
-        transform: none;
-        -webkit-transform: none;
-        margin-left: 0;
-    }
-
-    #reward img[alt='i'] {
-        width: 20px;
-        height: 20px;
-        z-index: 2;
-        position: absolute;
-        margin: 65px 0 0 65px;
-    }
-
-    #reward img[alt="ali"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #0f9be0;
-    }
-
-    #reward img[alt="wechat"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #3db034;
-    }
-
-    #reward .reward-tip {
-        font-size: 1.2em;
-        margin-bottom: 0;
-        color: #ea6f5a;
-    }
-</style>
-<div id="reward" class="col-xs-12">
-    <div class="reward-btn-wrapper">
-        <div class="reward-btn text-center">赞赏支持</div>
-    </div>
-    <div class="reward-code text-center">
-        <p class="text-center reward-tip"><strong>请我吃胡萝卜 =^_^= </strong></p>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-ali" src="" alt="ali">
-            <p><small>支付宝</small></p>
-        </div>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-wechat" src="" alt="wechat">
-            <p><small>微信</small></p>
-        </div>
-    </div>
-</div>
-<script>
-    (function (window, document) {
-        var aliQr = new QRious({ value: 'HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8' });
-        var wechatQr = new QRious({ value: 'wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5' });
-        document.querySelector('#reward-ali').src = aliQr.toDataURL();
-        document.querySelector('#reward-wechat').src = wechatQr.toDataURL();
-
-        var rewardBtn = document.querySelector('#reward .reward-btn-wrapper');
-        var qrCode = document.querySelector('#reward .reward-code')
-        var activeFunc = function (e) {
-            qrCode.style.display = 'block';
-        }
-        var hideFunc = function (e) {
-            qrCode.style.display = 'none';
-        }
-
-        rewardBtn.addEventListener('mouseenter', activeFunc, false)
-        rewardBtn.addEventListener('mouseover', activeFunc, false)
-        rewardBtn.addEventListener('mouseleave', hideFunc, false)
-        qrCode.addEventListener('mouseenter', activeFunc, false)
-        qrCode.addEventListener('mouseover', activeFunc, false)
-        qrCode.addEventListener('mouseleave', hideFunc, false)
-    })(window, document);
-</script>
-
-    
-<div class="col-xs-12 text-center" style="margin-top: 30px;">
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://github.com/geektutu" title="Github"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/github.png" /></a>
-    
-    <a style="display:inline-block;" href="https://geektutu.com/feed.xml" title="RSS"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/rss.jpg" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie" title="知乎"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/zhihu.png" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://weibo.com/geektutu" title="微博"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/weibo.jpg" /></a>
-    
-</div>
-
-    <!-- 评论 -->
-    
-    <div class="col-xs-12">
-      
-<div class="col-xs-12 padding-0">
-    <div id="gitalk-container">
-        <div class="gt-container text-center" style="margin-top: 50px;">
-            <button class="gt-btn gt-btn-public"><span class="gt-btn-text">去 Github 评论</span></button>
-        </div>
-    </div>
-    <div id="gitalk-related"></div>
-</div>
-
-<link rel="stylesheet" href="/css/gitalk.css">
-
-
-<script src="/js/gitalk.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        function renderCommentUrl(data) {
-            var url = (data[window.location.pathname] || {}).url
-            url && getDom('#gitalk-container button').addEventListener('click', function (e) { window.open(url)})
-            url || (getDom('#gitalk-container').style.display = 'none')
-        }
-        const gitalk = new Gitalk({
-            clientID: 'c1fdd456a4caae5f7df0',
-            clientSecret: 'b2674451e21feae50520f99337ec15d2aebe7879',
-            accessToken: '513dc2f1e6df8c07a12fbf1547874f54679d9712',
-            repo: 'geektutu.github.io',
-            owner: 'geektutu',
-            admin: ['geektutu'],
-            id: window.location.pathname,
-            distractionFreeMode: false
-        });
-        fetch("https://api.github.com/user").then(function(resp){
-            gitalk.render('gitalk-container');
-        }).catch(function(e){
-            fetch('/tool/issues.json').then(function (r) { return r.json() }).then(renderCommentUrl).catch(function (e) { })
-        })
-        getDom('#gitalk-container').addEventListener('click', function (e) {
-            e && e.stopPropagation && e.stopPropagation();
-        });
-    })
-</script>
-<script>
-    window.addEventListener('load', function () {
-        function render(comments) {
-            var template = '<a href="${comment.url}?utm_source=gitalk" class="dis-item-url"><h3 class="dis-item-title">${comment.title}</h3>' +
-                '<p class="dis-item-des">${comment.count} 评论 ● ${comment.date}</p>' +
-                '<div class="dis-item-content"><img class="dis-item-img" src="${comment.icon}" alt="icon"><p><b><span class="dis-item-user">${comment.user}</span></b>&nbsp;——&nbsp;${comment.body}</p></div>' +
-                '</a>'
-
-            var wrapper = getDom('#gitalk-related');
-            comments = shuffle(comments);
-            comments.slice(0, 4).forEach(function (c) {
-                var div = document.createElement('div');
-                div.classList.add('dis-item');
-                div.innerHTML = template.replace("${comment.url}", c.url)
-                    .replace("${comment.title}", c.title)
-                    .replace("${comment.count}", c.count)
-                    .replace("${comment.date}", c.date)
-                    .replace("${comment.icon}", c.icon)
-                    .replace("${comment.user}", c.user)
-                    .replace("${comment.body}", c.body)
-                wrapper.appendChild(div)
-            })
-            var p = document.createElement('p')
-            p.innerHTML = '<a href="https://geektutu.com/post/blog-experience-7.html">Gitalk Plus</a>';
-            p.classList.add('dis-divide');
-            wrapper.appendChild(p);
-            wrapper.classList.add('dis-wrapper')
-        }
-        function shuffle(a) {
-            for (var i = a.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-        fetch('/tool/comments.json').then(function (r) { return r.json() }).then(render).catch(function (e) { })
-    })
-</script>
-
-    </div>
-    
-  </div>
-  <aside class="gkt-book-toc hidden-xs hidden-sm">
-    <div style="clear: both"></div>
-    <div class="gkt-sidebar-wrapper">
-      <!-- Table of Contents -->
-<div id="sidebar-toc">
-  <!-- TOC  -->
-  
-  
-  <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E6%AD%BB%E7%A0%81%E6%B6%88%E9%99%A4"><span class="toc-nav-text">1 什么是死码消除</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-Go-%E8%AF%AD%E8%A8%80%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-nav-text">2 Go 语言中的应用</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-1-%E4%BD%BF%E7%94%A8%E5%B8%B8%E9%87%8F%E6%8F%90%E5%8D%87%E6%80%A7%E8%83%BD"><span class="toc-nav-text">2.1 使用常量提升性能</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-2-%E5%8F%AF%E6%8E%A8%E6%96%AD%E7%9A%84%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F"><span class="toc-nav-text">2.2 可推断的局部变量</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-3-%E8%B0%83%E8%AF%95-debug-%E6%A8%A1%E5%BC%8F"><span class="toc-nav-text">2.3 调试(debug)模式</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-4-%E6%9D%A1%E4%BB%B6%E7%BC%96%E8%AF%91"><span class="toc-nav-text">2.4 条件编译</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%99%84-%E6%8E%A8%E8%8D%90%E4%B8%8E%E5%8F%82%E8%80%83"><span class="toc-nav-text">附 推荐与参考</span></a></li></ol>
-  
-</div>
-
-<script>
-  (function () {
-    var h2 = document.querySelectorAll('article h2');
-    var h3 = document.querySelectorAll('article h3');
-    var linkList = document.querySelectorAll('#sidebar-toc a');
-
-    function findLinkElement(name) {
-      for (var i = 0; i < linkList.length; i++) {
-        var items = linkList[i].href.split('#');
-        if (items && items[items.length - 1] === encodeURIComponent(name)) {
-          return i;
-        }
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
       }
-      return -1;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
     }
 
-    function activeLink(titleList) {
-      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      for (var i = titleList.length - 1; i >= 0; i--) {
-        if (scrollTop - titleList[i].offsetTop > 0) {
-          var index = findLinkElement(titleList[i].id);
-          index != -1 && linkList[index].classList.add('gkt-sidebar-active');
-          break;
-        }
-      }
-    }
-
-    window.addEventListener("scroll", function (e) {
-      [].slice.call(linkList).forEach(function (link) {
-        link.classList.remove('gkt-sidebar-active');
-      })
-      activeLink(h2);
-    })
-  })();
-</script>
-    </div>
-  </aside>
-</div>
-<script>
-    (function () {
-        function resizeUArrow() {
-            var s = getDom('.u-arrow-wrapper').style
-            var pc = getDom('.gkt-book-page')
-            s.left = getPosition(pc).x - 15 + 'px';
-            s.width = pc.clientWidth + 30 + 'px';
-        }
-        resizeUArrow()
-        window.addEventListener('resize', resizeUArrow);
-        var nav = getDom('.gkt-book-menu nav');
-        var key = 'gkt_book_Go 语言高性能编程_' + parseInt(new Date().getTime()/1000/3600/24/7)
-        nav.scrollTo(0, localStorage.getItem(key) * 1)
-        nav.addEventListener('scroll', function(){ localStorage.setItem(key, nav.scrollTop) })
-    })();
-    (function(){
-      getDom(".gkt-book-menu-icon").addEventListener('click', function() {
-        var menu = getDom(".gkt-book-menu").classList
-        var article = getDom(".gkt-book-page").classList
-        if (menu.contains("gkt-book-menu-hidden")) {
-          menu.remove('gkt-book-menu-hidden')
-          article.add('gkt-book-menu-checked')
-        } else {
-          menu.add('gkt-book-menu-hidden')
-          article.remove('gkt-book-menu-checked')
-        }
-      })
-    })();
-</script>
-
-
-    
-
-</main>
-    </div>
-    <style>
-    img#go-top {
-        position: fixed;
-        bottom: 100px;
-        width: 50px;
-        cursor: pointer;
-        z-index: 9999;
-    }
-</style>
-<img id="go-top" src="/icon/top.png" class="hidden-xs" style="display: none" />
-<script>
-    (function () {
-        var goTop = document.getElementById('go-top');
-        var mainContainer = document.querySelector('.main-container');
-        
-        goTop.addEventListener('click', function () {
-            window.scroll(0, 0);
-        }, false);
-        window.addEventListener('scroll', function () {
-            var right = document.body.offsetWidth - mainContainer.getBoundingClientRect().right;
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            goTop.style.right = right + 10 + 'px'
-            scrollTop > 700 && (goTop.style.display = "block");
-            scrollTop <= 700 && (goTop.style.display = "none");
-        });
-    })();
-</script>
-    <style>
-    #geektutu-click-img-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        text-align: center;
-        width: 100%;
-        display: none;
-        z-index: 9999;
-    }
-
-    #geektutu-click-img-container img {
-        object-fit: contain;
-        background: #eaecef;
-        padding: 15px;
-        border-radius: 10px;
-        height: auto;
-        width: auto;
-        vertical-align: middle;
-    }
-</style>
-
-
-<div id="geektutu-click-img-container">
-    <img src="" alt="Big Image">
-</div>
-
-<script>
-    (function () {
-        var container = document.querySelector('#geektutu-click-img-container')
-        var targetImg = container.querySelector('img')
-        var imgs = document.querySelectorAll('article img');
-        targetImg.addEventListener('click', function (e) {
-            container.style.display = 'none';
-            e && e.stopPropagation && e.stopPropagation();
-        }, false);
-
-        for (var i = 0; i < imgs.length; ++i) {
-            var img = imgs[i];
-            img.addEventListener('click', (function (src, rate) {
-                return function (e) {
-                    e && e.stopPropagation && e.stopPropagation();
-                    if (window.innerWidth < 980) {
-                        return
-                    }
-                    targetImg.style.height = targetImg.style.width = 'auto';
-                    if (window.innerWidth / window.innerHeight > rate) {
-                        targetImg.style.height = (window.innerHeight - 20) + 'px';
-                    } else {
-                        targetImg.style.width = (window.innerWidth - 20) + 'px';
-                    }
-                    container.style.height = window.innerHeight + 'px'
-                    container.style.lineHeight = window.innerHeight + 'px'
-                    container.style.display = 'block';
-                    targetImg.src = src;
-                };
-            }(img.src, img.width / img.height)), false)
-        }
-    })();
-</script>
-    <!-- Footer -->
-    <!-- Footer -->
-<style>
-    footer {
-        width: 100%;
-        line-height: 1.5;
-        padding: 20px;
-    }
-
-    footer a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    .footer-hexo img {
-        height: 20px;
-        margin-bottom: -5px;
-    }
-
-    .footer-hexo a {
-        color: #337ab7;
-    }
-</style>
-<footer class="text-center col-xs-12">
-    <p>
-        <small>© 2026 - 极客兔兔 - </small>
-        <small>
-            <a target="_blank" rel="nofollow noopener" href="http://beian.miit.gov.cn/">沪ICP备18001798号-1</a>
-        </small>
-    </p>
-    <p class="footer-hexo">
-        <!-- 但若直接使用或修改主题，请务必保留这段声明 -->
-        <small>Powered by <a target="_blank" href="https://hexo.io">Hexo</a> | Theme
-            <a target="_blank" href="https://geektutu.com">Geektutu</a>
-            <a target="_blank" rel="noopener" href="https://github.com/geektutu/hexo-theme-geektutu">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIACIAUAMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQQFBwIDBgj/2gAIAQEAAAAA9KrHSgAYL5/z6zZGuJd12uugbhq3uKtmuRtix20IS7lTLAfAAAn/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oACAECEAAAAAAB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAxAAAAAAAf/EADEQAAICAQIEBQEGBwAAAAAAAAECAwQFAAYREhORBxQhUlQxQVFic5KxJDJCYYGC0f/aAAgBAQABPwCFHnjWUzuvN6hV4cANSRLGjO9yRVUcSzMoA7jVXJYe5N0a2dhmk9kc0bN2GvLN8mbuNeWb5M3ca8s3yZu415Y/Jm7jXlm+TN3H/NeVPyZu40vOk3TZywK8wJ+v3EHVM/wsI/Dq2lrxN3Nnca16eti8chSAIoMbzByhMwP14kHVfwIiSaF5c96J6kwwCOTnHsYk8uvCrdmQy1TI4rJuz3cZLyGR/wCd4+YoOf8AEpUjXitubLYPG4paFsUxcuiGe7yc5gTW3LW44szXmobsi3Dhmic2+Z4+vCVH9CpraPiQ+QvbgTJrPFBWd5YpWrmNIIEXiRO32Pqt4p7cnfHk18lFBdmEVW1LVdIZGOrniTt6plrWKaO69yCykDRxwF+LMAewB0Txtr+Sf31VI8tEPw62fZt7N3Humtbpzz13ucX6CGSWMSuzpLyD1eNgeUka3PuvHbaxq3biTMHfkiSNCS78CwU+3Xg7Vu3MhuTcU6cq3Zemn3Eh2dv8Lzcut+29x1atKbHYqLJUhLwyNMwiZ3j9yDWOxUOV3tgb+3No5LDx1pi9+aeIwRlNY6bc+Jv+IFGrhLxtXJZ7VKcw81diiAAEn0JOrkWZyNfbEr0tz27UGQgkuGzXdIIvyowq99bRxk9ffO/L81SZBPZgEEroQroIxxMZOgeNsfkn99QypHGqO4Vl9CDrN4LDZkwyzyyQ2IgRHZrzGCZVP1XnQglT9oOtw4LC7iqV6uRkZoYpxKFSQpzFRw4EjVRMfSrQ1qqwxQxKFjjTgFUD7BoWYR6iVe+mtxt9Zwf9teaj4AdccPu5tedX5A/VrzUR+sy/q1CwksF19VEfDj/cnQRW+qg66cfsXtrpx+xe2unH7F7a6cfsXtrpx+xe2unH7F7a6cfsXtoxx+xe2gAAOA1//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwB//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwB//9k="
-                    alt="Github Star">
-            </a>
-        </small>
-    </p>
-    
-    <p>
-        <small>
-            <span id="busuanzi_container_site_pv">👁<span id="busuanzi_value_site_pv"></span></span> &nbsp;
-            <span id="busuanzi_container_page_pv">📚<span id="busuanzi_value_page_pv"></span></span>
-        </small>
-    </p>
-    
-    
-
-</footer>
-
-
-<script>
-    window.addEventListener('load', function () {
-        globalAddScript('//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js');
-    })
-</script>
-
-<!-- Baidu Tongji -->
-
-<script>
-    window.addEventListener('load', function () {
-        var _hmt = _hmt || [];
-        globalAddScript('//hm.baidu.com/hm.js?1a0ec38c52c08db815b0046c2783b1aa')
-    })
-</script>
-
-
-
-<!-- baidu auto push for seo -->
-<script>
-    window.addEventListener('load', function () {
-        var src = 'http://push.zhanzhang.baidu.com/push.js'
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        globalAddScript(src);
-    })
-</script>
-
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-142641425-1');
-
-    window.addEventListener('load', function () {
-        globalAddScript('https://www.googletagmanager.com/gtag/js?id=UA-142641425-1');
-    });
-</script>
-
-
-    <script>
-        // 非本站网址，新开tab页签
-        (function () {
-            var stopBubble = function (e) {
-                e && e.stopPropagation && e.stopPropagation();
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
             }
-            var links = document.querySelectorAll('a');
-            [].slice.call(links).forEach(function (item) {
-                if (item.href && item.href.indexOf(window.location.host) === -1) {
-                    item.target = '_blank'
-                }
-                // 阻止冒泡，不触发彩蛋。
-                item.addEventListener('click', stopBubble, false);
-            });
-            var article = document.querySelector('article');
-            article && article.addEventListener('click', stopBubble, false)
-        })();
-    </script>
-    
-</body>
-
-</html>
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

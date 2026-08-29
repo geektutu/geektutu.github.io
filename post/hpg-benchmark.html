@@ -1,526 +1,14 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
-<!-- Head tag -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="referrer" content="no-referrer-when-downgrade">
-  
-  <meta name="baidu-site-verification" content="p7Pz3jlx4t" />
-  <meta name="google-site-verification" content="X31OY0d2sKImNbS2x8-OpITWRK4nn7nZCcXe3_hA9ew" />
-  <meta name="msvalidate.01" content="7E2AEE3378AC93764DEAB411177A21A1" />
-  <meta name="360-site-verification" content="1d1e81a1a48a1ed2e3308d7cb8e548e7" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- if page has tags, then add tags to keyword -->
-  
-  
-  <meta name="keywords" content="geektutu,jiketutu,Go语言,golang,python,Go语言高性能编程,golang,benchmark,性能分析">
-  <!-- page.description has higher priority -->
-  <meta name="description" content="Go 语言/golang 高性能编程，Go 语言进阶教程，Go 语言高性能编程(high performance go)。详细介绍如何测试/评估 Go 代码的性能，内容包括使用 testing 库进行基准测试(benchmark)，性能分析(profiling) 编译优化(compiler optimisations)，内存管理(memory management)和垃圾回收(garbage collect)、pprof 等内容。同时也介绍了使用 Go 语言如何写出高性能的程序和应用，包括不限于 Go 语言标准库、第三方库的使用方式和最佳实践。">
-  <link rel="shortcut icon" href="/img/icon.png">
-  <title>
-    
-    benchmark 基准测试 | Go 语言高性能编程 | 极客兔兔
-    
-  </title>
-
-  <link rel="canonical" href="https://geektutu.com/post/hpg-benchmark.html">
-  
-<link rel="stylesheet" href="/css/geektutu.css">
-
-  <!-- global function -->
-  <script>
-    window.globalAddScript = function (url, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = url;
-      onload && (s.onload = onload);
-      onerror && (s.onerror = onerror);
-      document.body.appendChild(s);
-    }
-    window.globalAddCss = function (url) {
-      var s = document.createElement('link');
-      s.rel = 'stylesheet';
-      s.href = url;
-      document.body.appendChild(s);
-    }
-    window.getPosition = function (ele) {
-      var x = 0, y = 0;
-      while (ele) {
-        x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-        y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-        ele = ele.offsetParent;
-      }
-      return { x: x, y: y };
-    }
-    window.getDom = function (str) { return document.querySelector(str) }
-  </script>
-  <!-- google ad -->
-  
-<meta name="generator" content="Hexo 5.2.0"><link rel="alternate" href="/feed.xml" title="极客兔兔" type="application/rss+xml">
-</head>
-
-<body>
-    
-<style>
-    body {
-        background: white;
-    }
-    .gkt-header-placeholder, .gkt-header {
-        display: none;
-    }
-    .main-container {
-        width: 100%;
-        padding-top: 0;
-        max-width: 100%;
-    }
-</style>
-
-<header class="gkt-header col-xs-12 padding-0">
-    <div id="gkt-nav" class="gkt-header-container">
-        <a href="/" class="gkt-header-title float-left">
-            <img class="float-left" src="/img/icon.png" alt="">
-            <span>极客兔兔</span>
-        </a>
-        <nav class="gkt-header-nav text-right">
-            <ul>
-                <li><a class="hidden-xs" href="/feed.xml">订阅</a></li>
-                <li><a href="/series/">专题</a></li>
-                <li><a href="/archives/">归档</a></li>
-                <li><a href="/post/link.html">友链</a></li>
-                <li><a href="/post/about.html">关于</a></li>
-            </ul>
-        </nav>
-    </div>
-    <div id="gkt-cate-nav" class="gkt-header-container hidden-xs">
-        
-        <nav class="gkt-header-nav float-left">
-            <ul>
-                
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/tensorflow-mnist-simplest.html">简明教程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tensorflow-mnist-simplest.html">TensorFlow 教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/pandas-dataframe-series.html">Pandas 数据处理</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/tf2doc.html">TensorFlow2 文档</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-golang.html">Go 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-rust.html">Rust 简明教程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/quick-python.html">Python 简明教程</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/blog-experience-1.html">杂谈 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/blog-experience-1.html">建站经历</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/2020.html">年终总结</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/qa-ml.html">面试 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-ml.html">机器学习面试题</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/qa-golang.html">Go 语言面试题</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/gee.html">从零实现 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/gee.html">Web框架 - Gee</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geecache.html">分布式缓存 - GeeCache</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geeorm.html">ORM框架 - GeeORM</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/geerpc.html">RPC框架 - GeeRPC</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/7days-golang-q1.html">7days-golang Q &amp; A</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left ">
-                    <a class="float-left" href="/post/box-tools.html">百宝箱 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/box-tools.html">工具</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/cheat-sheet-sqlite.html">SQLite 速查表</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-                <li class="gkt-cate-name float-left active">
-                    <a class="float-left" href="/post/high-performance-go.html">高性能编程 ▾</a>
-                    
-                    <ul class="gkt-sub-cate">
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/high-performance-go.html">序言</a></li>
-                        
-                        <li class="gkt-sub-cate-name active"><a class="float-left"
-                                href="/post/hpg-benchmark.html">性能分析</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-string-concat.html">常用数据结构</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-mutex.html">并发编程</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-reduce-size.html">编译优化</a></li>
-                        
-                        <li class="gkt-sub-cate-name "><a class="float-left"
-                                href="/post/hpg-gotchas-array-slice.html">语言陷阱</a></li>
-                        
-                    </ul>
-                    
-                </li>
-                
-            </ul>
-        </nav>
-    </div>
-</header>
-<div class="gkt-header-placeholder" style="height: 44px"></div>
-<div class="gkt-header-placeholder hidden-xs" style="height: 44px"></div>
-<script>
-    (function () {
-        window.addEventListener('scroll', function () {
-            if (window.innerWidth < 768) {
-                return;
-            }
-            var nav = document.querySelector('#gkt-nav');
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            scrollTop > 50 && (nav.classList.add('hide'));
-            scrollTop <= 50 && (nav.classList.remove('hide'));
-        });
-        var cateNavs = document.querySelectorAll('#gkt-cate-nav>nav>ul>li');
-        [].slice.call(cateNavs).forEach(function (item) {
-            var sub = item.querySelector('.gkt-sub-cate');
-            if (!sub) return;
-            item.addEventListener('mouseenter', function (e) { sub.style.display = 'block'; }, false);
-            item.addEventListener('mouseleave', function (e) { sub.style.display = 'none'; }, false);
-        })
-    })();
-</script>
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Main Content -->
-<main class="col-xs-12 padding-0 markdown-it">
-    <!-- Post Container -->
-    
-    
-    <!-- Post Content -->
-<style>
-  .markdown-it article h1, .markdown-it article h2, .markdown-it article h3 {
-    padding-top: 5px;
-    margin-top: 0px;
-  }
-  .post-container {
-    padding: 0 !important;
-    width: 100%;
-  }
-  .post-container article {
-    padding: 0 15px !important;
-  }
-  .gkt-book {
-    max-width: 80rem;
-    margin: 1rem auto;
-    display: flex;
-  }
-  .gkt-book-title {
-    color: #343a40;
-    font-size: 1.2em;
-  }
-  .gkt-sidebar-wrapper {
-    position: fixed;
-    margin-top: 15px;
-  }
-  .gkt-book-menu {
-    flex: 0 0 16rem;
-    padding-left: 15px;
-    padding-top: 5px;
-    z-index: 999;
-  }
-  .gkt-book-menu a {
-    color: #343a40;
-  }
-  .gkt-book-menu a.active {
-    color: #337ab7;
-  }
-  .gkt-book-menu > nav {
-    position: fixed;
-    overflow: auto;
-    padding-right: 15px;
-    height: 95%;
-    font-size: 0.85em;
-    line-height: 2;
-    -ms-overflow-style: none;
-    overflow: -moz-scrollbars-none;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-track {
-    background-color: #f1f1f1;
-    border-left: 1px solid #eee;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar-thumb {
-      background-color: #c1c1c1;
-  }
-  .gkt-book-menu > nav::-webkit-scrollbar {
-    width: 5px !important;
-  }
-  .gkt-book-menu hr {
-    padding: 2px;
-  }
-  .gkt-book-menu > nav > ul {
-    padding-left: 0;
-  }
-  .gkt-book-menu > nav ul,
-  .gkt-book-toc ul,
-  .gkt-book-toc ol {
-    list-style: none !important;
-  }
-  @media (min-width: 992px) {
-    .gkt-book-page {
-      width: calc(100% - 32rem);
-    }
-  }
-  .gkt-book-page {
-    min-width: 20rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-  .gkt-page-tips {
-    color: #555;
-    margin-top: -10px;
-  }
-  .gkt-book-toc {
-    flex: 0 0 16rem;
-    font-size: 0.85em;
-  }
-  .gkt-book .series_links {
-    border: 1px solid #eaecef;
-    padding: 0 15px;
-    background-color: #fff8dc;
-    margin-bottom: 20px;
-    border-radius: 5px;
-  }
-  .gkt-book-menu-icon {
-    padding: 0 15px;
-    font-size: 16px;
-    overflow: hidden;
-    cursor: pointer;
-  }
-  @media (max-width: 767px) {
-    .gkt-book-menu-hidden {
-      margin-left: -16rem;
-    }
-  }
-  .gkt-book-menu-checked {
-    opacity: 0.4;
-    margin-right: -16rem;
-    transition: .2s ease-in-out;
-    transition-property: opacity;
-  }
-</style>
-<div class="gkt-book post-container">
-  <aside class="gkt-book-menu gkt-book-menu-hidden">
-    <nav>
-      
-      <h3 class="text-center">
-        <a class="gkt-book-title" href="/post/high-performance-go.html">Go 语言高性能编程</a>
-      </h3>
-      
-      <ul class="col-xs-12 text-center">
-        <li><a href="/">极客兔兔</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://github.com/geektutu">Github</a></li>
-        
-        <li><a href="https://geektutu.com/feed.xml">RSS</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie">知乎</a></li>
-        
-        <li><a target="_blank" rel="noopener" href="https://weibo.com/geektutu">微博</a></li>
-        
-      </ul>
-      
-      <hr />
-      
-      <ul>
-        
-        <li>
-          <a>序言</a>
-          <ul>
-            
-            <li><a href="/post/high-performance-go.html" class=" ">关于本书</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>性能分析</a>
-          <ul>
-            
-            <li><a href="/post/hpg-benchmark.html" class="active ">benchmark 基准测试</a></li>
-            
-            <li><a href="/post/hpg-pprof.html" class=" ">pprof 性能分析</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>常用数据结构</a>
-          <ul>
-            
-            <li><a href="/post/hpg-string-concat.html" class=" ">字符串拼接性能及原理</a></li>
-            
-            <li><a href="/post/hpg-slice.html" class=" ">切片(slice)性能及陷阱</a></li>
-            
-            <li><a href="/post/hpg-range.html" class=" ">for 和 range 的性能比较</a></li>
-            
-            <li><a href="/post/hpg-reflect.html" class=" ">反射(reflect)性能</a></li>
-            
-            <li><a href="/post/hpg-empty-struct.html" class=" ">使用空结构体节省内存</a></li>
-            
-            <li><a href="/post/hpg-struct-alignment.html" class=" ">内存对齐对性能的影响</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>并发编程</a>
-          <ul>
-            
-            <li><a href="/post/hpg-mutex.html" class=" ">读写锁和互斥锁的性能比较</a></li>
-            
-            <li><a href="/post/hpg-timeout-goroutine.html" class=" ">如何退出协程(超时场景)</a></li>
-            
-            <li><a href="/post/hpg-exit-goroutine.html" class=" ">如何退出协程(其他场景)</a></li>
-            
-            <li><a href="/post/hpg-concurrency-control.html" class=" ">控制协程的并发数量</a></li>
-            
-            <li><a href="/post/hpg-sync-pool.html" class=" ">sync.Pool 复用对象</a></li>
-            
-            <li><a href="/post/hpg-sync-once.html" class=" ">sync.Once 如何提升性能</a></li>
-            
-            <li><a href="/post/hpg-sync-cond.html" class=" ">sync.Cond 条件变量</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>编译优化</a>
-          <ul>
-            
-            <li><a href="/post/hpg-reduce-size.html" class=" ">减小编译体积</a></li>
-            
-            <li><a href="/post/hpg-escape-analysis.html" class=" ">逃逸分析对性能的影响</a></li>
-            
-            <li><a href="/post/hpg-dead-code-elimination.html" class=" ">死码消除与调试模式</a></li>
-            
-          </ul>
-        </li>
-        
-        <li>
-          <a>语言陷阱</a>
-          <ul>
-            
-            <li><a href="/post/hpg-gotchas-array-slice.html" class=" ">数组和切片</a></li>
-            
-          </ul>
-        </li>
-        
-      </ul>
-    </nav>
-  </aside>
-  <div class="gkt-book-page">
-    <div class="hidden-sm hidden-md hidden-lg gkt-book-menu-icon">
-      <label for="book-menu">
-        <svg class="float-left" name="book-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0V0z"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-      </label>
-      <strong class="float-right">Go 语言高性能编程</strong>
-    </div>
-    <div class="u-arrow-wrapper hidden-xs">
-        
-        <a class="float-left" href="/post/high-performance-go.html"><i class="u-arrow-left"></i></a>
-        
-        
-        <a class="float-right" href="/post/hpg-pprof.html"><i class="u-arrow-right"></i></a>
-        
-    </div>
-    <article class="col-xs-12">
-      <h1>benchmark 基准测试</h1>
-       
-      <div class="hidden-lg hidden-md hidden-sm series_links">
-        <p><strong> 性能分析系列文章链接：</strong></p>
-        <ul>
-          
-          <li>
-            <a href="/post/hpg-benchmark.html">benchmark 基准测试</a>
-            <span class="post-item-date">(Nov 17, 2020)</span>
-          </li>
-          
-          <li>
-            <a href="/post/hpg-pprof.html">pprof 性能分析</a>
-            <span class="post-item-date">(Nov 22, 2020)</span>
-          </li>
-          
-        </ul>
-      </div>
-       
-      <blockquote>
-        <p>
-          源代码/数据集已上传到
-          <a href="https://github.com/geektutu/high-performance-go" target="_blank" rel="noopener">Github - high-performance-go</a>
-        </p>
-      </blockquote>
-      
-      <div class="gkt-article-start"></div>
-      <p><img src="hpg-benchmark/benchmark.jpg" alt="benchmark &amp; profiling - high performance with go"></p>
-<h2 id="1-稳定的测试环境"><a href="#1-稳定的测试环境" class="headerlink" title="1 稳定的测试环境"></a>1 稳定的测试环境</h2><p>当我们尝试去优化代码的性能时，首先得知道当前的性能怎么样。Go 语言标准库内置的 testing 测试框架提供了基准测试(benchmark)的能力，能让我们很容易地对某一段代码进行性能测试。</p>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Go 语言/golang 高性能编程，Go 语言进阶教程，Go 语言高性能编程(high performance go)。详细介绍如何测试/评估 Go 代码的性能，内容包括使用 testing 库进行基准测试(benchmark)，性能分析(profiling) 编译优化(compiler optimisations)，内存管理(memory management)和垃圾回收(garbage collect)、pprof 等内容。同时也介绍了使用 Go 语言如何写出高性能的程序和应用，包括不限于 Go 语言标准库、第三方库的使用方式和最佳实践。"><title>benchmark 基准测试 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.B88FlGyz.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-baseline gap-2"><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔<span class="text-accent">.</span></span><span class="hidden text-xs text-faint sm:inline">写书式技术博客</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/high-performance-go" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">Go 语言高性能编程</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">序言</span></div><ul><li><a href="/post/high-performance-go.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言高性能编程</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">性能分析</span></div><ul><li><a href="/post/hpg-benchmark.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">benchmark 基准测试</a></li><li><a href="/post/hpg-pprof.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">pprof 性能分析</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">常用数据结构</span></div><ul><li><a href="/post/hpg-string-concat.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">字符串拼接性能及原理</a></li><li><a href="/post/hpg-slice.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">切片(slice)性能及陷阱</a></li><li><a href="/post/hpg-range.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">for 和 range 的性能比较</a></li><li><a href="/post/hpg-reflect.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Reflect 提高反射性能</a></li><li><a href="/post/hpg-empty-struct.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 空结构体 struct{} 的使用</a></li><li><a href="/post/hpg-struct-alignment.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go struct 内存对齐</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">并发编程</span></div><ul><li><a href="/post/hpg-mutex.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">读写锁和互斥锁的性能比较</a></li><li><a href="/post/hpg-timeout-goroutine.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">如何退出协程 goroutine (超时场景)</a></li><li><a href="/post/hpg-exit-goroutine.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">如何退出协程 goroutine (其他场景)</a></li><li><a href="/post/hpg-concurrency-control.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">控制协程(goroutine)的并发数量</a></li><li><a href="/post/hpg-sync-pool.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Pool</a></li><li><a href="/post/hpg-sync-once.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Once</a></li><li><a href="/post/hpg-sync-cond.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go sync.Cond</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">编译优化</span></div><ul><li><a href="/post/hpg-reduce-size.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">减小 Go 代码编译后的二进制体积</a></li><li><a href="/post/hpg-escape-analysis.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 逃逸分析</a></li><li><a href="/post/hpg-dead-code-elimination.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 死码消除与调试(debug)模式</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">语言陷阱</span></div><ul><li><a href="/post/hpg-gotchas-array-slice.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go 语言陷阱 - 数组和切片</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/high-performance-go" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> Go 语言高性能编程</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">benchmark 基准测试</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2020-11-17">2020-11-17</time><span aria-hidden="true">·</span><span>约 7 分钟</span><a href="https://github.com/geektutu/high-performance-go" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/high-performance-go" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/high-performance-go</a><span class="flex flex-wrap gap-2"><a href="/tags/Go语言高性能编程" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Go语言高性能编程</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#1-稳定的测试环境" class="toc-link block text-muted" data-toc-depth="2">1 稳定的测试环境</a></li><li style="padding-left:0rem"><a href="#2-benchmark-的使用" class="toc-link block text-muted" data-toc-depth="2">2 benchmark 的使用</a></li><li style="padding-left:0.9rem"><a href="#21-一个简单的例子" class="toc-link block text-muted" data-toc-depth="3">2.1 一个简单的例子</a></li><li style="padding-left:0.9rem"><a href="#22-运行用例" class="toc-link block text-muted" data-toc-depth="3">2.2 运行用例</a></li><li style="padding-left:0.9rem"><a href="#23-benchmark-是如何工作的" class="toc-link block text-muted" data-toc-depth="3">2.3 benchmark 是如何工作的</a></li><li style="padding-left:0.9rem"><a href="#24-提升准确度" class="toc-link block text-muted" data-toc-depth="3">2.4 提升准确度</a></li><li style="padding-left:0.9rem"><a href="#25-内存分配情况" class="toc-link block text-muted" data-toc-depth="3">2.5 内存分配情况</a></li><li style="padding-left:0.9rem"><a href="#26-测试不同的输入" class="toc-link block text-muted" data-toc-depth="3">2.6 测试不同的输入</a></li><li style="padding-left:0rem"><a href="#3-benchmark-注意事项" class="toc-link block text-muted" data-toc-depth="2">3 benchmark 注意事项</a></li><li style="padding-left:0.9rem"><a href="#31-resettimer" class="toc-link block text-muted" data-toc-depth="3">3.1 ResetTimer</a></li><li style="padding-left:0.9rem"><a href="#32-stoptimer--starttimer" class="toc-link block text-muted" data-toc-depth="3">3.2 StopTimer &amp; StartTimer</a></li><li style="padding-left:0rem"><a href="#附-推荐与参考" class="toc-link block text-muted" data-toc-depth="2">附 推荐与参考</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><p><img alt="benchmark &amp;#x26; profiling - high performance with go" loading="lazy" decoding="async" width="1706" height="888" src="/_astro/benchmark.kzBjQONN_pMUum.webp" srcset=""></p>
+<h2 id="1-稳定的测试环境">1 稳定的测试环境</h2>
+<p>当我们尝试去优化代码的性能时，首先得知道当前的性能怎么样。Go 语言标准库内置的 testing 测试框架提供了基准测试(benchmark)的能力，能让我们很容易地对某一段代码进行性能测试。</p>
 <p>性能测试受环境的影响很大，为了保证测试的可重复性，在进行性能测试时，尽可能地保持测试环境的稳定。</p>
 <ul>
 <li>机器处于闲置状态，测试时不要执行其他任务，也不要和其他人共享硬件资源。</li>
@@ -530,632 +18,366 @@
 <blockquote>
 <p>超分配是针对硬件资源来说的，商业上对应的就是云主机的超卖。虚拟化技术带来的最大直接收益是服务器整合，通过 CPU、内存、存储、网络的超分配（Overcommitment）技术，最大化服务器的使用率。例如，虚拟化的技能之一就是随心所欲的操控 CPU，例如一台 32U(物理核心)的服务器可能会创建出 128 个 1U(虚拟核心)的虚拟机，当物理服务器资源闲置时，CPU 超分配一般不会对虚拟机上的业务产生明显影响，但如果大部分虚拟机都处于繁忙状态时，那么各个虚拟机为了获得物理服务器的资源就要相互竞争，相互等待。Linux 上专门有一个指标，Steal Time(st)，用来衡量被虚拟机监视器(Hypervisor)偷去给其它虚拟机使用的 CPU 时间所占的比例。</p>
 </blockquote>
-<h2 id="2-benchmark-的使用"><a href="#2-benchmark-的使用" class="headerlink" title="2 benchmark 的使用"></a>2 benchmark 的使用</h2><h3 id="2-1-一个简单的例子"><a href="#2-1-一个简单的例子" class="headerlink" title="2.1 一个简单的例子"></a>2.1 一个简单的例子</h3><p>Go 语言标准库内置了支持 benchmark 的 <code>testing</code> 库，接下来看一个简单的例子：</p>
+<h2 id="2-benchmark-的使用">2 benchmark 的使用</h2>
+<h3 id="21-一个简单的例子">2.1 一个简单的例子</h3>
+<p>Go 语言标准库内置了支持 benchmark 的 <code>testing</code> 库，接下来看一个简单的例子：</p>
 <p>使用 <code>go mod init example</code> 初始化一个模块，新增 <code>fib.go</code> 文件，实现函数 <code>fib</code>，用于计算第 N 个菲波那切数。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// fib.go</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">fib</span><span class="params">(n <span class="type">int</span>)</span></span> <span class="type">int</span> &#123;</span><br><span class="line">	<span class="keyword">if</span> n == <span class="number">0</span> || n == <span class="number">1</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> n</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> fib(n<span class="number">-2</span>) + fib(n<span class="number">-1</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// fib.go</span></span>
+<span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> fib</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) </span><span style="color:#D73A49">int</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> n </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> ||</span><span style="color:#24292E"> n </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> 1</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">		return</span><span style="color:#24292E"> n</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#6F42C1"> fib</span><span style="color:#24292E">(n</span><span style="color:#D73A49">-</span><span style="color:#005CC5">2</span><span style="color:#24292E">) </span><span style="color:#D73A49">+</span><span style="color:#6F42C1"> fib</span><span style="color:#24292E">(n</span><span style="color:#D73A49">-</span><span style="color:#005CC5">1</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>接下来，我们在 <code>fib_test.go</code> 中实现一个 benchmark 用例：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// fib_test.go</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">&quot;testing&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkFib</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> n := <span class="number">0</span>; n &lt; b.N; n++ &#123;</span><br><span class="line">		fib(<span class="number">30</span>) <span class="comment">// run fib(30) b.N times</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// fib_test.go</span></span>
+<span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#032F62"> "</span><span style="color:#6F42C1">testing</span><span style="color:#032F62">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkFib</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> n </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; n </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; n</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">		fib</span><span style="color:#24292E">(</span><span style="color:#005CC5">30</span><span style="color:#24292E">) </span><span style="color:#6A737D">// run fib(30) b.N times</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <ul>
 <li>benchmark 和普通的单元测试用例一样，都位于 <code>_test.go</code> 文件中。</li>
 <li>函数名以 <code>Benchmark</code> 开头，参数是 <code>b *testing.B</code>。和普通的单元测试用例很像，单元测试函数名以 <code>Test</code> 开头，参数是 <code>t *testing.T</code>。</li>
 </ul>
-<h3 id="2-2-运行用例"><a href="#2-2-运行用例" class="headerlink" title="2.2 运行用例"></a>2.2 运行用例</h3><p><code>go test &lt;module name&gt;/&lt;package name&gt;</code> 用来运行某个 package 内的所有测试用例。</p>
+<h3 id="22-运行用例">2.2 运行用例</h3>
+<p><code>go test &#x3C;module name>/&#x3C;package name></code> 用来运行某个 package 内的所有测试用例。</p>
 <ul>
 <li>运行当前 package 内的用例：<code>go test example</code> 或 <code>go test .</code></li>
-<li>运行子 package 内的用例： <code>go test example/&lt;package name&gt;</code> 或 <code>go test ./&lt;package name&gt;</code></li>
+<li>运行子 package 内的用例： <code>go test example/&#x3C;package name></code> 或 <code>go test ./&#x3C;package name></code></li>
 <li>如果想递归测试当前目录下的所有的 package：<code>go test ./...</code> 或 <code>go test example/...</code>。</li>
 </ul>
 <p><code>go test</code> 命令默认不运行 benchmark 用例的，如果我们想运行 benchmark 用例，则需要加上 <code>-bench</code> 参数。例如：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench .</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkFib-8               200           5865240 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 1.782s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkFib-8</span><span style="color:#005CC5">               200</span><span style="color:#005CC5">           5865240</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 1.782s</span></span></code></pre>
 <p><code>-bench</code> 参数支持传入一个正则表达式，匹配到的用例才会得到执行，例如，只运行以 <code>Fib</code> 结尾的 benchmark 用例：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench=<span class="string">&#x27;Fib$&#x27;</span> .</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkFib-8               202           5980669 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 1.813s</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-3-benchmark-是如何工作的"><a href="#2-3-benchmark-是如何工作的" class="headerlink" title="2.3 benchmark 是如何工作的"></a>2.3 benchmark 是如何工作的</h3><p>benchmark 用例的参数 <code>b *testing.B</code>，有个属性 <code>b.N</code> 表示这个用例需要运行的次数。<code>b.N</code> 对于每个用例都是不一样的。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">'Fib$'</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkFib-8</span><span style="color:#005CC5">               202</span><span style="color:#005CC5">           5980669</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 1.813s</span></span></code></pre>
+<h3 id="23-benchmark-是如何工作的">2.3 benchmark 是如何工作的</h3>
+<p>benchmark 用例的参数 <code>b *testing.B</code>，有个属性 <code>b.N</code> 表示这个用例需要运行的次数。<code>b.N</code> 对于每个用例都是不一样的。</p>
 <p>那这个值是如何决定的呢？<code>b.N</code> 从 1 开始，如果该用例能够在 1s 内完成，<code>b.N</code> 的值便会增加，再次执行。<code>b.N</code> 的值大概以 1, 2, 3, 5, 10, 20, 30, 50, 100 这样的序列递增，越到后面，增加得越快。我们仔细观察上述例子的输出：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">BenchmarkFib-8               202           5980669 ns/op</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">BenchmarkFib-8</span><span style="color:#005CC5">               202</span><span style="color:#005CC5">           5980669</span><span style="color:#032F62"> ns/op</span></span></code></pre>
 <p>BenchmarkFib-8 中的 <code>-8</code> 即 <code>GOMAXPROCS</code>，默认等于 CPU 核数。可以通过 <code>-cpu</code> 参数改变 <code>GOMAXPROCS</code>，<code>-cpu</code> 支持传入一个列表作为参数，例如：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench=<span class="string">&#x27;Fib$&#x27;</span> -cpu=2,4 .</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkFib-2               206           5774888 ns/op</span><br><span class="line">BenchmarkFib-4               205           5799426 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 3.563s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">'Fib$'</span><span style="color:#005CC5"> -cpu=2,4</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkFib-2</span><span style="color:#005CC5">               206</span><span style="color:#005CC5">           5774888</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkFib-4</span><span style="color:#005CC5">               205</span><span style="color:#005CC5">           5799426</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 3.563s</span></span></code></pre>
 <p>在这个例子中，改变 CPU 的核数对结果几乎没有影响，因为这个 Fib 的调用是串行的。</p>
 <p><code>202</code> 和 <code>5980669 ns/op</code> 表示用例执行了 202 次，每次花费约 0.006s。总耗时比 1s 略多。</p>
-<h3 id="2-4-提升准确度"><a href="#2-4-提升准确度" class="headerlink" title="2.4 提升准确度"></a>2.4 提升准确度</h3><p>对于性能测试来说，提升测试准确度的一个重要手段就是增加测试的次数。我们可以使用 <code>-benchtime</code> 和 <code>-count</code> 两个参数达到这个目的。</p>
+<h3 id="24-提升准确度">2.4 提升准确度</h3>
+<p>对于性能测试来说，提升测试准确度的一个重要手段就是增加测试的次数。我们可以使用 <code>-benchtime</code> 和 <code>-count</code> 两个参数达到这个目的。</p>
 <p>benchmark 的默认时间是 1s，那么我们可以使用 <code>-benchtime</code> 指定为 5s。例如：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench=<span class="string">&#x27;Fib$&#x27;</span> -benchtime=5s .</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkFib-8              1033           5769818 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 6.554s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">'Fib$'</span><span style="color:#005CC5"> -benchtime=5s</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkFib-8</span><span style="color:#005CC5">              1033</span><span style="color:#005CC5">           5769818</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 6.554s</span></span></code></pre>
 <blockquote>
 <p>实际执行的时间是 6.5s，比 benchtime 的 5s 要长，测试用例编译、执行、销毁等是需要时间的。</p>
 </blockquote>
 <p>将 <code>-benchtime</code> 设置为 5s，用例执行次数也变成了原来的 5倍，每次函数调用时间仍为 0.6s，几乎没有变化。</p>
 <p><code>-benchtime</code> 的值除了是时间外，还可以是具体的次数。例如，执行 30 次可以用 <code>-benchtime=30x</code>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench=<span class="string">&#x27;Fib$&#x27;</span> -benchtime=50x .</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkFib-8                50           6121066 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 0.319s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">'Fib$'</span><span style="color:#005CC5"> -benchtime=50x</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkFib-8</span><span style="color:#005CC5">                50</span><span style="color:#005CC5">           6121066</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 0.319s</span></span></code></pre>
 <p>调用 50 次 <code>fib(30)</code>，仅花费了 0.319s。</p>
 <p><code>-count</code> 参数可以用来设置 benchmark 的轮数。例如，进行 3 轮 benchmark。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench=<span class="string">&#x27;Fib$&#x27;</span> -benchtime=5s -count=3 .</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkFib-8               975           5946624 ns/op</span><br><span class="line">BenchmarkFib-8              1023           5820582 ns/op</span><br><span class="line">BenchmarkFib-8               961           6096816 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 19.463s</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-5-内存分配情况"><a href="#2-5-内存分配情况" class="headerlink" title="2.5 内存分配情况"></a>2.5 内存分配情况</h3><p><code>-benchmem</code> 参数可以度量内存分配的次数。内存分配次数也性能也是息息相关的，例如不合理的切片容量，将导致内存重新分配，带来不必要的开销。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">'Fib$'</span><span style="color:#005CC5"> -benchtime=5s</span><span style="color:#005CC5"> -count=3</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkFib-8</span><span style="color:#005CC5">               975</span><span style="color:#005CC5">           5946624</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkFib-8</span><span style="color:#005CC5">              1023</span><span style="color:#005CC5">           5820582</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkFib-8</span><span style="color:#005CC5">               961</span><span style="color:#005CC5">           6096816</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 19.463s</span></span></code></pre>
+<h3 id="25-内存分配情况">2.5 内存分配情况</h3>
+<p><code>-benchmem</code> 参数可以度量内存分配的次数。内存分配次数也性能也是息息相关的，例如不合理的切片容量，将导致内存重新分配，带来不必要的开销。</p>
 <p>在下面的例子中，<code>generateWithCap</code> 和 <code>generate</code> 的作用是一致的，生成一组长度为 n 的随机序列。唯一的不同在于，<code>generateWithCap</code> 创建切片时，将切片的容量(capacity)设置为 n，这样切片就会一次性申请 n 个整数所需的内存。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// generate_test.go</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;math/rand&quot;</span></span><br><span class="line">	<span class="string">&quot;testing&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">generateWithCap</span><span class="params">(n <span class="type">int</span>)</span></span> []<span class="type">int</span> &#123;</span><br><span class="line">	rand.Seed(time.Now().UnixNano())</span><br><span class="line">	nums := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>, n)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">		nums = <span class="built_in">append</span>(nums, rand.Int())</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> nums</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">generate</span><span class="params">(n <span class="type">int</span>)</span></span> []<span class="type">int</span> &#123;</span><br><span class="line">	rand.Seed(time.Now().UnixNano())</span><br><span class="line">	nums := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">		nums = <span class="built_in">append</span>(nums, rand.Int())</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> nums</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkGenerateWithCap</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> n := <span class="number">0</span>; n &lt; b.N; n++ &#123;</span><br><span class="line">		generateWithCap(<span class="number">1000000</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkGenerate</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> n := <span class="number">0</span>; n &lt; b.N; n++ &#123;</span><br><span class="line">		generate(<span class="number">1000000</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// generate_test.go</span></span>
+<span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">math/rand</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">testing</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">time</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> generateWithCap</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) []</span><span style="color:#D73A49">int</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	rand.</span><span style="color:#6F42C1">Seed</span><span style="color:#24292E">(time.</span><span style="color:#6F42C1">Now</span><span style="color:#24292E">().</span><span style="color:#6F42C1">UnixNano</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">	nums </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> make</span><span style="color:#24292E">([]</span><span style="color:#D73A49">int</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">, n)</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> n; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		nums </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> append</span><span style="color:#24292E">(nums, rand.</span><span style="color:#6F42C1">Int</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> nums</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> generate</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) []</span><span style="color:#D73A49">int</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	rand.</span><span style="color:#6F42C1">Seed</span><span style="color:#24292E">(time.</span><span style="color:#6F42C1">Now</span><span style="color:#24292E">().</span><span style="color:#6F42C1">UnixNano</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">	nums </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> make</span><span style="color:#24292E">([]</span><span style="color:#D73A49">int</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> n; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		nums </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> append</span><span style="color:#24292E">(nums, rand.</span><span style="color:#6F42C1">Int</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> nums</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkGenerateWithCap</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> n </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; n </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; n</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">		generateWithCap</span><span style="color:#24292E">(</span><span style="color:#005CC5">1000000</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkGenerate</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> n </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; n </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; n</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">		generate</span><span style="color:#24292E">(</span><span style="color:#005CC5">1000000</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>运行该用例的结果是：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">go <span class="built_in">test</span> -bench=<span class="string">&#x27;Generate&#x27;</span> .</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkGenerateWithCap-8            44          24294582 ns/op</span><br><span class="line">BenchmarkGenerate-8                   34          30342763 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 2.171s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">'Generate'</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkGenerateWithCap-8</span><span style="color:#005CC5">            44</span><span style="color:#005CC5">          24294582</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkGenerate-8</span><span style="color:#005CC5">                   34</span><span style="color:#005CC5">          30342763</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 2.171s</span></span></code></pre>
 <p>可以看到生成 100w 个数字的随机序列，<code>GenerateWithCap</code> 的耗时比 <code>Generate</code> 少 20%。</p>
 <p>我们可以使用 <code>-benchmem</code> 参数看到内存分配的情况：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkGenerateWithCap-8  43  24335658 ns/op  8003641 B/op    1 allocs/op</span><br><span class="line">BenchmarkGenerate-8         33  30403687 ns/op  45188395 B/op  40 allocs/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 2.121s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkGenerateWithCap-8</span><span style="color:#005CC5">  43</span><span style="color:#005CC5">  24335658</span><span style="color:#032F62"> ns/op</span><span style="color:#005CC5">  8003641</span><span style="color:#032F62"> B/op</span><span style="color:#005CC5">    1</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkGenerate-8</span><span style="color:#005CC5">         33</span><span style="color:#005CC5">  30403687</span><span style="color:#032F62"> ns/op</span><span style="color:#005CC5">  45188395</span><span style="color:#032F62"> B/op</span><span style="color:#005CC5">  40</span><span style="color:#032F62"> allocs/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 2.121s</span></span></code></pre>
 <p><code>Generate</code> 分配的内存是 <code>GenerateWithCap</code> 的 6 倍，设置了切片容量，内存只分配一次，而不设置切片容量，内存分配了 40 次。</p>
-<h3 id="2-6-测试不同的输入"><a href="#2-6-测试不同的输入" class="headerlink" title="2.6 测试不同的输入"></a>2.6 测试不同的输入</h3><p>不同的函数复杂度不同，O(1)，O(n)，O(n^2) 等，利用 benchmark 验证复杂度一个简单的方式，是构造不同的输入。对刚才的 benchmark 稍作改造，便能够达到目的。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// generate_test.go</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;math/rand&quot;</span></span><br><span class="line">	<span class="string">&quot;testing&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">generate</span><span class="params">(n <span class="type">int</span>)</span></span> []<span class="type">int</span> &#123;</span><br><span class="line">	rand.Seed(time.Now().UnixNano())</span><br><span class="line">	nums := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">		nums = <span class="built_in">append</span>(nums, rand.Int())</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> nums</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">benchmarkGenerate</span><span class="params">(i <span class="type">int</span>, b *testing.B)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> n := <span class="number">0</span>; n &lt; b.N; n++ &#123;</span><br><span class="line">		generate(i)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkGenerate1000</span><span class="params">(b *testing.B)</span></span>    &#123; benchmarkGenerate(<span class="number">1000</span>, b) &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkGenerate10000</span><span class="params">(b *testing.B)</span></span>   &#123; benchmarkGenerate(<span class="number">10000</span>, b) &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkGenerate100000</span><span class="params">(b *testing.B)</span></span>  &#123; benchmarkGenerate(<span class="number">100000</span>, b) &#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkGenerate1000000</span><span class="params">(b *testing.B)</span></span> &#123; benchmarkGenerate(<span class="number">1000000</span>, b) &#125;</span><br></pre></td></tr></table></figure>
-
+<h3 id="26-测试不同的输入">2.6 测试不同的输入</h3>
+<p>不同的函数复杂度不同，O(1)，O(n)，O(n^2) 等，利用 benchmark 验证复杂度一个简单的方式，是构造不同的输入。对刚才的 benchmark 稍作改造，便能够达到目的。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// generate_test.go</span></span>
+<span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">math/rand</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">testing</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">time</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> generate</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) []</span><span style="color:#D73A49">int</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	rand.</span><span style="color:#6F42C1">Seed</span><span style="color:#24292E">(time.</span><span style="color:#6F42C1">Now</span><span style="color:#24292E">().</span><span style="color:#6F42C1">UnixNano</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">	nums </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> make</span><span style="color:#24292E">([]</span><span style="color:#D73A49">int</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> n; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		nums </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> append</span><span style="color:#24292E">(nums, rand.</span><span style="color:#6F42C1">Int</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> nums</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> benchmarkGenerate</span><span style="color:#24292E">(</span><span style="color:#E36209">i</span><span style="color:#D73A49"> int</span><span style="color:#24292E">, </span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> n </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; n </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; n</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">		generate</span><span style="color:#24292E">(i)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkGenerate1000</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">)    { </span><span style="color:#6F42C1">benchmarkGenerate</span><span style="color:#24292E">(</span><span style="color:#005CC5">1000</span><span style="color:#24292E">, b) }</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkGenerate10000</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">)   { </span><span style="color:#6F42C1">benchmarkGenerate</span><span style="color:#24292E">(</span><span style="color:#005CC5">10000</span><span style="color:#24292E">, b) }</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkGenerate100000</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">)  { </span><span style="color:#6F42C1">benchmarkGenerate</span><span style="color:#24292E">(</span><span style="color:#005CC5">100000</span><span style="color:#24292E">, b) }</span></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkGenerate1000000</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) { </span><span style="color:#6F42C1">benchmarkGenerate</span><span style="color:#24292E">(</span><span style="color:#005CC5">1000000</span><span style="color:#24292E">, b) }</span></span></code></pre>
 <p>这里，我们实现一个辅助函数 <code>benchmarkGenerate</code> 允许传入参数 i，并构造了 4 个不同输入的 benchmark 用例。运行结果如下：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench .                                                       </span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkGenerate1000-8            34048             34643 ns/op</span><br><span class="line">BenchmarkGenerate10000-8            4070            295642 ns/op</span><br><span class="line">BenchmarkGenerate100000-8            403           3230415 ns/op</span><br><span class="line">BenchmarkGenerate1000000-8            39          32083701 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 6.597s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench</span><span style="color:#032F62"> .</span><span style="color:#24292E">                                                       </span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkGenerate1000-8</span><span style="color:#005CC5">            34048</span><span style="color:#005CC5">             34643</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkGenerate10000-8</span><span style="color:#005CC5">            4070</span><span style="color:#005CC5">            295642</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkGenerate100000-8</span><span style="color:#005CC5">            403</span><span style="color:#005CC5">           3230415</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkGenerate1000000-8</span><span style="color:#005CC5">            39</span><span style="color:#005CC5">          32083701</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 6.597s</span></span></code></pre>
 <p>通过测试结果可以发现，输入变为原来的 10 倍，函数每次调用的时长也差不多是原来的 10 倍，这说明复杂度是线性的。</p>
-<h2 id="3-benchmark-注意事项"><a href="#3-benchmark-注意事项" class="headerlink" title="3 benchmark 注意事项"></a>3 benchmark 注意事项</h2><h3 id="3-1-ResetTimer"><a href="#3-1-ResetTimer" class="headerlink" title="3.1 ResetTimer"></a>3.1 ResetTimer</h3><p>如果在 benchmark 开始前，需要一些准备工作，如果准备工作比较耗时，则需要将这部分代码的耗时忽略掉。比如下面的例子：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkFib</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	time.Sleep(time.Second * <span class="number">3</span>) <span class="comment">// 模拟耗时准备任务</span></span><br><span class="line">	<span class="keyword">for</span> n := <span class="number">0</span>; n &lt; b.N; n++ &#123;</span><br><span class="line">		fib(<span class="number">30</span>) <span class="comment">// run fib(30) b.N times</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="3-benchmark-注意事项">3 benchmark 注意事项</h2>
+<h3 id="31-resettimer">3.1 ResetTimer</h3>
+<p>如果在 benchmark 开始前，需要一些准备工作，如果准备工作比较耗时，则需要将这部分代码的耗时忽略掉。比如下面的例子：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkFib</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	time.</span><span style="color:#6F42C1">Sleep</span><span style="color:#24292E">(time.Second </span><span style="color:#D73A49">*</span><span style="color:#005CC5"> 3</span><span style="color:#24292E">) </span><span style="color:#6A737D">// 模拟耗时准备任务</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> n </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; n </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; n</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">		fib</span><span style="color:#24292E">(</span><span style="color:#005CC5">30</span><span style="color:#24292E">) </span><span style="color:#6A737D">// run fib(30) b.N times</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>运行结果是：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench=<span class="string">&#x27;Fib$&#x27;</span> -benchtime=50x .</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkFib-8                50          65912552 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 6.319s</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">'Fib$'</span><span style="color:#005CC5"> -benchtime=50x</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkFib-8</span><span style="color:#005CC5">                50</span><span style="color:#005CC5">          65912552</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 6.319s</span></span></code></pre>
 <p>50次调用，每次调用约 0.66s，是之前的 0.06s 的 11 倍。究其原因，受到了耗时准备任务的干扰。我们需要用 <code>ResetTimer</code> 屏蔽掉：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkFib</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	time.Sleep(time.Second * <span class="number">3</span>) <span class="comment">// 模拟耗时准备任务</span></span><br><span class="line">	b.ResetTimer() <span class="comment">// 重置定时器</span></span><br><span class="line">	<span class="keyword">for</span> n := <span class="number">0</span>; n &lt; b.N; n++ &#123;</span><br><span class="line">		fib(<span class="number">30</span>) <span class="comment">// run fib(30) b.N times</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkFib</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">	time.</span><span style="color:#6F42C1">Sleep</span><span style="color:#24292E">(time.Second </span><span style="color:#D73A49">*</span><span style="color:#005CC5"> 3</span><span style="color:#24292E">) </span><span style="color:#6A737D">// 模拟耗时准备任务</span></span>
+<span class="line"><span style="color:#24292E">	b.</span><span style="color:#6F42C1">ResetTimer</span><span style="color:#24292E">() </span><span style="color:#6A737D">// 重置定时器</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> n </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; n </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; n</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">		fib</span><span style="color:#24292E">(</span><span style="color:#005CC5">30</span><span style="color:#24292E">) </span><span style="color:#6A737D">// run fib(30) b.N times</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>运行结果恢复正常，每次调用约 0.06s。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench=<span class="string">&#x27;Fib$&#x27;</span> -benchtime=50x .</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkFib-8                50           6187485 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 6.330s</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-2-StopTimer-amp-StartTimer"><a href="#3-2-StopTimer-amp-StartTimer" class="headerlink" title="3.2 StopTimer &amp; StartTimer"></a>3.2 StopTimer &amp; StartTimer</h3><p>还有一种情况，每次函数调用前后需要一些准备工作和清理工作，我们可以使用 <code>StopTimer</code> 暂停计时以及使用 <code>StartTimer</code> 开始计时。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">'Fib$'</span><span style="color:#005CC5"> -benchtime=50x</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkFib-8</span><span style="color:#005CC5">                50</span><span style="color:#005CC5">           6187485</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 6.330s</span></span></code></pre>
+<h3 id="32-stoptimer--starttimer">3.2 StopTimer &#x26; StartTimer</h3>
+<p>还有一种情况，每次函数调用前后需要一些准备工作和清理工作，我们可以使用 <code>StopTimer</code> 暂停计时以及使用 <code>StartTimer</code> 开始计时。</p>
 <p>例如，如果测试一个冒泡函数的性能，每次调用冒泡函数前，需要随机生成一个数字序列，这是非常耗时的操作，这种场景下，就需要使用 <code>StopTimer</code> 和 <code>StartTimer</code> 避免将这部分时间计算在内。</p>
 <p>例如：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// sort_test.go</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;math/rand&quot;</span></span><br><span class="line">	<span class="string">&quot;testing&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">generateWithCap</span><span class="params">(n <span class="type">int</span>)</span></span> []<span class="type">int</span> &#123;</span><br><span class="line">	rand.Seed(time.Now().UnixNano())</span><br><span class="line">	nums := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>, n)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; n; i++ &#123;</span><br><span class="line">		nums = <span class="built_in">append</span>(nums, rand.Int())</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> nums</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">bubbleSort</span><span class="params">(nums []<span class="type">int</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="built_in">len</span>(nums); i++ &#123;</span><br><span class="line">		<span class="keyword">for</span> j := <span class="number">1</span>; j &lt; <span class="built_in">len</span>(nums)-i; j++ &#123;</span><br><span class="line">			<span class="keyword">if</span> nums[j] &lt; nums[j<span class="number">-1</span>] &#123;</span><br><span class="line">				nums[j], nums[j<span class="number">-1</span>] = nums[j<span class="number">-1</span>], nums[j]</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkBubbleSort</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> n := <span class="number">0</span>; n &lt; b.N; n++ &#123;</span><br><span class="line">		b.StopTimer()</span><br><span class="line">		nums := generateWithCap(<span class="number">10000</span>)</span><br><span class="line">		b.StartTimer()</span><br><span class="line">		bubbleSort(nums)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#6A737D">// sort_test.go</span></span>
+<span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">math/rand</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">testing</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">time</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> generateWithCap</span><span style="color:#24292E">(</span><span style="color:#E36209">n</span><span style="color:#D73A49"> int</span><span style="color:#24292E">) []</span><span style="color:#D73A49">int</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	rand.</span><span style="color:#6F42C1">Seed</span><span style="color:#24292E">(time.</span><span style="color:#6F42C1">Now</span><span style="color:#24292E">().</span><span style="color:#6F42C1">UnixNano</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">	nums </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> make</span><span style="color:#24292E">([]</span><span style="color:#D73A49">int</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">, n)</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> n; i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		nums </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> append</span><span style="color:#24292E">(nums, rand.</span><span style="color:#6F42C1">Int</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#D73A49">	return</span><span style="color:#24292E"> nums</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> bubbleSort</span><span style="color:#24292E">(</span><span style="color:#E36209">nums</span><span style="color:#24292E"> []</span><span style="color:#D73A49">int</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#6F42C1"> len</span><span style="color:#24292E">(nums); i</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">		for</span><span style="color:#24292E"> j </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">; j </span><span style="color:#D73A49">&#x3C;</span><span style="color:#6F42C1"> len</span><span style="color:#24292E">(nums)</span><span style="color:#D73A49">-</span><span style="color:#24292E">i; j</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">			if</span><span style="color:#24292E"> nums[j] </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> nums[j</span><span style="color:#D73A49">-</span><span style="color:#005CC5">1</span><span style="color:#24292E">] {</span></span>
+<span class="line"><span style="color:#24292E">				nums[j], nums[j</span><span style="color:#D73A49">-</span><span style="color:#005CC5">1</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> nums[j</span><span style="color:#D73A49">-</span><span style="color:#005CC5">1</span><span style="color:#24292E">], nums[j]</span></span>
+<span class="line"><span style="color:#24292E">			}</span></span>
+<span class="line"><span style="color:#24292E">		}</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> BenchmarkBubbleSort</span><span style="color:#24292E">(</span><span style="color:#E36209">b</span><span style="color:#D73A49"> *</span><span style="color:#6F42C1">testing</span><span style="color:#24292E">.</span><span style="color:#6F42C1">B</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">	for</span><span style="color:#24292E"> n </span><span style="color:#D73A49">:=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; n </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.N; n</span><span style="color:#D73A49">++</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		b.</span><span style="color:#6F42C1">StopTimer</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#24292E">		nums </span><span style="color:#D73A49">:=</span><span style="color:#6F42C1"> generateWithCap</span><span style="color:#24292E">(</span><span style="color:#005CC5">10000</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">		b.</span><span style="color:#6F42C1">StartTimer</span><span style="color:#24292E">()</span></span>
+<span class="line"><span style="color:#6F42C1">		bubbleSort</span><span style="color:#24292E">(nums)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
 <p>执行该用例，每次排序耗时约 0.1s。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ go <span class="built_in">test</span> -bench=<span class="string">&#x27;Sort$&#x27;</span> .</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: example</span><br><span class="line">BenchmarkBubbleSort-8                  9         113280509 ns/op</span><br><span class="line">PASS</span><br><span class="line">ok      example 1.146s</span><br></pre></td></tr></table></figure>
-
-<h2 id="附-推荐与参考"><a href="#附-推荐与参考" class="headerlink" title="附 推荐与参考"></a>附 推荐与参考</h2><ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> go</span><span style="color:#032F62"> test</span><span style="color:#005CC5"> -bench=</span><span style="color:#032F62">'Sort$'</span><span style="color:#032F62"> .</span></span>
+<span class="line"><span style="color:#6F42C1">goos:</span><span style="color:#032F62"> darwin</span></span>
+<span class="line"><span style="color:#6F42C1">goarch:</span><span style="color:#032F62"> amd64</span></span>
+<span class="line"><span style="color:#6F42C1">pkg:</span><span style="color:#032F62"> example</span></span>
+<span class="line"><span style="color:#6F42C1">BenchmarkBubbleSort-8</span><span style="color:#005CC5">                  9</span><span style="color:#005CC5">         113280509</span><span style="color:#032F62"> ns/op</span></span>
+<span class="line"><span style="color:#6F42C1">PASS</span></span>
+<span class="line"><span style="color:#6F42C1">ok</span><span style="color:#032F62">      example</span><span style="color:#032F62"> 1.146s</span></span></code></pre>
+<h2 id="附-推荐与参考">附 推荐与参考</h2>
+<ul>
 <li><a href="https://geektutu.com/post/qa-golang.html">Go 语言笔试面试题汇总</a></li>
 <li><a href="https://geektutu.com/post/gee.html">七天用Go从零实现系列</a></li>
-<li><a target="_blank" rel="noopener" href="https://dave.cheney.net/2013/06/30/how-to-write-benchmarks-in-go">How to write benchmarks in Go</a></li>
-</ul>
+<li><a href="https://dave.cheney.net/2013/06/30/how-to-write-benchmarks-in-go">How to write benchmarks in Go</a></li>
+</ul></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/high-performance-go.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">Go 语言高性能编程</span></a><a href="/post/hpg-pprof.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">pprof 性能分析</span></a></nav><script>(function(){const bookId = "high-performance-go";
+const slug = "hpg-benchmark";
 
-      
-<script src="/js/qrious.min.js"></script>
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "hpg-benchmark";
+const title = "benchmark 基准测试";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
 
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
 
-      <hr />
-      <p>
-        <a target="_blank" rel="noopener" href="https://github.com/geektutu/high-performance-go/blob/master/charpter-1/hpg-benchmark.md"><span class="float-left gkt-page-tips">edit this page</span></a>
-        <span class="float-right gkt-page-tips">last updated at 2026-02-23</span>
-      </p>
-    </article>
-    <!-- 赞赏 -->
-    <!--打赏-->
-
-<style>
-    #reward .reward-btn-wrapper {
-        width: 100px;
-        padding-top: 35px;
-        cursor: pointer;
-        margin: 0 auto;
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
     }
 
-    #reward .reward-btn {
-        padding: 2px 15px;
-        color: #fff;
-        background-color: #ea6f5a;
-        border-radius: 20px;
-    }
-
-    #reward .reward-code {
-        position: absolute;
-        top: -220px;
-        left: 50%;
-        display: none;
-        width: 360px;
-        height: 240px;
-        margin-left: -180px;
-        padding: 15px 20px;
-        border: 1px solid #e6e6e6;
-        background: #fff;
-        box-shadow: 0 1px 1px 1px #efefef;
-    }
-
-    #reward .reward-code:after,
-    #reward .reward-code:before {
-        position: absolute;
-        content: '';
-        border: 10px solid transparent
-    }
-
-    #reward .reward-code:after {
-        bottom: -19px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #fff
-    }
-
-    #reward .reward-code:before {
-        bottom: -20px;
-        left: 50%;
-        margin-left: -10px;
-        border-top-color: #e6e6e6
-    }
-
-    #reward .qr-code {
-        width: 50%;
-        float: left;
-        padding: 5px;
-    }
-
-    #reward .qr-code p {
-        margin-top: -6px;
-    }
-
-    #reward img {
-        transform: none;
-        -webkit-transform: none;
-        margin-left: 0;
-    }
-
-    #reward img[alt='i'] {
-        width: 20px;
-        height: 20px;
-        z-index: 2;
-        position: absolute;
-        margin: 65px 0 0 65px;
-    }
-
-    #reward img[alt="ali"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #0f9be0;
-    }
-
-    #reward img[alt="wechat"] {
-        width: 100%;
-        box-sizing: border-box;
-        border: 5px solid #3db034;
-    }
-
-    #reward .reward-tip {
-        font-size: 1.2em;
-        margin-bottom: 0;
-        color: #ea6f5a;
-    }
-</style>
-<div id="reward" class="col-xs-12">
-    <div class="reward-btn-wrapper">
-        <div class="reward-btn text-center">赞赏支持</div>
-    </div>
-    <div class="reward-code text-center">
-        <p class="text-center reward-tip"><strong>请我吃胡萝卜 =^_^= </strong></p>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-ali" src="" alt="ali">
-            <p><small>支付宝</small></p>
-        </div>
-        <div class="qr-code">
-            <img src="/img/icon.png" alt="i">
-            <img id="reward-wechat" src="" alt="wechat">
-            <p><small>微信</small></p>
-        </div>
-    </div>
-</div>
-<script>
-    (function (window, document) {
-        var aliQr = new QRious({ value: 'HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8' });
-        var wechatQr = new QRious({ value: 'wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5' });
-        document.querySelector('#reward-ali').src = aliQr.toDataURL();
-        document.querySelector('#reward-wechat').src = wechatQr.toDataURL();
-
-        var rewardBtn = document.querySelector('#reward .reward-btn-wrapper');
-        var qrCode = document.querySelector('#reward .reward-code')
-        var activeFunc = function (e) {
-            qrCode.style.display = 'block';
-        }
-        var hideFunc = function (e) {
-            qrCode.style.display = 'none';
-        }
-
-        rewardBtn.addEventListener('mouseenter', activeFunc, false)
-        rewardBtn.addEventListener('mouseover', activeFunc, false)
-        rewardBtn.addEventListener('mouseleave', hideFunc, false)
-        qrCode.addEventListener('mouseenter', activeFunc, false)
-        qrCode.addEventListener('mouseover', activeFunc, false)
-        qrCode.addEventListener('mouseleave', hideFunc, false)
-    })(window, document);
-</script>
-
-    
-<div class="col-xs-12 text-center" style="margin-top: 30px;">
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://github.com/geektutu" title="Github"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/github.png" /></a>
-    
-    <a style="display:inline-block;" href="https://geektutu.com/feed.xml" title="RSS"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/rss.jpg" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://www.zhihu.com/people/gzdaijie" title="知乎"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/zhihu.png" /></a>
-    
-    <a style="display:inline-block;" target="_blank" rel="noopener" href="https://weibo.com/geektutu" title="微博"><img style="padding:5px;width:30px;margin-left:0;transform:none;-webkit-transform:none;" src="/img/related_links/weibo.jpg" /></a>
-    
-</div>
-
-    <!-- 评论 -->
-    
-    <div class="col-xs-12">
-      
-<div class="col-xs-12 padding-0">
-    <div id="gitalk-container">
-        <div class="gt-container text-center" style="margin-top: 50px;">
-            <button class="gt-btn gt-btn-public"><span class="gt-btn-text">去 Github 评论</span></button>
-        </div>
-    </div>
-    <div id="gitalk-related"></div>
-</div>
-
-<link rel="stylesheet" href="/css/gitalk.css">
-
-
-<script src="/js/gitalk.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        function renderCommentUrl(data) {
-            var url = (data[window.location.pathname] || {}).url
-            url && getDom('#gitalk-container button').addEventListener('click', function (e) { window.open(url)})
-            url || (getDom('#gitalk-container').style.display = 'none')
-        }
-        const gitalk = new Gitalk({
-            clientID: 'c1fdd456a4caae5f7df0',
-            clientSecret: 'b2674451e21feae50520f99337ec15d2aebe7879',
-            accessToken: '513dc2f1e6df8c07a12fbf1547874f54679d9712',
-            repo: 'geektutu.github.io',
-            owner: 'geektutu',
-            admin: ['geektutu'],
-            id: window.location.pathname,
-            distractionFreeMode: false
-        });
-        fetch("https://api.github.com/user").then(function(resp){
-            gitalk.render('gitalk-container');
-        }).catch(function(e){
-            fetch('/tool/issues.json').then(function (r) { return r.json() }).then(renderCommentUrl).catch(function (e) { })
-        })
-        getDom('#gitalk-container').addEventListener('click', function (e) {
-            e && e.stopPropagation && e.stopPropagation();
-        });
-    })
-</script>
-<script>
-    window.addEventListener('load', function () {
-        function render(comments) {
-            var template = '<a href="${comment.url}?utm_source=gitalk" class="dis-item-url"><h3 class="dis-item-title">${comment.title}</h3>' +
-                '<p class="dis-item-des">${comment.count} 评论 ● ${comment.date}</p>' +
-                '<div class="dis-item-content"><img class="dis-item-img" src="${comment.icon}" alt="icon"><p><b><span class="dis-item-user">${comment.user}</span></b>&nbsp;——&nbsp;${comment.body}</p></div>' +
-                '</a>'
-
-            var wrapper = getDom('#gitalk-related');
-            comments = shuffle(comments);
-            comments.slice(0, 4).forEach(function (c) {
-                var div = document.createElement('div');
-                div.classList.add('dis-item');
-                div.innerHTML = template.replace("${comment.url}", c.url)
-                    .replace("${comment.title}", c.title)
-                    .replace("${comment.count}", c.count)
-                    .replace("${comment.date}", c.date)
-                    .replace("${comment.icon}", c.icon)
-                    .replace("${comment.user}", c.user)
-                    .replace("${comment.body}", c.body)
-                wrapper.appendChild(div)
-            })
-            var p = document.createElement('p')
-            p.innerHTML = '<a href="https://geektutu.com/post/blog-experience-7.html">Gitalk Plus</a>';
-            p.classList.add('dis-divide');
-            wrapper.appendChild(p);
-            wrapper.classList.add('dis-wrapper')
-        }
-        function shuffle(a) {
-            for (var i = a.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-        fetch('/tool/comments.json').then(function (r) { return r.json() }).then(render).catch(function (e) { })
-    })
-</script>
-
-    </div>
-    
-  </div>
-  <aside class="gkt-book-toc hidden-xs hidden-sm">
-    <div style="clear: both"></div>
-    <div class="gkt-sidebar-wrapper">
-      <!-- Table of Contents -->
-<div id="sidebar-toc">
-  <!-- TOC  -->
-  
-  
-  <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1-%E7%A8%B3%E5%AE%9A%E7%9A%84%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83"><span class="toc-nav-text">1 稳定的测试环境</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2-benchmark-%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-nav-text">2 benchmark 的使用</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-1-%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="toc-nav-text">2.1 一个简单的例子</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-2-%E8%BF%90%E8%A1%8C%E7%94%A8%E4%BE%8B"><span class="toc-nav-text">2.2 运行用例</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-3-benchmark-%E6%98%AF%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84"><span class="toc-nav-text">2.3 benchmark 是如何工作的</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-4-%E6%8F%90%E5%8D%87%E5%87%86%E7%A1%AE%E5%BA%A6"><span class="toc-nav-text">2.4 提升准确度</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-5-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E6%83%85%E5%86%B5"><span class="toc-nav-text">2.5 内存分配情况</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2-6-%E6%B5%8B%E8%AF%95%E4%B8%8D%E5%90%8C%E7%9A%84%E8%BE%93%E5%85%A5"><span class="toc-nav-text">2.6 测试不同的输入</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3-benchmark-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-nav-text">3 benchmark 注意事项</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-1-ResetTimer"><span class="toc-nav-text">3.1 ResetTimer</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3-2-StopTimer-amp-StartTimer"><span class="toc-nav-text">3.2 StopTimer &amp; StartTimer</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#%E9%99%84-%E6%8E%A8%E8%8D%90%E4%B8%8E%E5%8F%82%E8%80%83"><span class="toc-nav-text">附 推荐与参考</span></a></li></ol>
-  
-</div>
-
-<script>
-  (function () {
-    var h2 = document.querySelectorAll('article h2');
-    var h3 = document.querySelectorAll('article h3');
-    var linkList = document.querySelectorAll('#sidebar-toc a');
-
-    function findLinkElement(name) {
-      for (var i = 0; i < linkList.length; i++) {
-        var items = linkList[i].href.split('#');
-        if (items && items[items.length - 1] === encodeURIComponent(name)) {
-          return i;
-        }
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
       }
-      return -1;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
     }
 
-    function activeLink(titleList) {
-      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-      for (var i = titleList.length - 1; i >= 0; i--) {
-        if (scrollTop - titleList[i].offsetTop > 0) {
-          var index = findLinkElement(titleList[i].id);
-          index != -1 && linkList[index].classList.add('gkt-sidebar-active');
-          break;
-        }
-      }
-    }
-
-    window.addEventListener("scroll", function (e) {
-      [].slice.call(linkList).forEach(function (link) {
-        link.classList.remove('gkt-sidebar-active');
-      })
-      activeLink(h2);
-    })
-  })();
-</script>
-    </div>
-  </aside>
-</div>
-<script>
-    (function () {
-        function resizeUArrow() {
-            var s = getDom('.u-arrow-wrapper').style
-            var pc = getDom('.gkt-book-page')
-            s.left = getPosition(pc).x - 15 + 'px';
-            s.width = pc.clientWidth + 30 + 'px';
-        }
-        resizeUArrow()
-        window.addEventListener('resize', resizeUArrow);
-        var nav = getDom('.gkt-book-menu nav');
-        var key = 'gkt_book_Go 语言高性能编程_' + parseInt(new Date().getTime()/1000/3600/24/7)
-        nav.scrollTo(0, localStorage.getItem(key) * 1)
-        nav.addEventListener('scroll', function(){ localStorage.setItem(key, nav.scrollTop) })
-    })();
-    (function(){
-      getDom(".gkt-book-menu-icon").addEventListener('click', function() {
-        var menu = getDom(".gkt-book-menu").classList
-        var article = getDom(".gkt-book-page").classList
-        if (menu.contains("gkt-book-menu-hidden")) {
-          menu.remove('gkt-book-menu-hidden')
-          article.add('gkt-book-menu-checked')
-        } else {
-          menu.add('gkt-book-menu-hidden')
-          article.remove('gkt-book-menu-checked')
-        }
-      })
-    })();
-</script>
-
-
-    
-
-</main>
-    </div>
-    <style>
-    img#go-top {
-        position: fixed;
-        bottom: 100px;
-        width: 50px;
-        cursor: pointer;
-        z-index: 9999;
-    }
-</style>
-<img id="go-top" src="/icon/top.png" class="hidden-xs" style="display: none" />
-<script>
-    (function () {
-        var goTop = document.getElementById('go-top');
-        var mainContainer = document.querySelector('.main-container');
-        
-        goTop.addEventListener('click', function () {
-            window.scroll(0, 0);
-        }, false);
-        window.addEventListener('scroll', function () {
-            var right = document.body.offsetWidth - mainContainer.getBoundingClientRect().right;
-            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            goTop.style.right = right + 10 + 'px'
-            scrollTop > 700 && (goTop.style.display = "block");
-            scrollTop <= 700 && (goTop.style.display = "none");
-        });
-    })();
-</script>
-    <style>
-    #geektutu-click-img-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        text-align: center;
-        width: 100%;
-        display: none;
-        z-index: 9999;
-    }
-
-    #geektutu-click-img-container img {
-        object-fit: contain;
-        background: #eaecef;
-        padding: 15px;
-        border-radius: 10px;
-        height: auto;
-        width: auto;
-        vertical-align: middle;
-    }
-</style>
-
-
-<div id="geektutu-click-img-container">
-    <img src="" alt="Big Image">
-</div>
-
-<script>
-    (function () {
-        var container = document.querySelector('#geektutu-click-img-container')
-        var targetImg = container.querySelector('img')
-        var imgs = document.querySelectorAll('article img');
-        targetImg.addEventListener('click', function (e) {
-            container.style.display = 'none';
-            e && e.stopPropagation && e.stopPropagation();
-        }, false);
-
-        for (var i = 0; i < imgs.length; ++i) {
-            var img = imgs[i];
-            img.addEventListener('click', (function (src, rate) {
-                return function (e) {
-                    e && e.stopPropagation && e.stopPropagation();
-                    if (window.innerWidth < 980) {
-                        return
-                    }
-                    targetImg.style.height = targetImg.style.width = 'auto';
-                    if (window.innerWidth / window.innerHeight > rate) {
-                        targetImg.style.height = (window.innerHeight - 20) + 'px';
-                    } else {
-                        targetImg.style.width = (window.innerWidth - 20) + 'px';
-                    }
-                    container.style.height = window.innerHeight + 'px'
-                    container.style.lineHeight = window.innerHeight + 'px'
-                    container.style.display = 'block';
-                    targetImg.src = src;
-                };
-            }(img.src, img.width / img.height)), false)
-        }
-    })();
-</script>
-    <!-- Footer -->
-    <!-- Footer -->
-<style>
-    footer {
-        width: 100%;
-        line-height: 1.5;
-        padding: 20px;
-    }
-
-    footer a {
-        color: #333;
-        text-decoration: none;
-    }
-
-    .footer-hexo img {
-        height: 20px;
-        margin-bottom: -5px;
-    }
-
-    .footer-hexo a {
-        color: #337ab7;
-    }
-</style>
-<footer class="text-center col-xs-12">
-    <p>
-        <small>© 2026 - 极客兔兔 - </small>
-        <small>
-            <a target="_blank" rel="nofollow noopener" href="http://beian.miit.gov.cn/">沪ICP备18001798号-1</a>
-        </small>
-    </p>
-    <p class="footer-hexo">
-        <!-- 但若直接使用或修改主题，请务必保留这段声明 -->
-        <small>Powered by <a target="_blank" href="https://hexo.io">Hexo</a> | Theme
-            <a target="_blank" href="https://geektutu.com">Geektutu</a>
-            <a target="_blank" rel="noopener" href="https://github.com/geektutu/hexo-theme-geektutu">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwODxYQERAREBYiFRkVFRkVIh4kHhweJB42KiYmKjY+NDI0PkxERExfWl98fKcBBgYGBgcGBwgIBwoLCgsKDw4MDA4PFhAREBEQFiIVGRUVGRUiHiQeHB4kHjYqJiYqNj40MjQ+TERETF9aX3x8p//CABEIACIAUAMBIgACEQEDEQH/xAAcAAABBAMBAAAAAAAAAAAAAAAAAQQFBwIDBgj/2gAIAQEAAAAA9KrHSgAYL5/z6zZGuJd12uugbhq3uKtmuRtix20IS7lTLAfAAAn/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oACAECEAAAAAAB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAxAAAAAAAf/EADEQAAICAQIEBQEGBwAAAAAAAAECAwQFAAYREhORBxQhUlQxQVFic5KxJDJCYYGC0f/aAAgBAQABPwCFHnjWUzuvN6hV4cANSRLGjO9yRVUcSzMoA7jVXJYe5N0a2dhmk9kc0bN2GvLN8mbuNeWb5M3ca8s3yZu415Y/Jm7jXlm+TN3H/NeVPyZu40vOk3TZywK8wJ+v3EHVM/wsI/Dq2lrxN3Nnca16eti8chSAIoMbzByhMwP14kHVfwIiSaF5c96J6kwwCOTnHsYk8uvCrdmQy1TI4rJuz3cZLyGR/wCd4+YoOf8AEpUjXitubLYPG4paFsUxcuiGe7yc5gTW3LW44szXmobsi3Dhmic2+Z4+vCVH9CpraPiQ+QvbgTJrPFBWd5YpWrmNIIEXiRO32Pqt4p7cnfHk18lFBdmEVW1LVdIZGOrniTt6plrWKaO69yCykDRxwF+LMAewB0Txtr+Sf31VI8tEPw62fZt7N3Humtbpzz13ucX6CGSWMSuzpLyD1eNgeUka3PuvHbaxq3biTMHfkiSNCS78CwU+3Xg7Vu3MhuTcU6cq3Zemn3Eh2dv8Lzcut+29x1atKbHYqLJUhLwyNMwiZ3j9yDWOxUOV3tgb+3No5LDx1pi9+aeIwRlNY6bc+Jv+IFGrhLxtXJZ7VKcw81diiAAEn0JOrkWZyNfbEr0tz27UGQgkuGzXdIIvyowq99bRxk9ffO/L81SZBPZgEEroQroIxxMZOgeNsfkn99QypHGqO4Vl9CDrN4LDZkwyzyyQ2IgRHZrzGCZVP1XnQglT9oOtw4LC7iqV6uRkZoYpxKFSQpzFRw4EjVRMfSrQ1qqwxQxKFjjTgFUD7BoWYR6iVe+mtxt9Zwf9teaj4AdccPu5tedX5A/VrzUR+sy/q1CwksF19VEfDj/cnQRW+qg66cfsXtrpx+xe2unH7F7a6cfsXtrpx+xe2unH7F7a6cfsXtoxx+xe2gAAOA1//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAgEBPwB//8QAFBEBAAAAAAAAAAAAAAAAAAAAMP/aAAgBAwEBPwB//9k="
-                    alt="Github Star">
-            </a>
-        </small>
-    </p>
-    
-    <p>
-        <small>
-            <span id="busuanzi_container_site_pv">👁<span id="busuanzi_value_site_pv"></span></span> &nbsp;
-            <span id="busuanzi_container_page_pv">📚<span id="busuanzi_value_page_pv"></span></span>
-        </small>
-    </p>
-    
-    
-
-</footer>
-
-
-<script>
-    window.addEventListener('load', function () {
-        globalAddScript('//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js');
-    })
-</script>
-
-<!-- Baidu Tongji -->
-
-<script>
-    window.addEventListener('load', function () {
-        var _hmt = _hmt || [];
-        globalAddScript('//hm.baidu.com/hm.js?1a0ec38c52c08db815b0046c2783b1aa')
-    })
-</script>
-
-
-
-<!-- baidu auto push for seo -->
-<script>
-    window.addEventListener('load', function () {
-        var src = 'http://push.zhanzhang.baidu.com/push.js'
-        var curProtocol = window.location.protocol.split(':')[0];
-        if (curProtocol === 'https') {
-            src = 'https://zz.bdstatic.com/linksubmit/push.js';
-        }
-        globalAddScript(src);
-    })
-</script>
-
-
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'UA-142641425-1');
-
-    window.addEventListener('load', function () {
-        globalAddScript('https://www.googletagmanager.com/gtag/js?id=UA-142641425-1');
-    });
-</script>
-
-
-    <script>
-        // 非本站网址，新开tab页签
-        (function () {
-            var stopBubble = function (e) {
-                e && e.stopPropagation && e.stopPropagation();
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
             }
-            var links = document.querySelectorAll('a');
-            [].slice.call(links).forEach(function (item) {
-                if (item.href && item.href.indexOf(window.location.host) === -1) {
-                    item.target = '_blank'
-                }
-                // 阻止冒泡，不触发彩蛋。
-                item.addEventListener('click', stopBubble, false);
-            });
-            var article = document.querySelector('article');
-            article && article.addEventListener('click', stopBubble, false)
-        })();
-    </script>
-    
-</body>
-
-</html>
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>
