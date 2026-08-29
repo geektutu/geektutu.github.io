@@ -8,9 +8,11 @@ dist/
 src/content/posts/7days-golang/
 src/content/posts/high-performance-go/
 src/content/posts/interview-questions/
+src/content/posts/geekagent/
 src/content/books/7days-golang.md
 src/content/books/high-performance-go.md
 src/content/books/interview-questions.md
+src/content/books/geekagent.md
 # generated types
 .astro/
 # pagefind index synced for dev
