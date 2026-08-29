@@ -19,10 +19,27 @@ export async function getPublishedPosts(): Promise<Post[]> {
   );
 }
 
-/** 全部书，按 order 排序 */
+/** 全部书，按 order 排序；order 相同时按最新文章的日期，新的在前 */
 export async function getBooks(): Promise<Book[]> {
-  const books = await getCollection('books');
-  return books.sort((a, b) => a.data.order - b.data.order);
+  const [books, posts] = await Promise.all([
+    getCollection('books'),
+    getCollection('posts'),
+  ]);
+  const postMap = new Map(posts.map((p) => [p.id, p]));
+  const newestDate = (book: Book): number => {
+    let latest = 0;
+    for (const group of book.data.outline) {
+      for (const ch of group.chapters) {
+        const post = postMap.get(typeof ch === 'string' ? ch : ch.slug);
+        if (post && post.data.date.getTime() > latest) latest = post.data.date.getTime();
+      }
+    }
+    return latest;
+  };
+  return books.sort(
+    (a, b) =>
+      a.data.order - b.data.order || newestDate(b) - newestDate(a)
+  );
 }
 
 /** 根据书的 outline 生成有序章节列表 */
