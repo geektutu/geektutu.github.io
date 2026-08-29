@@ -1,0 +1,391 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程，用 TypeScript 动手写一个最简单的 Agent/Harness。Day 9 让 Agent 先列清单再动手：加一张由模型维护的 TODO 表，再提供一个隔离上下文的子 Agent。主 Agent 安排顺序，子 Agent 处理边界清楚的小任务，当前进度始终显示在右侧分栏。"><title>从零实现 GeekAgent —— Day9 任务规划与子 Agent · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.BMRjXW0b.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 项目指令与长期记忆</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day9 任务规划与子 Agent</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-08-28">2026-08-28</time><span aria-hidden="true">·</span><span>约 11 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-为什么-agent-需要一张看得见的清单" class="toc-link block text-muted" data-toc-depth="2">0. 为什么 Agent 需要一张看得见的清单</a></li><li style="padding-left:0rem"><a href="#1-目标" class="toc-link block text-muted" data-toc-depth="2">1. 目标</a></li><li style="padding-left:0rem"><a href="#2-设计" class="toc-link block text-muted" data-toc-depth="2">2. 设计</a></li><li style="padding-left:0.9rem"><a href="#21-todo-是一个普通的-function-tool外加一条刷新链路" class="toc-link block text-muted" data-toc-depth="3">2.1 TODO 是一个普通的 function tool，外加一条刷新链路</a></li><li style="padding-left:0.9rem"><a href="#22-子-agent-是一次不带历史的请求外加一次强制回写" class="toc-link block text-muted" data-toc-depth="3">2.2 子 Agent 是一次不带历史的请求，外加一次强制回写</a></li><li style="padding-left:0.9rem"><a href="#23-何时列清单由-system-指令说了算" class="toc-link block text-muted" data-toc-depth="3">2.3 何时列清单，由 system 指令说了算</a></li><li style="padding-left:0rem"><a href="#3-实现先看效果" class="toc-link block text-muted" data-toc-depth="2">3. 实现：先看效果</a></li><li style="padding-left:0.9rem"><a href="#31-todosts状态校验和两个工具" class="toc-link block text-muted" data-toc-depth="3">3.1 todos.ts：状态、校验和两个工具</a></li><li style="padding-left:0.9rem"><a href="#32-chatts子-agent-与两次强制回写" class="toc-link block text-muted" data-toc-depth="3">3.2 chat.ts：子 Agent 与两次强制回写</a></li><li style="padding-left:0.9rem"><a href="#33-把新工具加入权限表" class="toc-link block text-muted" data-toc-depth="3">3.3 把新工具加入权限表</a></li><li style="padding-left:0.9rem"><a href="#34-把状态变化接到右侧分栏" class="toc-link block text-muted" data-toc-depth="3">3.4 把状态变化接到右侧分栏</a></li><li style="padding-left:0rem"><a href="#4-验证" class="toc-link block text-muted" data-toc-depth="2">4. 验证</a></li><li style="padding-left:0rem"><a href="#5-没做什么" class="toc-link block text-muted" data-toc-depth="2">5. 没做什么</a></li><li style="padding-left:0rem"><a href="#6-下一步" class="toc-link block text-muted" data-toc-depth="2">6. 下一步</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><h1 id="day-9让-agent-先列清单再动手任务规划与子-agent">Day 9：让 Agent 先列清单再动手——任务规划与子 Agent</h1>
+<blockquote>
+<p>前八天的 GeekAgent 已经能读写文件、执行命令，也有了权限边界。但面对一个包含多个步骤的任务，它仍然只顾着眼前一次工具调用：做到哪里、下一步是什么，全藏在模型的上下文里。今天加一张由模型维护的 TODO 表，再提供一个隔离上下文的子 Agent。主 Agent 负责安排顺序，子 Agent 负责处理边界清楚的小任务，当前进度始终显示在右侧分栏。</p>
+</blockquote>
+<h2 id="0-为什么-agent-需要一张看得见的清单">0. 为什么 Agent 需要一张看得见的清单</h2>
+<p>「帮我检查项目并修好类型错误」背后至少有五步：读取配置、运行检查、定位原因、修改代码、再次验证。模型可以把计划写成一段话，但普通文本帮不上忙：程序不知道哪一项干完了，后面的工具调用也没有办法稳定地更新它；我们只能盯着不断滚动的消息猜进度。</p>
+<p>还有第二个麻烦：任务里常夹着「顺路想一想」的小问题，比如先比较两种方案。这种分析一旦在主对话里展开，大段文字会挤占真正干活要用的上下文。</p>
+<p>解法是两个新工具：<code>todo_write</code> 对付第一个麻烦——让模型把计划写成一张能打钩的清单，每推进一步就重写整张表，进度始终显示在右栏；<code>delegate_task</code> 对付第二个麻烦——把独立的小问题交给一次单独的请求去想，只把结论带回来，过程不占主对话的地方。</p>
+<p>先用一张图把 TODO 表的一生讲完——怎么出现、怎么更新、怎么收尾，今天的设计和实现都是在展开这张图：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="text"><code><span class="line"><span>用户输入多步任务</span></span>
+<span class="line"><span>     │</span></span>
+<span class="line"><span>     ▼</span></span>
+<span class="line"><span>① 规划   模型调用 todo_write，交出整张表</span></span>
+<span class="line"><span>     │     todos.ts 校验后存入内存，并通知 TUI</span></span>
+<span class="line"><span>     │     右栏立刻出现：</span></span>
+<span class="line"><span>     │       [ ] 读 tsconfig</span></span>
+<span class="line"><span>     │       [ ] 运行类型检查</span></span>
+<span class="line"><span>     │       [ ] 逐个修复并验证</span></span>
+<span class="line"><span>     ▼</span></span>
+<span class="line"><span>② 推进   模型干一步活，就重写一次整张表</span></span>
+<span class="line"><span>     │     普通活由 read / run_shell 完成；</span></span>
+<span class="line"><span>     │     独立的分析活交给 delegate_task，</span></span>
+<span class="line"><span>     │     子 Agent 在干净上下文里跑一次请求，只回结论</span></span>
+<span class="line"><span>     │     右栏跟着翻转：</span></span>
+<span class="line"><span>     │       [x] 读 tsconfig</span></span>
+<span class="line"><span>     │       [>] 运行类型检查</span></span>
+<span class="line"><span>     │       [ ] 逐个修复并验证</span></span>
+<span class="line"><span>     ▼</span></span>
+<span class="line"><span>③ 收尾   最后一项标为 completed，模型给出最终回答</span></span>
+<span class="line"><span>           [x] 读 tsconfig</span></span>
+<span class="line"><span>           [x] 运行类型检查</span></span>
+<span class="line"><span>           [x] 逐个修复并验证</span></span></code></pre>
+<p>图里其实只有三个角色：<strong>模型出主意</strong>——清单上写什么、每项什么状态，都是它调 <code>todo_write</code> 时现场交出来的；<strong>todos.ts 记账</strong>——把交来的表检查一遍，覆盖存进内存；<strong>TUI 显示</strong>——内存一变就刷新右栏。清单本体不在模型手里，所以每次都得整张重写。</p>
+<p>那模型自己不保管清单，更新状态时怎么知道表上现在有什么？答案是对话历史（history）：</p>
+<ul>
+<li><strong>上一张表在哪</strong>：模型每次调 <code>todo_write</code>，这条调用会连同参数原样记进 history——上一张表和每项的状态都在里面。工具的回执只有一句「已更新 2 项 TODO」，不含明细。</li>
+<li><strong>进度怎么算</strong>：history 里还躺着这之后每一步工具调用和结果，模型翻一翻就知道哪些活干完了，把翻完的表整张重交一遍。</li>
+</ul>
+<p>换句话说，<code>todos.ts</code> 只忠实保存模型交上来的表，进度它一概不管；表对不对，全看模型能不能从 history 里把自己的进度准确拼回来。</p>
+<h2 id="1-目标">1. 目标</h2>
+<p>今天的验收标准：</p>
+<ol>
+<li>多步骤任务用 <code>todo_write</code> 维护计划和进度</li>
+<li>TODO 实时显示在右栏，也可用 <code>/todos</code> 查看</li>
+<li><code>delegate_task</code> 能把子任务交给隔离上下文的子 Agent</li>
+<li>子任务串行执行，用量计入现有统计</li>
+</ol>
+<p><strong>当天代码行数</strong>：Day 9 源码相对 Day 8 新增 123 行、删除 10 行，净增 113 行，控制在 500 行以内。</p>
+<h2 id="2-设计">2. 设计</h2>
+<h3 id="21-todo-是一个普通的-function-tool外加一条刷新链路">2.1 TODO 是一个普通的 function tool，外加一条刷新链路</h3>
+<p>模型本身没有 TODO 能力，OpenAI SDK 也没有 <code>todo_write</code>。它和 Day 2 的时间工具一样，是我们自己定义的 function tool：<code>todos.ts</code> 写好工具名、用途说明和参数格式，Day 4 的 <code>toOpenAITools()</code> 把它们放进请求，模型看到说明就知道怎么调用（完整定义见 3.1）。实现上有两个取舍：</p>
+<ul>
+<li><strong>整表写入，不做增删改</strong>。为什么不拆成「新增一项」「改一项状态」「删一项」三个工具？那样模型要给每项编号，还得记住编号怎么变。清单通常就几行，每次整张重写多花不了几个 token，却省掉一整套编号协议。把关放在入口：内容不能为空、status 必须合法、进行中的任务最多一个；不合格就整张退回，旧表原样保留，不让半份计划上屏。</li>
+<li><strong>保存即上屏</strong>。<code>todos.ts</code> 把新表存进内存就喊一声 <code>onChange</code>，入口把这声喊接到 TUI 的 <code>updatePanel()</code>，右栏立刻刷新。右栏和 <code>/todos</code> 读的是同一份 <code>formatTodos()</code>，两处永远一致。</li>
+</ul>
+<h3 id="22-子-agent-是一次不带历史的请求外加一次强制回写">2.2 子 Agent 是一次不带历史的请求，外加一次强制回写</h3>
+<p><code>delegate_task</code> 是今天最简单的工具：收到任务描述，就新开一次模型请求，<code>messages</code> 只有「system + 任务描述」两条，主 Agent 的历史一条不带；结论拿回来后，由工具循环包装成一条工具结果消息，交回主 Agent。它复用同一个模型客户端，API 配置和用量统计照常工作。</p>
+<p>边界刻意收得很窄：子 Agent 没有工具可用，也不能再往下委派，更不直接改 TODO——它只负责想，动手仍由主 Agent 完成。多个委派排着队逐个执行，天然串行。</p>
+<p>还有一个坑：委派期间主 Agent 的清单停在旧状态，模型一疏忽就忘了更新。所以委派返回后的下一轮，我们用 <code>tool_choice</code> 把请求钉死在 <code>todo_write</code> 上，逼主 Agent 把刚干完的项标成 <code>completed</code>（失败了也可以顺手调整计划），再继续往下走。这次回写不靠模型自觉。</p>
+<h3 id="23-何时列清单由-system-指令说了算">2.3 何时列清单，由 system 指令说了算</h3>
+<p>不是每句话都值得列清单——问「现在几点」也先规划三步，纯属多花一次调用。Day 9 第一次给主请求加了 system 指令，规则只有一条：多步骤任务先规划再执行，简单任务直接回答。这条指令每次请求时临时拼在 history 前面，不写进会话历史，保存会话时也不用反复存同一段话。</p>
+<p>光靠指令还不够保险，我们另设了两个强制点：用户的话里点了名（出现 <code>todo</code>、任务清单，或「然后」「最后」「并总结」这类步骤词），第一轮就钉死 <code>todo_write</code>；再加上 2.2 说的委派返回后那一轮。其余轮次让模型自己决定。</p>
+<h2 id="3-实现先看效果">3. 实现：先看效果</h2>
+<p>启动 Day 9 后交给它一个两步小任务，主区域显示工具进度，右侧同时出现 TODO：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#00cdcd">You › 让子 Agent 比较 TypeScript 中 interface 和 type 的区别，并给出选择建议</span>
+<span style="color:#cdcd00">[调用工具 todo_write → 已更新 2 项 TODO]</span>
+<span style="color:#cdcd00">[调用工具 delegate_task → interface 适合可扩展的对象结构，type 更适合联合类型与类型组合。]</span>
+<span style="color:#cdcd00">[调用工具 todo_write → 已更新 2 项 TODO]</span>
+<span style="color:#00cd00">对象结构优先使用 interface；需要联合类型或复杂组合时使用 type。</span>
+</pre>
+<p>右侧分栏在执行过程中同步变化：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="text"><code><span class="line"><span>──── TODO ────</span></span>
+<span class="line"><span>[x] 比较 interface 和 type</span></span>
+<span class="line"><span>[>] 给出选择建议</span></span></code></pre>
+<p>先回忆一下 Day 2 的循环节奏：每一轮把 system 指令加整份 history 发给模型，模型要么直接回答，要么点名要调工具；我们执行工具，把「模型的调用」和「工具的结果」两条消息追加进 history，再发起下一轮。<code>todo_write</code> 在这个循环里没有任何特殊待遇，就是普通工具之一。</p>
+<p>带着这个节奏，把刚才那次运行摊成一条时间线：主线是主 Agent 只增不减的 history，每轮请求都等于 system 指令 + 整份 history；子 Agent 的请求发生在 <code>delegate_task</code> 执行的那一刻，两条消息，用完即弃：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#24292E">① 用户输入</span></span>
+<span class="line"><span style="color:#24292E">   { </span><span style="color:#005CC5">"role"</span><span style="color:#24292E">: </span><span style="color:#032F62">"user"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#032F62">"让子 Agent 比较 TypeScript 的 interface 和 type，并给出选择建议"</span><span style="color:#24292E"> }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">② 第 </span><span style="color:#005CC5">1</span><span style="color:#24292E"> 轮请求返回：先规划。history 追加两条</span></span>
+<span class="line"><span style="color:#24292E">   { </span><span style="color:#005CC5">"role"</span><span style="color:#24292E">: </span><span style="color:#032F62">"assistant"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#005CC5">null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">     "tool_calls"</span><span style="color:#24292E">: [{ </span><span style="color:#005CC5">"id"</span><span style="color:#24292E">: </span><span style="color:#032F62">"call_1"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"function"</span><span style="color:#24292E">: { </span><span style="color:#005CC5">"name"</span><span style="color:#24292E">: </span><span style="color:#032F62">"todo_write"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">       "arguments"</span><span style="color:#24292E">: { </span><span style="color:#005CC5">"todos"</span><span style="color:#24292E">: [</span></span>
+<span class="line"><span style="color:#24292E">         { </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#032F62">"比较 interface 和 type"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"status"</span><span style="color:#24292E">: </span><span style="color:#032F62">"in_progress"</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">         { </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#032F62">"给出选择建议"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"status"</span><span style="color:#24292E">: </span><span style="color:#032F62">"pending"</span><span style="color:#24292E"> } ] } } }] }</span></span>
+<span class="line"><span style="color:#24292E">   { </span><span style="color:#005CC5">"role"</span><span style="color:#24292E">: </span><span style="color:#032F62">"tool"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"tool_call_id"</span><span style="color:#24292E">: </span><span style="color:#032F62">"call_1"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#032F62">"已更新 2 项 TODO"</span><span style="color:#24292E"> }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">③ 第 </span><span style="color:#005CC5">2</span><span style="color:#24292E"> 轮请求返回：委派分析</span></span>
+<span class="line"><span style="color:#24292E">   { </span><span style="color:#005CC5">"role"</span><span style="color:#24292E">: </span><span style="color:#032F62">"assistant"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#005CC5">null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">     "tool_calls"</span><span style="color:#24292E">: [{ </span><span style="color:#005CC5">"id"</span><span style="color:#24292E">: </span><span style="color:#032F62">"call_2"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"function"</span><span style="color:#24292E">: { </span><span style="color:#005CC5">"name"</span><span style="color:#24292E">: </span><span style="color:#032F62">"delegate_task"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">       "arguments"</span><span style="color:#24292E">: { </span><span style="color:#005CC5">"task"</span><span style="color:#24292E">: </span><span style="color:#032F62">"比较 TypeScript 的 interface 和 type，并给出选择建议"</span><span style="color:#24292E"> } } }] }</span></span>
+<span class="line"><span style="color:#24292E">   ⤷ execTool 执行 delegate_task，此刻子 Agent 发出独立请求（不在主 history 里）：</span></span>
+<span class="line"><span style="color:#24292E">       { </span><span style="color:#005CC5">"role"</span><span style="color:#24292E">: </span><span style="color:#032F62">"system"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#032F62">"你是子 Agent。只完成给定子任务，返回简洁…结果；不要寒暄。"</span><span style="color:#24292E"> }</span></span>
+<span class="line"><span style="color:#24292E">       { </span><span style="color:#005CC5">"role"</span><span style="color:#24292E">: </span><span style="color:#032F62">"user"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#032F62">"比较 TypeScript 的 interface 和 type，并给出选择建议"</span><span style="color:#24292E"> }</span></span>
+<span class="line"><span style="color:#24292E">     拿到结论后这份请求即丢弃，结论作为工具结果回到主 history：</span></span>
+<span class="line"><span style="color:#24292E">   { </span><span style="color:#005CC5">"role"</span><span style="color:#24292E">: </span><span style="color:#032F62">"tool"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"tool_call_id"</span><span style="color:#24292E">: </span><span style="color:#032F62">"call_2"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#032F62">"interface 适合可扩展的对象结构，type 更适合联合类型…组合。"</span><span style="color:#24292E"> }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">④ 第 </span><span style="color:#005CC5">3</span><span style="color:#24292E"> 轮请求（tool_choice 钉住 todo_write）返回：回写进度。history 再追加两条</span></span>
+<span class="line"><span style="color:#24292E">   { </span><span style="color:#005CC5">"role"</span><span style="color:#24292E">: </span><span style="color:#032F62">"assistant"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#005CC5">null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">     "tool_calls"</span><span style="color:#24292E">: [{ </span><span style="color:#005CC5">"id"</span><span style="color:#24292E">: </span><span style="color:#032F62">"call_3"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"function"</span><span style="color:#24292E">: { </span><span style="color:#005CC5">"name"</span><span style="color:#24292E">: </span><span style="color:#032F62">"todo_write"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">       "arguments"</span><span style="color:#24292E">: { </span><span style="color:#005CC5">"todos"</span><span style="color:#24292E">: [</span></span>
+<span class="line"><span style="color:#24292E">         { </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#032F62">"比较 interface 和 type"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"status"</span><span style="color:#24292E">: </span><span style="color:#032F62">"completed"</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">         { </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#032F62">"给出选择建议"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"status"</span><span style="color:#24292E">: </span><span style="color:#032F62">"in_progress"</span><span style="color:#24292E"> } ] } } }] }</span></span>
+<span class="line"><span style="color:#24292E">   { </span><span style="color:#005CC5">"role"</span><span style="color:#24292E">: </span><span style="color:#032F62">"tool"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"tool_call_id"</span><span style="color:#24292E">: </span><span style="color:#032F62">"call_3"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#032F62">"已更新 2 项 TODO"</span><span style="color:#24292E"> }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">⑤ 第 </span><span style="color:#005CC5">4</span><span style="color:#24292E"> 轮请求返回：没有 tool_calls，就是最终回答</span></span>
+<span class="line"><span style="color:#24292E">   { </span><span style="color:#005CC5">"role"</span><span style="color:#24292E">: </span><span style="color:#032F62">"assistant"</span><span style="color:#24292E">, </span><span style="color:#005CC5">"content"</span><span style="color:#24292E">: </span><span style="color:#032F62">"对象结构优先使用 interface；需要联合类型…时使用 type。"</span><span style="color:#24292E"> }</span></span></code></pre>
+<p>说明两点：协议里 <code>arguments</code> 实际是 JSON 字符串，上面展开成对象便于阅读；字符串里的 <code>…</code> 表示中段省略。右栏此刻显示的 <code>[x] 比较 / [>] 给出建议</code>，正是 ④ 写入的状态。</p>
+<p>回头看 §0 埋的两个问题，现在都能对上号：</p>
+<ul>
+<li><strong>上一张表在哪</strong>：② 那条 assistant 消息的 <code>tool_calls</code> 参数里，③④⑤ 每轮请求都原样带着</li>
+<li><strong>进度怎么算的</strong>：④ 之前，history 里已经躺着 ②③ 的全部调用和子 Agent 结论，模型据此把第一项翻成 <code>completed</code></li>
+</ul>
+<p>最后注意：子 Agent 的结论会作为工具结果进入主 history，主 Agent 看得见；它自己那两段消息不进主对话，下一轮请求也不会重复发送。</p>
+<h3 id="31-todosts状态校验和两个工具">3.1 todos.ts：状态、校验和两个工具</h3>
+<p>Day 9 新增的 <code>todos.ts</code> 一共 77 行，包含完整的 TODO 状态、两个工具和展示格式：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day9/todos.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { registerTool, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> Tool } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './tools.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> type</span><span style="color:#6F42C1"> TodoStatus</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> 'pending'</span><span style="color:#D73A49"> |</span><span style="color:#032F62"> 'in_progress'</span><span style="color:#D73A49"> |</span><span style="color:#032F62"> 'completed'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> TodoItem</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    content</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    status</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> TodoStatus</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> items</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> TodoItem</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#6F42C1"> onChange</span><span style="color:#D73A49">:</span><span style="color:#24292E"> () </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> () </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 注册规划与委派工具；状态变化通过监听器立即同步到 TUI。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> setupPlanning</span><span style="color:#24292E">(</span><span style="color:#6F42C1">delegate</span><span style="color:#D73A49">:</span><span style="color:#24292E"> (</span><span style="color:#E36209">task</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">>, </span><span style="color:#6F42C1">changed</span><span style="color:#D73A49">:</span><span style="color:#24292E"> () </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    onChange </span><span style="color:#D73A49">=</span><span style="color:#24292E"> changed;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> tools</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [</span></span>
+<span class="line"><span style="color:#24292E">        {</span></span>
+<span class="line"><span style="color:#24292E">            name: </span><span style="color:#032F62">'todo_write'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            description: </span><span style="color:#032F62">'写入完整 TODO 列表，用于规划和更新任务进度。开始一项时标为 in_progress，完成后标为 completed；同一时间只保留一个 in_progress。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            parameters: {</span></span>
+<span class="line"><span style="color:#24292E">                type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                properties: {</span></span>
+<span class="line"><span style="color:#24292E">                    todos: {</span></span>
+<span class="line"><span style="color:#24292E">                        type: </span><span style="color:#032F62">'array'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                        items: {</span></span>
+<span class="line"><span style="color:#24292E">                            type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                            properties: {</span></span>
+<span class="line"><span style="color:#24292E">                                content: { type: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, description: </span><span style="color:#032F62">'简短、可执行的任务描述'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">                                status: { type: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, enum: [</span><span style="color:#032F62">'pending'</span><span style="color:#24292E">, </span><span style="color:#032F62">'in_progress'</span><span style="color:#24292E">, </span><span style="color:#032F62">'completed'</span><span style="color:#24292E">] },</span></span>
+<span class="line"><span style="color:#24292E">                            },</span></span>
+<span class="line"><span style="color:#24292E">                            required: [</span><span style="color:#032F62">'content'</span><span style="color:#24292E">, </span><span style="color:#032F62">'status'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">                            additionalProperties: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                        },</span></span>
+<span class="line"><span style="color:#24292E">                    },</span></span>
+<span class="line"><span style="color:#24292E">                },</span></span>
+<span class="line"><span style="color:#24292E">                required: [</span><span style="color:#032F62">'todos'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">                additionalProperties: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            run</span><span style="color:#24292E">: (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> next</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> Array.</span><span style="color:#6F42C1">isArray</span><span style="color:#24292E">(args.todos) </span><span style="color:#D73A49">?</span><span style="color:#24292E"> args.todos </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> TodoItem</span><span style="color:#24292E">[] </span><span style="color:#D73A49">:</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (next.</span><span style="color:#6F42C1">some</span><span style="color:#24292E">((</span><span style="color:#E36209">todo</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> !</span><span style="color:#24292E">todo.content?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">||</span><span style="color:#D73A49"> !</span><span style="color:#24292E">[</span><span style="color:#032F62">'pending'</span><span style="color:#24292E">, </span><span style="color:#032F62">'in_progress'</span><span style="color:#24292E">, </span><span style="color:#032F62">'completed'</span><span style="color:#24292E">].</span><span style="color:#6F42C1">includes</span><span style="color:#24292E">(todo.status))) {</span></span>
+<span class="line"><span style="color:#D73A49">                    return</span><span style="color:#032F62"> 'TODO 格式无效'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">                }</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (next.</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">todo</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> todo.status </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'in_progress'</span><span style="color:#24292E">).</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 1</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">                    return</span><span style="color:#032F62"> '同一时间只能有一个进行中的 TODO'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">                }</span></span>
+<span class="line"><span style="color:#24292E">                items </span><span style="color:#D73A49">=</span><span style="color:#24292E"> next.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">todo</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> ({ content: todo.content.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">(), status: todo.status }));</span></span>
+<span class="line"><span style="color:#6F42C1">                onChange</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `已更新 ${</span><span style="color:#24292E">items</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 项 TODO`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">        {</span></span>
+<span class="line"><span style="color:#24292E">            name: </span><span style="color:#032F62">'delegate_task'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            description: </span><span style="color:#032F62">'把一个边界清楚的子任务交给隔离上下文的子 Agent，等待它完成后返回结果。适合分析、设计和审查；多个子任务应逐个调用。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            parameters: {</span></span>
+<span class="line"><span style="color:#24292E">                type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                properties: { task: { type: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, description: </span><span style="color:#032F62">'完整、自包含的子任务说明'</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#24292E">                required: [</span><span style="color:#032F62">'task'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">                additionalProperties: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> task</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.task </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#24292E"> task </span><span style="color:#D73A49">?</span><span style="color:#6F42C1"> delegate</span><span style="color:#24292E">(task) </span><span style="color:#D73A49">:</span><span style="color:#032F62"> '缺少参数 task'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    ];</span></span>
+<span class="line"><span style="color:#24292E">    tools.</span><span style="color:#6F42C1">forEach</span><span style="color:#24292E">(registerTool);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> listTodos</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> readonly</span><span style="color:#6F42C1"> TodoItem</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> items;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> formatTodos</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> mark</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> { pending: </span><span style="color:#032F62">'[ ]'</span><span style="color:#24292E">, in_progress: </span><span style="color:#032F62">'[>]'</span><span style="color:#24292E">, completed: </span><span style="color:#032F62">'[x]'</span><span style="color:#24292E"> };</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> items.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">todo</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#032F62"> `${</span><span style="color:#24292E">mark</span><span style="color:#032F62">[</span><span style="color:#24292E">todo</span><span style="color:#032F62">.</span><span style="color:#24292E">status</span><span style="color:#032F62">]</span><span style="color:#032F62">} ${</span><span style="color:#24292E">todo</span><span style="color:#032F62">.</span><span style="color:#24292E">content</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>对照开头的流程图，几个关键点：</p>
+<ul>
+<li>沿用 Day 4 的 <code>Tool</code> 和注册表，没有为规划再造一套调用协议</li>
+<li>校验失败直接返回错误字符串，旧列表原样保留</li>
+<li><code>delegate_task</code> 自己不实现子 Agent，只调用注入进来的 <code>delegate</code> 函数</li>
+</ul>
+<h3 id="32-chatts子-agent-与两次强制回写">3.2 chat.ts：子 Agent 与两次强制回写</h3>
+<p><code>Chat</code> 新增一个公开方法。它使用同一个模型客户端，API 配置和用量统计都能直接复用：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day9/chat.ts</span></span>
+<span class="line"><span style="color:#6A737D">  /** 子 Agent 使用独立上下文完成一个聚焦任务，结果回到主 Agent 后再继续 pipeline。 */</span></span>
+<span class="line"><span style="color:#24292E">  async </span><span style="color:#6F42C1">delegate</span><span style="color:#24292E">(task: string): </span><span style="color:#005CC5">Promise</span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E">string</span><span style="color:#D73A49">></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    const res </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.client.chat.completions.</span><span style="color:#6F42C1">create</span><span style="color:#24292E">({</span></span>
+<span class="line"><span style="color:#24292E">      model: </span><span style="color:#005CC5">this</span><span style="color:#24292E">.model,</span></span>
+<span class="line"><span style="color:#24292E">      messages: [</span></span>
+<span class="line"><span style="color:#24292E">        { role: </span><span style="color:#032F62">'system'</span><span style="color:#24292E">, content: </span><span style="color:#032F62">'你是子 Agent。只完成给定子任务，返回简洁、可直接交给主 Agent 使用的结果；不要寒暄。'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">        { role: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">, content: task },</span></span>
+<span class="line"><span style="color:#24292E">      ],</span></span>
+<span class="line"><span style="color:#24292E">    });</span></span>
+<span class="line"><span style="color:#24292E">    this.reportUsage(res.usage);</span></span>
+<span class="line"><span style="color:#24292E">    return res.choices[</span><span style="color:#005CC5">0</span><span style="color:#24292E">]?.message?.content?.trim() || '子 Agent 未返回结果';</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<p><code>messages</code> 只有两条，没有展开主 Agent 的整段 history；返回文本由 <code>execTool</code> 包装成 <code>role=tool</code> 消息，主 Agent 据此决定下一步。</p>
+<p>主请求这边，system 指令写明「何时规划」：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day9/chat.ts</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> AGENT_SYSTEM</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> `你是一个本地编码 Agent。遇到需要多个步骤的任务时，先调用 todo_write 制定简短计划，再逐项执行并更新状态；用户明确要求 TODO 或任务清单时，必须先调用 todo_write。简单任务直接完成，不要为了形式创建 TODO。可把边界清楚的分析、设计或审查任务交给 delegate_task，多个子任务必须串行委派。`</span><span style="color:#24292E">;</span></span></code></pre>
+<p>代码里的强制逻辑只有几行。<code>wantsTodo</code> 认出「用户点了名」，<code>mustUpdateTodo</code> 记住「上一轮委派过、该回写了」；两者命中任何一个，这一轮的 <code>tool_choice</code> 就钉在 <code>todo_write</code> 上，否则交给模型自由发挥：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day9/chat.ts</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> wantsTodo</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> /todo</span><span style="color:#D73A49">|</span><span style="color:#032F62">任务清单</span><span style="color:#D73A49">|</span><span style="color:#032F62">然后</span><span style="color:#D73A49">|</span><span style="color:#032F62">最后</span><span style="color:#D73A49">|</span><span style="color:#032F62">再</span><span style="color:#005CC5">.</span><span style="color:#D73A49">{0,12}</span><span style="color:#032F62">(?:给出</span><span style="color:#D73A49">|</span><span style="color:#032F62">总结</span><span style="color:#D73A49">|</span><span style="color:#032F62">汇总)</span><span style="color:#D73A49">|</span><span style="color:#032F62">并(?:给出</span><span style="color:#D73A49">|</span><span style="color:#032F62">总结</span><span style="color:#D73A49">|</span><span style="color:#032F62">汇总)/</span><span style="color:#D73A49">i</span><span style="color:#24292E">.</span><span style="color:#6F42C1">test</span><span style="color:#24292E">(userInput);</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> mustUpdateTodo </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// ...</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> forceTodo</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> (turn </span><span style="color:#D73A49">===</span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> wantsTodo) </span><span style="color:#D73A49">||</span><span style="color:#24292E"> mustUpdateTodo;</span></span>
+<span class="line"><span style="color:#24292E">        mustUpdateTodo </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// ...</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">          messages</span><span style="color:#24292E">: [{ role: </span><span style="color:#032F62">'system'</span><span style="color:#24292E">, content: </span><span style="color:#005CC5">AGENT_SYSTEM</span><span style="color:#24292E"> }, </span><span style="color:#D73A49">...</span><span style="color:#005CC5">this</span><span style="color:#24292E">.history],</span></span>
+<span class="line"><span style="color:#6F42C1">          tools</span><span style="color:#24292E">: </span><span style="color:#6F42C1">toOpenAITools</span><span style="color:#24292E">(),</span></span>
+<span class="line"><span style="color:#6F42C1">          tool_choice</span><span style="color:#24292E">: forceTodo</span></span>
+<span class="line"><span style="color:#D73A49">              ?</span><span style="color:#24292E"> { type: </span><span style="color:#032F62">'function'</span><span style="color:#24292E">, function: { name: </span><span style="color:#032F62">'todo_write'</span><span style="color:#24292E"> } }</span></span>
+<span class="line"><span style="color:#D73A49">              :</span><span style="color:#032F62"> 'auto'</span><span style="color:#24292E">,</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// delegate_task 执行完成后</span></span>
+<span class="line"><span style="color:#24292E">          mustUpdateTodo </span><span style="color:#D73A49">=</span><span style="color:#24292E"> toolCalls.</span><span style="color:#6F42C1">some</span><span style="color:#24292E">((</span><span style="color:#E36209">c</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> c.name </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'delegate_task'</span><span style="color:#24292E">);</span></span></code></pre>
+<p>顺带一处小改动：工具循环上限 <code>MAX_TOOL_TURNS</code> 从 5 放宽到 30。规划、委派和逐项回写都要消耗轮次，5 轮走不完一趟完整流程。</p>
+<h3 id="33-把新工具加入权限表">3.3 把新工具加入权限表</h3>
+<p>Day 8 会拒绝权限表里没有登记的工具，因此两个新工具还要加入默认配置。它们只更新内存或请求模型，不操作文件和 shell，默认设为 <code>allow</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day9/permissions.ts</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> DEFAULT_TOOLS</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Record</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#6F42C1">Policy</span><span style="color:#24292E">> </span><span style="color:#D73A49">=</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    get_current_time: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    run_shell: </span><span style="color:#032F62">'ask'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    ls: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    read: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    glob: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    write: </span><span style="color:#032F62">'ask'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    patch: </span><span style="color:#032F62">'ask'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    todo_write: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    delegate_task: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">};</span></span></code></pre>
+<p><code>loadPermissions</code> 会把已有配置覆盖到这张默认表上，旧的 <code>.geekagent/GeekAgent.json</code> 即使没有这两个字段，升级到 Day 9 后也能直接使用；需要限制时，再显式改成 <code>ask</code> 或 <code>deny</code>。</p>
+<h3 id="34-把状态变化接到右侧分栏">3.4 把状态变化接到右侧分栏</h3>
+<p>入口在 TUI 创建后注册工具。<code>delegate_task</code> 接到 <code>Chat.delegate</code>，TODO 的变化回调接到已有的 <code>updatePanel</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day9/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> tui</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> TUI</span><span style="color:#24292E">(onLine, onExit);</span></span>
+<span class="line"><span style="color:#6F42C1">setupPlanning</span><span style="color:#24292E">((</span><span style="color:#E36209">task</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> chat.</span><span style="color:#6F42C1">delegate</span><span style="color:#24292E">(task), updatePanel);</span></span>
+<span class="line"><span style="color:#6F42C1">setupPermissions</span><span style="color:#24292E">(permissions, (</span><span style="color:#E36209">prompt</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> tui.</span><span style="color:#6F42C1">confirm</span><span style="color:#24292E">(prompt));</span></span></code></pre>
+<p>面板构建函数在原有用量信息之后追加 TODO。长文字继续由 Day 7 的 <code>Panel</code> 按列宽截断，不会撑开布局：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day9/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> buildPanel</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> window</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> CONTEXT_WINDOW</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> ctx</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> estimateTokens</span><span style="color:#24292E">(</span><span style="color:#005CC5">JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">stringify</span><span style="color:#24292E">(chat.</span><span style="color:#6F42C1">exportHistory</span><span style="color:#24292E">()));</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> root</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> permissionRoot</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> shownRoot</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> visibleWidth</span><span style="color:#24292E">(root) </span><span style="color:#D73A49">&#x3C;=</span><span style="color:#005CC5"> ROOT_DISPLAY_WIDTH</span><span style="color:#D73A49"> ?</span><span style="color:#24292E"> root </span><span style="color:#D73A49">:</span><span style="color:#032F62"> `…/${</span><span style="color:#6F42C1">basename</span><span style="color:#032F62">(</span><span style="color:#24292E">root</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> todos</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> formatTodos</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> [</span></span>
+<span class="line"><span style="color:#032F62">        `模型  ${</span><span style="color:#24292E">config</span><span style="color:#032F62">.</span><span style="color:#24292E">model</span><span style="color:#032F62">}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `会话  ${</span><span style="color:#24292E">sessions</span><span style="color:#032F62">.</span><span style="color:#6F42C1">currentId</span><span style="color:#032F62">()</span><span style="color:#032F62">}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `根目录  ${</span><span style="color:#24292E">shownRoot</span><span style="color:#032F62">}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        '──── 上下文 ────'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `${</span><span style="color:#24292E">ctx</span><span style="color:#032F62">} / ${</span><span style="color:#24292E">window</span><span style="color:#032F62">} tokens`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `${</span><span style="color:#24292E">Math</span><span style="color:#032F62">.</span><span style="color:#6F42C1">ceil</span><span style="color:#032F62">((</span><span style="color:#24292E">ctx</span><span style="color:#D73A49"> /</span><span style="color:#24292E"> window</span><span style="color:#032F62">) </span><span style="color:#D73A49">*</span><span style="color:#005CC5"> 100</span><span style="color:#032F62">)</span><span style="color:#032F62">}% used`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        '──── 本轮 ────'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `${</span><span style="color:#24292E">usage</span><span style="color:#032F62">.</span><span style="color:#24292E">round</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> usage</span><span style="color:#032F62">.</span><span style="color:#24292E">live</span><span style="color:#032F62">} tokens`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        '──── 累计 ────'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `${</span><span style="color:#24292E">usage</span><span style="color:#032F62">.</span><span style="color:#24292E">cum</span><span style="color:#032F62">} tokens`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        '──── TODO ────'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#D73A49">        ...</span><span style="color:#24292E">(todos.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> ?</span><span style="color:#24292E"> todos </span><span style="color:#D73A49">:</span><span style="color:#24292E"> [</span><span style="color:#032F62">'（暂无任务）'</span><span style="color:#24292E">]),</span></span>
+<span class="line"><span style="color:#24292E">    ];</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>/todos</code> 不维护第二份状态，只读取同一个 <code>formatTodos()</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day9/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">        case</span><span style="color:#032F62"> '/todos'</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#24292E">            const todos </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> formatTodos</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">            tui.append(todos.length > </span><span style="color:#005CC5">0</span><span style="color:#24292E"> ? `TODO：\n${todos.join(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">)}</span><span style="color:#032F62">` : '（暂无 TODO）', 'sys');</span></span>
+<span class="line"><span style="color:#032F62">            break;</span></span>
+<span class="line"><span style="color:#032F62">        }</span></span></code></pre>
+<h2 id="4-验证">4. 验证</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> typecheck</span></span>
+<span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day9/index.ts</span></span></code></pre>
+<ol>
+<li>输入“让子 Agent 比较 TypeScript 中 interface 和 type 的区别，并给出选择建议”</li>
+<li>确认右栏状态随执行变化，<code>/todos</code> 与右栏内容一致</li>
+<li>确认出现 <code>delegate_task</code> 结果，最终回复正常完成</li>
+</ol>
+<h2 id="5-没做什么">5. 没做什么</h2>
+<ul>
+<li>TODO 不持久化，也不跟随会话切换；清单明细只存在 history 里，历史压缩可能把它压薄</li>
+<li>子 Agent 不能调用工具或继续委派</li>
+<li>暂无并行调度和失败重试</li>
+</ul>
+<h2 id="6-下一步">6. 下一步</h2>
+<p>现在，长任务已经有了可观察的执行顺序，但 Agent 还不知道项目要求它怎样工作，重要结论也只活在当前会话里。下一步同时接入项目明确写下的规则和运行中积累的记忆，让稳定指令始终可见，让零散经验按需找回。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geekagent-day8.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day8 权限与回滚</span></a><a href="/post/geekagent-day10.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day10 项目指令与长期记忆</span></a></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day9";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day9.html";
+const title = "从零实现 GeekAgent —— Day9 任务规划与子 Agent";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程(days implement agent from scratch tutorial)，用 TypeScript/Node.js 动手写一个最简单的 Agent/Harness，从零实现 REPL 循环与流式多轮对话。本文介绍 REPL 是什么、为什么 Agent 的地基要选它，以及如何用 readline + OpenAI 兼容接口在不到 160 行代码里跑通「能聊」的第一步。"><title>从零实现 GeekAgent —— Day1 REPL 地基 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.BMRjXW0b.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 项目指令与长期记忆</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day1 REPL 地基</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-08-20">2026-08-20</time><span aria-hidden="true">·</span><span>约 8 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-标题从哪来repl-是什么" class="toc-link block text-muted" data-toc-depth="2">0. 标题从哪来：REPL 是什么</a></li><li style="padding-left:0rem"><a href="#1-为什么做这个项目" class="toc-link block text-muted" data-toc-depth="2">1. 为什么做这个项目</a></li><li style="padding-left:0rem"><a href="#2-day-1-目标repl--流式多轮对话" class="toc-link block text-muted" data-toc-depth="2">2. Day 1 目标：REPL + 流式多轮对话</a></li><li style="padding-left:0rem"><a href="#3-设计选型与几个决策" class="toc-link block text-muted" data-toc-depth="2">3. 设计：选型与几个决策</a></li><li style="padding-left:0.9rem"><a href="#31-选型用脚投票" class="toc-link block text-muted" data-toc-depth="3">3.1 选型：用脚投票</a></li><li style="padding-left:0.9rem"><a href="#32-三个关键决策" class="toc-link block text-muted" data-toc-depth="3">3.2 三个关键决策</a></li><li style="padding-left:0rem"><a href="#4-必要性为什么不能直接-curl-一下" class="toc-link block text-muted" data-toc-depth="2">4. 必要性：为什么不能直接 curl 一下</a></li><li style="padding-left:0rem"><a href="#5-实现先效果后实现" class="toc-link block text-muted" data-toc-depth="2">5. 实现：先效果，后实现</a></li><li style="padding-left:0.9rem"><a href="#51-chatts--一个类管住对话与记忆" class="toc-link block text-muted" data-toc-depth="3">5.1 chat.ts —— 一个类管住对话与记忆</a></li><li style="padding-left:0.9rem"><a href="#52-history-的格式一条新问题是怎么进来的" class="toc-link block text-muted" data-toc-depth="3">5.2 history 的格式：一条新问题是怎么进来的</a></li><li style="padding-left:0.9rem"><a href="#53-configts--三行配置" class="toc-link block text-muted" data-toc-depth="3">5.3 config.ts —— 三行配置</a></li><li style="padding-left:0.9rem"><a href="#54-colorts--终端着色输入输出一眼可分" class="toc-link block text-muted" data-toc-depth="3">5.4 color.ts —— 终端着色，输入/输出一眼可分</a></li><li style="padding-left:0.9rem"><a href="#55-indexts--repl-循环" class="toc-link block text-muted" data-toc-depth="3">5.5 index.ts —— REPL 循环</a></li><li style="padding-left:0rem"><a href="#6-验证" class="toc-link block text-muted" data-toc-depth="2">6. 验证</a></li><li style="padding-left:0rem"><a href="#7-day-1-明确没做" class="toc-link block text-muted" data-toc-depth="2">7. Day 1 明确没做</a></li><li style="padding-left:0rem"><a href="#8-下一步" class="toc-link block text-muted" data-toc-depth="2">8. 下一步</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><h1 id="day-1一个最简单agent-的-repl-地基">Day 1：一个「最简单」Agent 的 REPL 地基</h1>
+<h2 id="0-标题从哪来repl-是什么">0. 标题从哪来：REPL 是什么</h2>
+<p>标题里的 <strong>REPL</strong> 是个行话，先把它讲清楚，后面才好展开。</p>
+<p>REPL 是 Read-Eval-Print-Loop 四个词的缩写，翻译过来就是「读入 → 求值 → 打印 → 再循环」。我们天天用的命令行、Python 交互式解释器、<code>node</code> 不带文件名直接敲，全是 REPL：打一行、回一句、光标又亮起等下一行。</p>
+<p>为什么 Agent 的地基要选 REPL？因为人和模型对话的本质就是「一来一回循环」：我们输入、模型答、再输入……一个会反复收集输入的循环，恰好就是 REPL 的本意。所以 Day 1 不追求花哨界面，先把这条「能反复聊」的循环跑通，后面加工具、加文件读写，都是在循环里塞新本事。</p>
+<h2 id="1-为什么做这个项目">1. 为什么做这个项目</h2>
+<p>现在市面上的 Agent（OpenCode、Claude Code、Cursor 之类）能力很强，但也越来越像黑盒。我想自己动手，从零写一个 Agent，看看一个能「聊起来」的 Agent 最少需要多少代码。</p>
+<p>于是立了三个规矩：</p>
+<ol>
+<li><strong>最简单</strong>：不引入任何 Agent/CLI 框架，核心依赖只留「调模型」和「读环境变量」两个。</li>
+<li><strong>分天实现</strong>：每天只做一个功能，当天交付可运行的成果。</li>
+<li><strong>非侵入式新增</strong>：后续每一天的功能都在前一天的基础上新增，不推翻重写。</li>
+</ol>
+<h2 id="2-day-1-目标repl--流式多轮对话">2. Day 1 目标：REPL + 流式多轮对话</h2>
+<p>第一天地基，只做一件事：<strong>让模型能「聊」起来</strong>。验收标准是四条：</p>
+<ol>
+<li>一条命令启动，进入青色 <code>You › </code> 提示符</li>
+<li>提问后<strong>逐字流式</strong>输出回答（不是等半天一次性吐出来）</li>
+<li><strong>多轮记忆</strong>：聊过的内容模型都记得（“记住我叫张三” → “我叫什么”答得上）</li>
+<li><code>/reset</code> 清空记忆，<code>/exit</code> 正常退出</li>
+</ol>
+<p>这里顺手解释两个可能陌生的词：</p>
+<ul>
+<li><strong>流式（streaming）</strong>：模型不是憋一口气生成完整回答再放出来，而是一边生成一边往回传。打字时见过输入法「逐字跳出来」的效果吗？模型回答也是一样，收到一个片段就先显示，体验上从「转圈半天」变成「看着它边想边说」。</li>
+<li><strong>多轮记忆</strong>：模型本身是无状态的——它不记得上一句。所谓「记忆」是我们每次把历史对话一起重新发给它。这个机制 Day 1 就要铺好，后面所有天都靠它。</li>
+</ul>
+<p><strong>当天代码行数</strong>：4 个源文件共约 157 行。</p>
+<h2 id="3-设计选型与几个决策">3. 设计：选型与几个决策</h2>
+<h3 id="31-选型用脚投票">3.1 选型：用脚投票</h3>
+<ul>
+<li><strong>语言</strong>：TypeScript + Node.js 22。对标对象 OpenCode 本身就是 TS 生态；本机 Node 22 现成，读写文件、起 REPL 都极快。</li>
+<li><strong>运行时</strong>：<code>tsx</code> 直接跑 TS 源码，不编译、不打包，开发体验最轻。</li>
+<li><strong>模型接口</strong>：OpenAI 兼容接口（<code>baseURL</code> + <code>apiKey</code> + <code>model</code> 三件套）。这意味着 DeepSeek、Kimi、Ollama 等几乎市面所有模型都能即插即用，<code>deepseek-v4-flash</code> 只是默认值。</li>
+<li><strong>零框架</strong>：连 <code>commander</code>/<code>inquirer</code> 都没用。REPL 就用 Node 自带的 <code>readline</code>，多 100 行代码，换来的是每一行都能看懂。</li>
+</ul>
+<p>最终依赖清单只有 5 个包：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#005CC5">  "dependencies"</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#005CC5">    "dotenv"</span><span style="color:#24292E">: </span><span style="color:#032F62">"^17.4.2"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">    "openai"</span><span style="color:#24292E">: </span><span style="color:#032F62">"^7.5.0"</span></span>
+<span class="line"><span style="color:#24292E">  },</span></span>
+<span class="line"><span style="color:#005CC5">  "devDependencies"</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#005CC5">    "@types/node"</span><span style="color:#24292E">: </span><span style="color:#032F62">"^26.3.0"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">    "tsx"</span><span style="color:#24292E">: </span><span style="color:#032F62">"^4.23.12"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">    "typescript"</span><span style="color:#24292E">: </span><span style="color:#032F62">"^7.0.2"</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h3 id="32-三个关键决策">3.2 三个关键决策</h3>
+<ol>
+<li><strong>history 就是 OpenAI 的 <code>messages</code> 数组，零转换</strong>。这是 Day 1 最重要的一个设计，后面每天吃红利：多轮记忆、工具调用、系统提示，统统只是往同一个数组里追加不同 <code>role</code> 的条目。</li>
+<li><strong>颜色都集中在一个文件</strong>：所有终端着色只在 <code>color.ts</code> 一个文件里，新增颜色只改一个表，不污染业务代码。</li>
+</ol>
+<h2 id="4-必要性为什么不能直接-curl-一下">4. 必要性：为什么不能直接 <code>curl</code> 一下</h2>
+<p>我们可能会想：调模型不就是发个 HTTP 请求吗？<code>curl</code> 一行搞定，为啥还要写 157 行？</p>
+<p>我们用「裸做」对比一下，把必要性讲透：</p>
+<ol>
+<li><strong><code>curl</code> 只能「一问一答」</strong>。我们发一次、它回一次，进程退出。要聊第二句，得自己把上一句的回答手动贴回去——<code>curl</code> 不会帮忙记。多轮记忆要求把历史<strong>自动累积</strong>并重发，这正是 <code>history</code> 数组要做的事。</li>
+<li><strong><code>curl</code> 默认不流式</strong>。不加 <code>-N</code> 之类参数，我们要等模型把整段生成完、连接关闭才看到全部文字，几十字的回答还行，几百字的回答就是漫长的「转圈」。流式要靠边收边打印，得写一段循环。</li>
+<li><strong><code>curl</code> 没有「循环」</strong>。人和模型是反复一来一回，需要有个 <code>while</code>/事件循环不断收输入、发请求、打印。<code>readline</code> 的 REPL 正好干这个。</li>
+<li><strong><code>curl</code> 的输出是一坨纯文本</strong>。用户敲的、模型回的、报错，全一个颜色，读样例时得靠脑补谁是谁。上色是最朴素也最有效的可读性增强。</li>
+</ol>
+<p>一句话：<strong><code>curl</code> 是「调一次」，Agent 要的是「能反复调、记得住、边出边显、看着清楚」</strong>。这四点差的就是 Day 1 这 157 行。</p>
+<h2 id="5-实现先效果后实现">5. 实现：先效果，后实现</h2>
+<p>运行后终端里会看到下面的效果（颜色用 HTML 还原）：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#808080">GeekAgent Day 1 —— 最简单的 Agent</span>
+<span style="color:#00cdcd">You › 你好，记住我叫张三</span>
+<span style="color:#00cd00">你好张三，我记住了。</span>
+<span style="color:#00cdcd">You › 我叫什么？</span>
+<span style="color:#00cd00">你叫张三。</span>
+<span style="color:#00cdcd">You › /reset</span>
+<span style="color:#808080">（已清空对话记忆）</span>
+<span style="color:#00cdcd">You › /exit</span>
+<span style="color:#808080">bye</span>
+</pre>
+<p>Day 1 包含 4 个源文件：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="plaintext"><code><span class="line"><span>day1/                  # 第一天的工程目录，后续每天一个目录</span></span>
+<span class="line"><span>├── index.ts        # 入口：readline REPL 循环</span></span>
+<span class="line"><span>├── chat.ts         # Chat 类：流式调用 + 上下文记忆</span></span>
+<span class="line"><span>├── config.ts       # 读 .env，缺 key 就报错退出</span></span>
+<span class="line"><span>└── color.ts        # 终端着色</span></span></code></pre>
+<h3 id="51-chatts--一个类管住对话与记忆">5.1 chat.ts —— 一个类管住对话与记忆</h3>
+<p>对应「必要性」第 1、2 点：它持有 <code>history</code>（解决记忆），对外暴露流式方法 <code>streamReply</code>（解决流式）。完整内容如下：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day1/chat.ts</span></span>
+<span class="line"><span style="color:#24292E">async </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">streamReply</span><span style="color:#24292E">(userInput: string): AsyncGenerator</span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E">string</span><span style="color:#D73A49">></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">  this.history.push({ </span><span style="color:#6F42C1">role</span><span style="color:#24292E">: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">content</span><span style="color:#24292E">: userInput });</span></span>
+<span class="line"><span style="color:#24292E">  try {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> stream</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.client.chat.completions.</span><span style="color:#6F42C1">create</span><span style="color:#24292E">({</span></span>
+<span class="line"><span style="color:#24292E">      model: </span><span style="color:#005CC5">this</span><span style="color:#24292E">.model,</span></span>
+<span class="line"><span style="color:#24292E">      messages: </span><span style="color:#005CC5">this</span><span style="color:#24292E">.history,   </span><span style="color:#6A737D">// 每轮全量携带历史</span></span>
+<span class="line"><span style="color:#24292E">      stream: </span><span style="color:#005CC5">true</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> answer </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> chunk</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> stream) {</span></span>
+<span class="line"><span style="color:#D73A49">      const</span><span style="color:#005CC5"> delta</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> chunk.choices[</span><span style="color:#005CC5">0</span><span style="color:#24292E">]?.delta?.content </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">      if</span><span style="color:#24292E"> (delta) { answer </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> delta; </span><span style="color:#D73A49">yield</span><span style="color:#24292E"> delta; }  </span><span style="color:#6A737D">// 边收边吐</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#005CC5">    this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ role: </span><span style="color:#032F62">'assistant'</span><span style="color:#24292E">, content: answer });</span></span>
+<span class="line"><span style="color:#24292E">  } catch (err) {</span></span>
+<span class="line"><span style="color:#24292E">    this.history.</span><span style="color:#6F42C1">pop</span><span style="color:#24292E">();   </span><span style="color:#6A737D">// 出错回滚，保持「有来有回」</span></span>
+<span class="line"><span style="color:#24292E">    throw err;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这里的关键是 <code>AsyncGenerator</code>：</p>
+<ul>
+<li><strong>AsyncGenerator</strong>：<code>async function*</code> 配合 <code>yield</code>，调用方 <code>for await</code> 拿到一个增量就写一个，这就是流式。模型每吐一个片段，就立刻 <code>yield</code> 出去打印。</li>
+</ul>
+<h3 id="52-history-的格式一条新问题是怎么进来的">5.2 history 的格式：一条新问题是怎么进来的</h3>
+<p><code>history</code> 就是一个普通的数组，元素格式和 OpenAI Chat Completions 接口的 <code>messages</code> <strong>完全一致</strong>——这也是为什么 <code>messages: this.history</code> 可以直接原样传参：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#24292E">[</span></span>
+<span class="line"><span style="color:#24292E">  { role: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">,      content: </span><span style="color:#032F62">'记住我叫张三'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { role: </span><span style="color:#032F62">'assistant'</span><span style="color:#24292E">, content: </span><span style="color:#032F62">'好的，张三。'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { role: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">,      content: </span><span style="color:#032F62">'我叫什么？'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">]</span></span></code></pre>
+<p>新增一条问题，走的是标准的「进一出」流程：</p>
+<ol>
+<li>用户输入作为一条 <code>{ role: 'user', content }</code> 追加进 <code>history</code>；</li>
+<li>把整个 <code>history</code> 全量发给模型（代码里的 <code>messages: this.history</code>），模型据此理解上下文；</li>
+<li>流式回答结束后，把完整回答作为一条 <code>{ role: 'assistant', content }</code> 追加回去。</li>
+</ol>
+<p>所以「多轮记忆」没有任何魔法：对话越长，<code>history</code> 携带的上下文越多。而且因为格式与接口零转换，未来想加 system 提示词、工具调用消息，都只是往同一个数组里追加不同 <code>role</code> 的条目而已。</p>
+<h3 id="53-configts--三行配置">5.3 config.ts —— 三行配置</h3>
+<p><code>OPENAI_BASE_URL</code> / <code>OPENAI_API_KEY</code> / <code>OPENAI_MODEL</code> 从环境变量读取，缺 key 直接退并提示复制 <code>.env.example</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day1/config.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#032F62"> 'dotenv/config'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> Config</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    baseURL</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    apiKey</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    model</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 从环境变量读取模型配置，缺少 API Key 时直接退出并提示。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> loadConfig</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Config</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> baseURL</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> process.env.</span><span style="color:#005CC5">OPENAI_BASE_URL</span><span style="color:#24292E">?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">||</span><span style="color:#032F62"> 'https://api.deepseek.com'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> apiKey</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> process.env.</span><span style="color:#005CC5">OPENAI_API_KEY</span><span style="color:#24292E">?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">||</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> model</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> process.env.</span><span style="color:#005CC5">OPENAI_MODEL</span><span style="color:#24292E">?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">||</span><span style="color:#032F62"> 'deepseek-v4-flash'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">apiKey) {</span></span>
+<span class="line"><span style="color:#24292E">        console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">'缺少 OPENAI_API_KEY：请复制 .env.example 为 .env 并填写。'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> { baseURL, apiKey, model };</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h3 id="54-colorts--终端着色输入输出一眼可分">5.4 color.ts —— 终端着色，输入/输出一眼可分</h3>
+<p>对应「必要性」第 4 点。光有对话还不够直观：用户敲的和模型回的都一个颜色，读样例时得靠脑补谁是谁。给终端上色是最朴素也最有效的可读性增强，而且零依赖——终端颜色就是「转义序列 + 文字 + 复位序列」三件套，不用引任何库。</p>
+<p>完整内容如下：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day1/color.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 终端着色：非 TTY（管道 / 重定向）时自动关闭，避免污染日志。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> const</span><span style="color:#005CC5"> useColor</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> process.stdout.isTTY;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> const</span><span style="color:#005CC5"> C</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    reset: </span><span style="color:#032F62">'</span><span style="color:#005CC5">\x1b</span><span style="color:#032F62">[0m'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    user: </span><span style="color:#032F62">'</span><span style="color:#005CC5">\x1b</span><span style="color:#032F62">[36m'</span><span style="color:#24292E">, </span><span style="color:#6A737D">// 青色：用户输入</span></span>
+<span class="line"><span style="color:#24292E">    model: </span><span style="color:#032F62">'</span><span style="color:#005CC5">\x1b</span><span style="color:#032F62">[32m'</span><span style="color:#24292E">, </span><span style="color:#6A737D">// 绿色：模型回复</span></span>
+<span class="line"><span style="color:#24292E">    tool: </span><span style="color:#032F62">'</span><span style="color:#005CC5">\x1b</span><span style="color:#032F62">[33m'</span><span style="color:#24292E">, </span><span style="color:#6A737D">// 黄色：工具调用进度</span></span>
+<span class="line"><span style="color:#24292E">    sys: </span><span style="color:#032F62">'</span><span style="color:#005CC5">\x1b</span><span style="color:#032F62">[90m'</span><span style="color:#24292E">, </span><span style="color:#6A737D">// 灰色：系统提示</span></span>
+<span class="line"><span style="color:#24292E">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 给字符串包上指定颜色并在末尾复位。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> paint</span><span style="color:#24292E">(</span><span style="color:#E36209">color</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> keyof</span><span style="color:#D73A49"> typeof</span><span style="color:#005CC5"> C</span><span style="color:#24292E">, </span><span style="color:#E36209">s</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> useColor </span><span style="color:#D73A49">?</span><span style="color:#032F62"> `${</span><span style="color:#005CC5">C</span><span style="color:#032F62">[</span><span style="color:#24292E">color</span><span style="color:#032F62">]</span><span style="color:#032F62">}${</span><span style="color:#24292E">s</span><span style="color:#032F62">}${</span><span style="color:#005CC5">C</span><span style="color:#032F62">.</span><span style="color:#24292E">reset</span><span style="color:#032F62">}`</span><span style="color:#D73A49"> :</span><span style="color:#24292E"> s;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 按颜色写一段到 stdout；nl 为 true 时末尾补换行（用于整条消息）。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> out</span><span style="color:#24292E">(</span><span style="color:#E36209">color</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> keyof</span><span style="color:#D73A49"> typeof</span><span style="color:#005CC5"> C</span><span style="color:#24292E">, </span><span style="color:#E36209">s</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> ''</span><span style="color:#24292E">, </span><span style="color:#E36209">nl</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> false</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    process.stdout.</span><span style="color:#6F42C1">write</span><span style="color:#24292E">(</span><span style="color:#6F42C1">paint</span><span style="color:#24292E">(color, s) </span><span style="color:#D73A49">+</span><span style="color:#24292E"> (nl </span><span style="color:#D73A49">?</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 按颜色向 stderr 写一行（补换行），用于报错。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> err</span><span style="color:#24292E">(</span><span style="color:#E36209">color</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> keyof</span><span style="color:#D73A49"> typeof</span><span style="color:#005CC5"> C</span><span style="color:#24292E">, </span><span style="color:#E36209">s</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    process.stderr.</span><span style="color:#6F42C1">write</span><span style="color:#24292E">(</span><span style="color:#6F42C1">paint</span><span style="color:#24292E">(color, s) </span><span style="color:#D73A49">+</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>几个要点：</p>
+<ul>
+<li><strong>颜色就是转义码</strong>：<code>\x1b[36m</code> 是「开青色」，<code>\x1b[0m</code> 是「复位」，夹在中间的文字就带上了颜色。<code>paint</code> 自带复位，写出去就是「开色 → 内容 → 复位」自包含，不用担心漏关颜色把后面整片染了。</li>
+<li><strong>一个 <code>out</code> 包揽所有 stdout 输出</strong>：<code>nl</code> 参数决定补不补换行——流式增量 <code>out('model', delta)</code>（不补，逐字拼），整行消息 <code>out('sys', '...', true)</code>（补换行）。<code>err</code> 走 stderr，专用于报错。</li>
+</ul>
+<p><code>index.ts</code> 里所有输出都过 <code>out</code> / <code>err</code>，模型回复绿色、系统提示灰色、报错也走 <code>err</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6F42C1">out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);                              </span><span style="color:#6A737D">// 模型回复前另起一行</span></span>
+<span class="line"><span style="color:#D73A49">for</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> delta</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> chat.</span><span style="color:#6F42C1">streamReply</span><span style="color:#24292E">(line)) {</span></span>
+<span class="line"><span style="color:#6F42C1">    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'model'</span><span style="color:#24292E">, delta);                       </span><span style="color:#6A737D">// 模型回复：绿色，逐字拼</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#6F42C1">out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'（已清空对话记忆）'</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);          </span><span style="color:#6A737D">// 系统提示：灰色，整行</span></span></code></pre>
+<p>颜色集中在这一张表 <code>C</code> 与 <code>paint</code> / <code>out</code> / <code>err</code> 三个函数里，要加新颜色只改 <code>C</code> 即可。</p>
+<h3 id="55-indexts--repl-循环">5.5 index.ts —— REPL 循环</h3>
+<p>对应「必要性」第 3 点：用 Node 自带 <code>readline</code> 搭 REPL（解决循环）。彩色 <code>You › </code> 提示符标注输入侧、命令分发（<code>/help</code> <code>/reset</code> <code>/exit</code>）、一个 <code>busy</code> 标志防止流式输出时连发输入串台。所有输出都走 <code>out</code> / <code>err</code>（着色细节见 §5.4），模型回复逐字 <code>out('model', delta)</code> 流式拼出。完整内容如下：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day1/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { createInterface } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:readline'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { loadConfig } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './config.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { Chat } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './chat.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { err, out, paint } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './color.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> config</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> loadConfig</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> chat</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Chat</span><span style="color:#24292E">(config.baseURL, config.apiKey, config.model);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> rl</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> createInterface</span><span style="color:#24292E">({ input: process.stdin, output: process.stdout });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 用彩色提示符标注「用户输入」这一侧。</span></span>
+<span class="line"><span style="color:#24292E">rl.</span><span style="color:#6F42C1">setPrompt</span><span style="color:#24292E">(</span><span style="color:#6F42C1">paint</span><span style="color:#24292E">(</span><span style="color:#032F62">'user'</span><span style="color:#24292E">, </span><span style="color:#032F62">'You › '</span><span style="color:#24292E">));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> printHelp</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">`可用命令：</span></span>
+<span class="line"><span style="color:#032F62">  /help   显示帮助</span></span>
+<span class="line"><span style="color:#032F62">  /reset  清空本轮对话记忆</span></span>
+<span class="line"><span style="color:#032F62">  /exit   退出（等价于 Ctrl+C / Ctrl+D）</span></span>
+<span class="line"><span style="color:#032F62">输入任意内容即可与模型对话。`</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">rl.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'line'</span><span style="color:#24292E">, </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">raw</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (busy) </span><span style="color:#D73A49">return</span><span style="color:#24292E">; </span><span style="color:#6A737D">// 上一轮还在流式输出，忽略连发输入</span></span>
+<span class="line"><span style="color:#24292E">    busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> true</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> line</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> raw.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (line) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (line.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'/'</span><span style="color:#24292E">)) {</span></span>
+<span class="line"><span style="color:#D73A49">            switch</span><span style="color:#24292E"> (line) {</span></span>
+<span class="line"><span style="color:#D73A49">                case</span><span style="color:#032F62"> '/help'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">                    printHelp</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                    break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                case</span><span style="color:#032F62"> '/reset'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">                    chat.</span><span style="color:#6F42C1">reset</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#6F42C1">                    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'（已清空对话记忆）'</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                    break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                case</span><span style="color:#032F62"> '/exit'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">                    rl.</span><span style="color:#6F42C1">close</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                    return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                default</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">                    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">`未知命令：${</span><span style="color:#24292E">line</span><span style="color:#032F62">}（输入 /help 查看）`</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">                out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">); </span><span style="color:#6A737D">// 模型回复另起一行</span></span>
+<span class="line"><span style="color:#D73A49">                for</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> delta</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> chat.</span><span style="color:#6F42C1">streamReply</span><span style="color:#24292E">(line)) {</span></span>
+<span class="line"><span style="color:#6F42C1">                    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'model'</span><span style="color:#24292E">, delta);</span></span>
+<span class="line"><span style="color:#24292E">                }</span></span>
+<span class="line"><span style="color:#6F42C1">                out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) {</span></span>
+<span class="line"><span style="color:#6F42C1">                err</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">`</span><span style="color:#005CC5">\n</span><span style="color:#032F62">请求失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">e</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    rl.</span><span style="color:#6F42C1">prompt</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">rl.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'close'</span><span style="color:#24292E">, () </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'bye'</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">`GeekAgent Day 1 —— 最简单的 Agent（模型：${</span><span style="color:#24292E">config</span><span style="color:#032F62">.</span><span style="color:#24292E">model</span><span style="color:#032F62">}，输入 /help 查看命令）`</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">rl.</span><span style="color:#6F42C1">prompt</span><span style="color:#24292E">();</span></span></code></pre>
+<h2 id="6-验证">6. 验证</h2>
+<ul>
+<li><code>npm run typecheck</code> ✅</li>
+<li>REPL 冒烟测试（喂 <code>/help</code> + <code>/exit</code>）✅：banner → 帮助 → bye，全链路通畅</li>
+<li>流式与多轮记忆需要真实 API Key，留给用户 <code>cp .env.example .env</code> 后亲自验收</li>
+</ul>
+<p>用法就两条命令（依赖与配置在仓库根，全仓共用一份）：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">cp</span><span style="color:#032F62"> .env.example</span><span style="color:#032F62"> .env</span><span style="color:#6A737D">        # 根目录填一次 key</span></span>
+<span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day1/index.ts</span></span></code></pre>
+<h2 id="7-day-1-明确没做">7. Day 1 明确没做</h2>
+<p>工具调用、文件读写和会话持久化都还没有。Day 1 只有一件事：<strong>能聊</strong>。</p>
+<h2 id="8-下一步">8. 下一步</h2>
+<p>既然能聊了，Day 2 最顺理成章的能力就是让模型<strong>动手</strong>：给它配一个工具（比如查时间，<code>get_current_time</code>），让回答不再只是「纸上谈兵」。聊天是我们认识的起点，干活才是 Agent 的意义。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><span></span><a href="/post/geekagent-day2.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day2 工具调用循环</span></a></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day1";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day1.html";
+const title = "从零实现 GeekAgent —— Day1 REPL 地基";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

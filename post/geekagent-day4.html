@@ -1,0 +1,565 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程，用 TypeScript 动手写一个最简单的 Agent/Harness。Day 4 把读写都从 shell 里拆出来：读走免确认的专用工具（ls/read/glob），写走展示 diff 再落盘的专用通道（write/patch），并把攒下的工具统一进一个注册表，让模型第一次走通「读→改→验证」的闭环。"><title>从零实现 GeekAgent —— Day4 文件工具与注册表 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.BMRjXW0b.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 项目指令与长期记忆</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day4 文件工具与注册表</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-08-23">2026-08-23</time><span aria-hidden="true">·</span><span>约 18 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-为什么同一个-shell撑不住读写两端" class="toc-link block text-muted" data-toc-depth="2">0. 为什么同一个 shell，撑不住读写两端</a></li><li style="padding-left:0rem"><a href="#1-目标五把文件工具--一个注册表" class="toc-link block text-muted" data-toc-depth="2">1. 目标：五把文件工具 + 一个注册表</a></li><li style="padding-left:0rem"><a href="#2-设计一扇门拆成两条窄道" class="toc-link block text-muted" data-toc-depth="2">2. 设计：一扇门，拆成两条窄道</a></li><li style="padding-left:0.9rem"><a href="#21-读把无害的操作解放出来" class="toc-link block text-muted" data-toc-depth="3">2.1 读：把无害的操作解放出来</a></li><li style="padding-left:0.9rem"><a href="#22-写跨过门之前先看见-diff" class="toc-link block text-muted" data-toc-depth="3">2.2 写：跨过门之前，先看见 diff</a></li><li style="padding-left:0.9rem"><a href="#23-patch-用什么锚点唯一文本片段不是行号不是正则" class="toc-link block text-muted" data-toc-depth="3">2.3 patch 用什么锚点：唯一文本片段，不是行号、不是正则</a></li><li style="padding-left:0.9rem"><a href="#24-diff-预览怎么来前缀后缀修剪不写算法" class="toc-link block text-muted" data-toc-depth="3">2.4 diff 预览怎么来：前缀/后缀修剪，不写算法</a></li><li style="padding-left:0.9rem"><a href="#25-工具攒到-7-个收进一个注册表" class="toc-link block text-muted" data-toc-depth="3">2.5 工具攒到 7 个，收进一个注册表</a></li><li style="padding-left:0rem"><a href="#3-实现先效果后实现" class="toc-link block text-muted" data-toc-depth="2">3. 实现：先效果，后实现</a></li><li style="padding-left:0.9rem"><a href="#30-只读工具的终端效果" class="toc-link block text-muted" data-toc-depth="3">3.0 只读工具的终端效果</a></li><li style="padding-left:0.9rem"><a href="#31-三个只读工具ls--read--glob" class="toc-link block text-muted" data-toc-depth="3">3.1 三个只读工具：ls / read / glob</a></li><li style="padding-left:0.9rem"><a href="#32-引导模型优先使用只读工具" class="toc-link block text-muted" data-toc-depth="3">3.2 引导模型优先使用只读工具</a></li><li style="padding-left:0.9rem"><a href="#33-写工具的终端效果" class="toc-link block text-muted" data-toc-depth="3">3.3 写工具的终端效果</a></li><li style="padding-left:0.9rem"><a href="#34-工具注册表7-行把加工具变成显式动作" class="toc-link block text-muted" data-toc-depth="3">3.4 工具注册表：7 行，把「加工具」变成显式动作</a></li><li style="padding-left:0.9rem"><a href="#35-write整体写文件完整代码" class="toc-link block text-muted" data-toc-depth="3">3.5 write：整体写文件，完整代码</a></li><li style="padding-left:0.9rem"><a href="#36-patch局部精确修改完整代码" class="toc-link block text-muted" data-toc-depth="3">3.6 patch：局部精确修改，完整代码</a></li><li style="padding-left:0.9rem"><a href="#37-两道写工具的公共底座commitwrite--simplediff" class="toc-link block text-muted" data-toc-depth="3">3.7 两道写工具的公共底座：commitWrite + simpleDiff</a></li><li style="padding-left:0.9rem"><a href="#38-两个出口换绑注册表--indexts-两行文案" class="toc-link block text-muted" data-toc-depth="3">3.8 两个出口换绑注册表 + index.ts 两行文案</a></li><li style="padding-left:0rem"><a href="#4-验证" class="toc-link block text-muted" data-toc-depth="2">4. 验证</a></li><li style="padding-left:0rem"><a href="#5-day-4-明确没做" class="toc-link block text-muted" data-toc-depth="2">5. Day 4 明确没做</a></li><li style="padding-left:0rem"><a href="#6-下一步" class="toc-link block text-muted" data-toc-depth="2">6. 下一步</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><h1 id="day-4把读写都从-shell-里拆出来文件工具与注册表">Day 4：把读写都从 shell 里拆出来——文件工具与注册表</h1>
+<blockquote>
+<p>Day 3 只给了模型一扇门：<code>run_shell</code>。读文件要被反复过问，改代码只能用 <code>echo ></code> / <code>sed</code>，改了什么看不见、确认是对整条命令拍板。Day 4 一次把这两端都拆出来：<strong>读</strong>走免确认的专用工具（<code>ls</code> / <code>read</code> / <code>glob</code>），<strong>写</strong>走展示 diff 再落盘的专用通道（<code>write</code> / <code>patch</code>），顺手把攒下的 7 个工具统一进一个注册表。这一天，模型第一次走通「读 → 改 → 验证」的闭环。</p>
+</blockquote>
+<h2 id="0-为什么同一个-shell撑不住读写两端">0. 为什么同一个 shell，撑不住读写两端</h2>
+<p>先把自己代入模型的处境：想改代码，第一件事永远是<strong>先弄清楚项目长什么样</strong>。可就算只是 <code>cat</code> 一个文件，也得先调 <code>run_shell</code>、再等一个 <code>y/N</code>。读一个文件确认一次，读十个文件确认十次，光点确认就够累了。</p>
+<p>再想深一层：「读」本身毫无破坏力，看文件永远不会让机器变坏。可为了能干活，读和写被绑在了同一个口子上——<code>run_shell</code> 什么命令都放行，所以它也<strong>永远不会被设为免确认</strong>。明明无害的操作，却和危险的命令挤在一起，每读一个文件都要被过问一句「可不可以读」，这就是 Day 3 的粗糙之处。</p>
+<p>而对面那头更别扭。模型真想改代码，能用的还是 <code>echo ></code> / <code>sed</code>，这里面有三个解不掉的结：</p>
+<ol>
+<li><strong>改了什么，不可预览</strong>。<code>sed -i 's/foo/bar/' day4/x.ts</code> 一敲回车，这次改动偏没偏，得写完再 <code>read</code> 一遍才知道。它本质上是一次「看不见的破坏」。</li>
+<li><strong>确认的粒度太粗</strong>。<code>y/N</code> 是对<strong>整条命令</strong>拍板，一条 <code>sed</code> 完全能一口气改十个地方，人却只能给一个「同意」。想看清楚模型具体要动哪几行，无从谈起。</li>
+<li><strong>改错的代价是静默的</strong>。模型对着几百行的文件拼正则、数行号，一个字符错位文件就悄悄坏了，还没有后悔药（回滚是后续的事）。</li>
+</ol>
+<p>于是问题的形状很清楚：一扇 <code>run_shell</code> 门上挂着两套互相矛盾的诉求——无害的读整天被过问，危险的写溜着走。Day 4 就把这扇门拆成两条窄道：读，做成<strong>免确认、工具层杜绝写</strong>的只读工具；写，做成<strong>进门之前先展示 diff</strong> 的专用工具。</p>
+<h2 id="1-目标五把文件工具--一个注册表">1. 目标：五把文件工具 + 一个注册表</h2>
+<p>验收标准：</p>
+<ol>
+<li>新增 <code>ls</code> / <code>read</code> / <code>glob</code> 三个只读工具，模型能调用且<strong>全程不弹确认</strong></li>
+<li><code>read</code> 大文件自动截断，支持 <code>offset</code> 分段续读；<code>glob</code> 用通配符查文件，自动跳过 <code>node_modules</code> 与隐藏路径</li>
+<li>新增 <code>write</code>（整体写）/ <code>patch</code>（局部改）两个写工具，写入前展示 diff 并 <code>y/N</code> 确认</li>
+<li>工具统一注册到注册表，模型看到的清单与能执行的分发<strong>读同一张表</strong>，外部只通过 <code>toOpenAITools</code> / <code>execTool</code> 两个出口访问</li>
+</ol>
+<p><strong>当天代码行数</strong>：5 个源文件共 570 行（Day 3 为 359 行，<strong>净增 211 行</strong>），主要增量在 <code>day4/tools.ts</code>（142 → 353 行）。</p>
+<h2 id="2-设计一扇门拆成两条窄道">2. 设计：一扇门，拆成两条窄道</h2>
+<h3 id="21-读把无害的操作解放出来">2.1 读：把无害的操作解放出来</h3>
+<p>「免确认」到底是放松管控还是收紧管控？答案是后者。我们担心的从来不是「模型读文件」，而是「模型顺手跑了一条别的命令」——以前的顾虑都藏在 shell 的 <code>run</code> 里。现在把读拆出去，这三个工具的 <code>run</code> 从写进代码起就只调 <code>readdir</code> / <code>readFile</code> / <code>glob</code>，<strong>不存在写路径</strong>，确认机制盯住 <code>run_shell</code> 一个口就够了。真正需要拍板的命令（shell），目标反而更集中了。</p>
+<p>拆出来的第二个理由是<strong>输出结构化</strong>。同样找文件，让模型去跑 <code>ls -R</code> 然后从文本里反猜目录，和调 <code>glob '**/tools.ts'</code> 直接拿回一份路径清单，是两个世界。<code>read</code> 也一样，返回的是带「共 N 字符 / 读到第 a-b 段」元信息的文本段，模型清楚自己读了全文的哪一块、还差哪一块。</p>
+<p><code>run_shell</code> 当然还留着——旧能力不删，只是它的描述里多了句「纯查看文件请优先用 ls / read / glob」，引导模型择优。</p>
+<h3 id="22-写跨过门之前先看见-diff">2.2 写：跨过门之前，先看见 diff</h3>
+<p>读的时候我们想的是「无害的操作不该被反复过问」；写的时候反过来了——<strong>破坏性的操作，光问一句「可不可以」不够，还得让人看清楚「要动什么」</strong>。所以写工具的思路：让模型把「这次改什么」讲成一份看得见的东西——diff，也就是「新旧内容逐行对照」的清单，删了哪些行、加了哪些行一眼可见。先进给用户看一眼，确认后再落盘。</p>
+<p>写工具分两把，而不是一把「写文件」：<code>write</code> 的参数是 <code>path</code> + <code>content</code>，语义是「<strong>整体替换</strong>」，适合新建文件或整体重写；<code>patch</code> 的参数是 <code>hunks</code> 数组，每个 <code>{ old, new }</code>，语义是「<strong>局部手术</strong>」，把 <code>old</code> 那个片段换成 <code>new</code>。之所以分家，是因为确认的对象不同：<code>write</code> 展示的是整文件新旧对比，<code>patch</code> 是局部替换的钉对钉。拆开后两个工具的描述、参数、确认界面各自朴素，模型也不用为了改一行而传一遍完整文件。</p>
+<p><code>run_shell</code> 的 <code>confirm</code> 那一行原样保留——两个写工具和 shell 共用同一道确认抽象。</p>
+<h3 id="23-patch-用什么锚点唯一文本片段不是行号不是正则">2.3 patch 用什么锚点：唯一文本片段，不是行号、不是正则</h3>
+<p>模型怎么告诉代码「我要改哪里」？三个候选：</p>
+<ul>
+<li><strong>行号</strong>：<code>read</code> 根本没带行号，模型不知道第几行是什么；就算带了，数错行号也是家常便饭。</li>
+<li><strong>正则</strong>：要转义、要担心贪婪匹配，模型写错的概率高，很难 debug。</li>
+<li><strong>唯一文本片段</strong>：模型刚 <code>read</code> 过文件，直接抄一段原文当锚点（带上足够上下文），最贴合它「读到的样子」。</li>
+</ul>
+<p>所以我们选第三个：每个 <code>old</code> 必须在文件里恰好出现一次。找不到说明模型记忆里的文件跟磁盘对不上；匹配到多处说明锚点太短，请它补充更多上下文。OpenAI / Claude 那一代编码 Agent 的 patch 工具用的也是同一套思路，我们只实现它的最简版。</p>
+<h3 id="24-diff-预览怎么来前缀后缀修剪不写算法">2.4 diff 预览怎么来：前缀/后缀修剪，不写算法</h3>
+<p>「写入前展示 diff」听起来要写一个 diff 算法——经典的 LCS 或 Myers 都要几十行，还有不小的内存风险。值得吗？</p>
+<p>看看模型真实会做的三种操作：新建、整体重写、局部改一处。对这三种情况，一个<strong>最朴素</strong>的做法就够：把新旧文本都按行切开，砍掉「完全相同的公共前缀」和「完全相同的公共后缀」，剩下的中间部分就是改动——旧行标 <code>-</code>，新行标 <code>+</code>，前后各留 3 行上下文。代价是：如果模型一次在多个相距很远的点做修改，修剪会把中间那段原样内容也当成「改动」拉进来，出现成对的 <code>-原样行</code> <code>+原样行</code>，可读性下降，但信息不失真。为一个少见的边缘场景上整套算法，不符合「宁缺毋滥」。另外加了 100 行展示上限，防止整个大文件被覆盖时屏幕被刷爆。</p>
+<h3 id="25-工具攒到-7-个收进一个注册表">2.5 工具攒到 7 个，收进一个注册表</h3>
+<p>工具从 Day 2 的 1 个长到今天的 7 个，<code>TOOLS</code> 还是一个平铺的公共数组。两个问题浮现了：</p>
+<ol>
+<li><strong>「加工具」不是一个动作</strong>：往后大家顺手改数组，哪天手滑重名了，静默覆盖旧工具，模型看到的、执行到的不一致。</li>
+<li><strong>入口太多</strong>：<code>TOOLS</code> 数组被到处引用，绕过 <code>toOpenAITools</code> / <code>execTool</code> 两个出口，清单和分发容易对不上。</li>
+</ol>
+<p>于是把数组收进一个私有注册表：新增工具必须走 <code>registerTool(tool)</code>，重名直接抛错；<code>toOpenAITools</code> 和 <code>execTool</code> 读的是同一张表。外部从此只认这两个口子，谁都不再直接摸数组。</p>
+<h2 id="3-实现先效果后实现">3. 实现：先效果，后实现</h2>
+<h3 id="30-只读工具的终端效果">3.0 只读工具的终端效果</h3>
+<p>这是运行后终端里真实会看到的样子——三个只读工具全程不弹一次确认：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#00cdcd">You › 用 ls 看当前目录，再用 glob 找 "day4/*.ts"，再读 day4/index.ts 的前面部分</span>
+<span style="color:#00cd00">我先依次完成这三步：列目录 → glob 抓文件 → 读文件内容。</span>
+<span style="color:#cdcd00">[调用工具 ls → 共 20 项：</span>
+<span style="color:#cdcd00">.geekagent/</span>
+<span style="color:#cdcd00">.git/</span>
+<span style="color:#cdcd00">day1/</span>
+<span style="color:#cdcd00">day2/</span>
+<span style="color:#cdcd00">day3/</span>
+<span style="color:#cdcd00">day4/</span>
+<span style="color:#cdcd00">day5/</span>
+<span style="color:#cdcd00">day6/</span>
+<span style="color:#cdcd00">dist/</span>
+<span style="color:#cdcd00">doc/</span>
+<span style="color:#cdcd00">node_modules/</span>
+<span style="color:#cdcd00">scripts/</span>
+<span style="color:#cdcd00">.env</span>
+<span style="color:#cdcd00">.env.example</span>
+<span style="color:#cdcd00">.gitignore</span>
+<span style="color:#cdcd00">AGENTS.md</span>
+<span style="color:#cdcd00">package-lock.json</span>
+<span style="color:#cdcd00">package.json</span>
+<span style="color:#cdcd00">README.md</span>
+<span style="color:#cdcd00">tsconfig.json]</span>
+<span style="color:#cdcd00">[调用工具 glob → 匹配到 5 个：</span>
+<span style="color:#cdcd00">day4/chat.ts</span>
+<span style="color:#cdcd00">day4/color.ts</span>
+<span style="color:#cdcd00">day4/config.ts</span>
+<span style="color:#cdcd00">day4/index.ts</span>
+<span style="color:#cdcd00">day4/tools.ts]</span>
+<span style="color:#cdcd00">[调用工具 read → （文件共 2182 字符，已读第 0-2000 段）</span>
+<span style="color:#cdcd00">import { createInterface } from 'node:readline';</span>
+<span style="color:#cdcd00">import 'dotenv/config';</span>
+<span style="color:#cdcd00">import { loadConfig } from './config.js';</span>
+<span style="color:#cdcd00">import { Chat } from './chat.js';</span>
+<span style="color:#cdcd00">……</span>
+<span style="color:#cdcd00">rl.on('close', () => {</span>
+<span style="color:#cdcd00">    out('sys', 'bye'</span>
+<span style="color:#cdcd00">……(已截断，续读可用 offset=2000)]</span>
+<span style="color:#00cd00">三步都完成了，全程没有弹过一次确认。总结如下：</span>
+<span style="color:#00cd00"></span>
+<span style="color:#00cd00">1. 当前目录共 20 项，day1~day6 是分日迭代的代码目录，还有 .geekagent/、dist/、doc/、scripts/、node_modules/ 等</span>
+<span style="color:#00cd00">2. day4 下有 5 个 .ts 源文件</span>
+<span style="color:#00cd00">3. index.ts 共 2182 字符，前 2000 字符已读完，末尾可用 offset=2000 续读</span>
+<span style="color:#00cdcd">You › </span>
+</pre>
+<p>关键效果是全程免确认：三个 <code>run</code> 从头到尾只碰 <code>readdir</code> / <code>readFile</code> / <code>glob</code>，没有 <code>confirm()</code>、没有写文件的 API——「拒绝写」写在骨子里。</p>
+<h3 id="31-三个只读工具ls--read--glob">3.1 三个只读工具：ls / read / glob</h3>
+<p>改动全部落在 <code>day4/tools.ts</code>。给 <code>registerTool</code> 的注册表挂上三个只读工具，完整定义如下：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#6F42C1">        name</span><span style="color:#24292E">: </span><span style="color:#032F62">'ls'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        description</span><span style="color:#24292E">: </span><span style="color:#032F62">'列出目录下的条目（只读）。默认当前目录，目录元素带 / 后缀，目录在前。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        parameters</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">            type</span><span style="color:#24292E">: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">            properties</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">path</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'要列出的目录路径，默认当前目录。'</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#6F42C1">            additionalProperties</span><span style="color:#24292E">: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> dir</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.path </span><span style="color:#D73A49">??</span><span style="color:#032F62"> '.'</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">||</span><span style="color:#032F62"> '.'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> entries</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readdir</span><span style="color:#24292E">(dir, { withFileTypes: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (entries.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '(空目录)'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> lines</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> entries</span></span>
+<span class="line"><span style="color:#24292E">                    .</span><span style="color:#6F42C1">sort</span><span style="color:#24292E">((</span><span style="color:#E36209">a</span><span style="color:#24292E">, </span><span style="color:#E36209">b</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> Number</span><span style="color:#24292E">(b.</span><span style="color:#6F42C1">isDirectory</span><span style="color:#24292E">()) </span><span style="color:#D73A49">-</span><span style="color:#6F42C1"> Number</span><span style="color:#24292E">(a.</span><span style="color:#6F42C1">isDirectory</span><span style="color:#24292E">()) </span><span style="color:#D73A49">||</span><span style="color:#24292E"> a.name.</span><span style="color:#6F42C1">localeCompare</span><span style="color:#24292E">(b.name))</span></span>
+<span class="line"><span style="color:#24292E">                    .</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">e</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> (e.</span><span style="color:#6F42C1">isDirectory</span><span style="color:#24292E">() </span><span style="color:#D73A49">?</span><span style="color:#032F62"> `${</span><span style="color:#24292E">e</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">}/`</span><span style="color:#D73A49"> :</span><span style="color:#24292E"> e.name));</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `共 ${</span><span style="color:#24292E">lines</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 项：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">lines</span><span style="color:#032F62">.</span><span style="color:#6F42C1">join</span><span style="color:#032F62">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `打开目录失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> NodeJS</span><span style="color:#032F62">.</span><span style="color:#6F42C1">ErrnoException</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#6F42C1">        name</span><span style="color:#24292E">: </span><span style="color:#032F62">'read'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        description</span><span style="color:#24292E">: </span><span style="color:#032F62">'读取文本文件内容（只读）。文件过大时自动截断，可用 offset 从指定字符偏移处分段续读。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        parameters</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">            type</span><span style="color:#24292E">: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">            properties</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">                path</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'要读取的文件路径。'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#6F42C1">                offset</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'number'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'从第 offset 个字符开始读，默认 0；用于分段读大文件。'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            required</span><span style="color:#24292E">: [</span><span style="color:#032F62">'path'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#6F42C1">            additionalProperties</span><span style="color:#24292E">: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> file</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.path </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">file) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '缺少参数 path'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> offset</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> Math.</span><span style="color:#6F42C1">max</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#6F42C1">Number</span><span style="color:#24292E">(args.offset) </span><span style="color:#D73A49">||</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">            try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> text</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(file, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (offset </span><span style="color:#D73A49">>=</span><span style="color:#24292E"> text.</span><span style="color:#005CC5">length</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> 'offset 已越过文件末尾'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> slice</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> text.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(offset, offset </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> MAX_OUTPUT_CHARS</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> truncated</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> offset </span><span style="color:#D73A49">+</span><span style="color:#24292E"> slice.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> &#x3C;</span><span style="color:#24292E"> text.</span><span style="color:#005CC5">length</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> meta</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> `（文件共 ${</span><span style="color:#24292E">text</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 字符，已读第 ${</span><span style="color:#24292E">offset</span><span style="color:#032F62">}-${</span><span style="color:#24292E">offset</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> slice</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 段）</span><span style="color:#005CC5">\n</span><span style="color:#032F62">`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> hint</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> truncated </span><span style="color:#D73A49">?</span><span style="color:#032F62"> `</span><span style="color:#005CC5">\n</span><span style="color:#032F62">...(已截断，续读可用 offset=${</span><span style="color:#24292E">offset</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> slice</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">})`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#24292E"> meta </span><span style="color:#D73A49">+</span><span style="color:#24292E"> slice </span><span style="color:#D73A49">+</span><span style="color:#24292E"> hint;</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `读取文件失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> NodeJS</span><span style="color:#032F62">.</span><span style="color:#6F42C1">ErrnoException</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#6F42C1">        name</span><span style="color:#24292E">: </span><span style="color:#032F62">'glob'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        description</span><span style="color:#24292E">: </span><span style="color:#032F62">'按通配符查找文件路径（只读，不含内容）。* 匹配单层内任意串、? 匹配单个字符、** 匹配任意多层目录；默认从当前目录查找，跳过 node_modules 与隐藏路径。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        parameters</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">            type</span><span style="color:#24292E">: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">            properties</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">pattern</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'glob 模式，如 "day4/*.ts" 或 "**/tools.ts"。'</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#6F42C1">            required</span><span style="color:#24292E">: [</span><span style="color:#032F62">'pattern'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#6F42C1">            additionalProperties</span><span style="color:#24292E">: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> pattern</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.pattern </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">pattern) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '缺少参数 pattern'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> files</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">                for</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> p</span><span style="color:#D73A49"> of</span><span style="color:#6F42C1"> glob</span><span style="color:#24292E">(pattern, {</span></span>
+<span class="line"><span style="color:#24292E">                    cwd: process.</span><span style="color:#6F42C1">cwd</span><span style="color:#24292E">(),</span></span>
+<span class="line"><span style="color:#6F42C1">                    exclude</span><span style="color:#24292E">: (</span><span style="color:#E36209">dir</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> dir.</span><span style="color:#6F42C1">includes</span><span style="color:#24292E">(</span><span style="color:#032F62">'node_modules'</span><span style="color:#24292E">),</span></span>
+<span class="line"><span style="color:#24292E">                })) {</span></span>
+<span class="line"><span style="color:#24292E">                    files.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(p.</span><span style="color:#6F42C1">replaceAll</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\\</span><span style="color:#032F62">'</span><span style="color:#24292E">, </span><span style="color:#032F62">'/'</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#D73A49">                    if</span><span style="color:#24292E"> (files.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> >=</span><span style="color:#005CC5"> MAX_GLOB_RESULTS</span><span style="color:#24292E">) </span><span style="color:#D73A49">break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">                }</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (files.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '(没有匹配到任何文件)'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> list</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> files.</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> hint</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> files.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> >=</span><span style="color:#005CC5"> MAX_GLOB_RESULTS</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> `</span><span style="color:#005CC5">\n</span><span style="color:#032F62">...(已达上限 ${</span><span style="color:#005CC5">MAX_GLOB_RESULTS</span><span style="color:#032F62">} 条，可换更精确的 pattern)`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `匹配到 ${</span><span style="color:#24292E">files</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 个：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">list</span><span style="color:#032F62">}${</span><span style="color:#24292E">hint</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `glob 失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span></code></pre>
+<p>配套的常量与 import 也很小，在文件头部追加：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { readdir, readFile, glob, mkdir, writeFile } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:fs/promises'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { dirname } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:path'</span><span style="color:#24292E">;</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** glob 最多返回的条数，防止一次性撑爆上下文。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> MAX_GLOB_RESULTS</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 200</span><span style="color:#24292E">;</span></span></code></pre>
+<p>要点：</p>
+<ul>
+<li><strong>免确认怎么来的</strong>：三个 <code>run</code> 只碰 <code>readdir</code> / <code>readFile</code> / <code>glob</code>，没有任何写路径，也就没有可以确认的东西。</li>
+<li><strong><code>read</code> 的截断语义</strong>：返回头部永远带元信息 <code>（文件共 N 字符，已读第 a-b 段）</code>，让模型一眼知道「我看的是全文的哪一块」；读完被截断时，尾部的 hint 直接告诉它下一次的 <code>offset</code> 该填多少——这就是模型组织多轮分段读的接力棒。</li>
+<li><strong><code>glob</code> 的 <code>**</code></strong>：<code>**/tools.ts</code> 一次拿到 <code>day2</code>～<code>day6</code> 几份同名文件，比 <code>ls</code> 递归再脑补可靠得多。<code>exclude</code> 把 <code>node_modules</code> 挡在门外；隐藏路径（如 <code>.git</code>）由 Node glob 默认的 <code>dot: false</code> 排除。用的是 Node 内置 <code>fs/promises</code> 的 glob，零依赖。</li>
+</ul>
+<h3 id="32-引导模型优先使用只读工具">3.2 引导模型优先使用只读工具</h3>
+<p>只读工具上线后，还要在工具描述和帮助信息里告诉模型与用户怎样使用：</p>
+<ol>
+<li><code>run_shell</code> 的描述末尾追加一句引导，让模型「纯查看文件」时优先走只读工具：</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#6F42C1">        description</span><span style="color:#24292E">: </span><span style="color:#032F62">'在本地执行一条 shell 命令（bash -c），返回合并后的标准输出/错误。执行前会向用户确认。纯查看文件请优先用 ls / read / glob（只读、免确认）。'</span><span style="color:#24292E">,</span></span></code></pre>
+<ol start="2">
+<li><code>index.ts</code> 的 <code>/help</code> 文案补上只读工具清单：</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/index.ts</span></span>
+<span class="line"><span style="color:#24292E">已接入工具：get_current_time（当前时间）、run_shell（执行 shell 命令，执行前需确认）、ls（列目录）、read（读文件）、glob（通配符查文件）——三者只读、免确认，模型需要时会自动调用。</span></span></code></pre>
+<h3 id="33-写工具的终端效果">3.3 写工具的终端效果</h3>
+<p>下面是带着两把写工具跑出来的真实终端输出（diff 预览在确认之前亮出来，输入 <code>y</code> 后模型才真正落盘）：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#00cdcd">You › 新建 demo.txt，内容三行：line1 hello、line2 world、line3 end，再把第二行改成 line2 CHANGED。</span>
+<span style="color:#cdcd00">+line1 hello</span>
+<span style="color:#cdcd00">+line2 world</span>
+<span style="color:#cdcd00">+line3 end</span>
+<span style="color:#cdcd00">确认写入 demo.txt？[y/N] y</span>
+<span style="color:#cdcd00">[调用工具 write → 已写入 demo.txt]</span>
+<span style="color:#cdcd00"> line1 hello</span>
+<span style="color:#cdcd00">-line2 world</span>
+<span style="color:#cdcd00">+line2 CHANGED</span>
+<span style="color:#cdcd00"> line3 end</span>
+<span style="color:#cdcd00">确认写入 demo.txt？[y/N] y</span>
+<span style="color:#cdcd00">[调用工具 patch → 已应用 1 处修改到 demo.txt]</span>
+<span style="color:#00cd00">已完成：</span>
+<span style="color:#00cd00">1. write 创建了 demo.txt，内容为三行：</span>
+<span style="color:#00cd00">line1 hello / line2 world / line3 end</span>
+<span style="color:#00cd00">2. patch 将 line2 world 替换为 line2 CHANGED，1 处修改成功。</span>
+<span style="color:#00cd00">最终 demo.txt 内容为：</span>
+<span style="color:#00cd00">line1 hello</span>
+<span style="color:#00cd00">line2 CHANGED</span>
+<span style="color:#00cd00">line3 end</span>
+</pre>
+<p>几个真实细节值得注意：</p>
+<ul>
+<li>新建文件时 <code>write</code> 的 diff 是全 <code>+</code>；第二次 <code>patch</code> 的 diff 变成标准 diff 的骨架：上下文行 → <code>-</code> 旧行 → <code>+</code> 新行 → 尾部上下文（最后那行 <code> line3 end</code>）。</li>
+<li>模型这次<strong>没先开口</strong>，直接甩出 write 的调用（「先动手后解释」在它这里是常态），连跑两个写操作、我确认两次，最后才停下来总结。工具循环全程没打断它。</li>
+<li>真实输出里模型总结还带着 <code>**</code> 和 <code>```</code> 这些 Markdown 标记——Day 4 还没做渲染，原样打在终端上。为了示例干净，上面把 Markdown 注解展开了。渲染美化是后续的事，今天不碰。</li>
+</ul>
+<p>改动全部落在 <code>day4/tools.ts</code>（净增 211 行），外加 <code>index.ts</code> 几处文案。</p>
+<h3 id="34-工具注册表7-行把加工具变成显式动作">3.4 工具注册表：7 行，把「加工具」变成显式动作</h3>
+<p>在 <code>Tool</code> 接口下方新增注册表与注册函数，把原来 <code>export const TOOLS</code> 的数组贴回成模块内部数组 <code>BUILTIN_TOOLS</code>，末尾统一注册：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 工具注册表。新增工具调用 registerTool 收口，重复名字直接报错。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> registry</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> registerTool</span><span style="color:#24292E">(</span><span style="color:#E36209">tool</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (registry.</span><span style="color:#6F42C1">some</span><span style="color:#24292E">((</span><span style="color:#E36209">t</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> t.name </span><span style="color:#D73A49">===</span><span style="color:#24292E"> tool.name)) </span><span style="color:#D73A49">throw</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(</span><span style="color:#032F62">`工具 ${</span><span style="color:#24292E">tool</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">} 已注册`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    registry.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(tool);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 内置工具数组：逐一注册进注册表，之后模型就能自动调用了。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> BUILTIN_TOOLS</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [</span></span>
+<span class="line"><span style="color:#6A737D">    // ……Day 2、Day 3 的三个工具原样躺在里面，一个字符都没动</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#24292E">        name: </span><span style="color:#032F62">'ls'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6A737D">        // ……只读三工具见 3.1</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#24292E">        name: </span><span style="color:#032F62">'write'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6A737D">        // ……完整 write 工具见 3.5</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#24292E">        name: </span><span style="color:#032F62">'patch'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6A737D">        // ……完整 patch 工具见 3.6</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span>
+<span class="line"><span style="color:#24292E">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#005CC5">BUILTIN_TOOLS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">forEach</span><span style="color:#24292E">(registerTool);</span></span></code></pre>
+<ul>
+<li><strong>重名保护</strong>是新行为：以前数组里塞进两个同名工具，后一个静默覆盖前一个；现在 <code>registerTool</code> 直接抛错，把「清单和分发不一致」挡在注册环节。</li>
+<li>旧工具<strong>逐字未动</strong>，只是从「公共导出」降级成「模块内部清单」。对外唯一的变化是 <code>toOpenAITools</code> / <code>execTool</code> 两个出口改读注册表，见 3.8。</li>
+</ul>
+<h3 id="35-write整体写文件完整代码">3.5 <code>write</code>：整体写文件，完整代码</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#6F42C1">        name</span><span style="color:#24292E">: </span><span style="color:#032F62">'write'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        description</span><span style="color:#24292E">: </span><span style="color:#032F62">'写入或整体覆盖一个文本文件。展示新旧内容的 diff 并请求确认；自动创建缺失的父目录；适合新建文件或整体重写，小幅修改请优先用 patch。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        parameters</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">            type</span><span style="color:#24292E">: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">            properties</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">                path</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'要写入的文件路径。'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#6F42C1">                content</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'文件的新完整内容（原内容将被整体替换）。'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            required</span><span style="color:#24292E">: [</span><span style="color:#032F62">'path'</span><span style="color:#24292E">, </span><span style="color:#032F62">'content'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#6F42C1">            additionalProperties</span><span style="color:#24292E">: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> file</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.path </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">file) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '缺少参数 path'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> wrote</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> commitWrite</span><span style="color:#24292E">(file, </span><span style="color:#6F42C1">String</span><span style="color:#24292E">(args.content </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#D73A49">            return</span><span style="color:#24292E"> wrote </span><span style="color:#D73A49">?</span><span style="color:#032F62"> `已写入 ${</span><span style="color:#24292E">file</span><span style="color:#032F62">}`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> '已取消写入'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span></code></pre>
+<p>要点：</p>
+<ul>
+<li><strong>run 只有四行</strong>：校验参数 → 交给共用的 <code>commitWrite</code>（3.7 会讲，它负责「读旧 → 算 diff → 确认 → 写盘」）→ 按是否真写返回结果。确认逻辑不在自己身上。</li>
+<li>结果文本两种：真写了回 <code>已写入 ${file}</code>，用户拒绝回 <code>已取消写入</code>。模型能据此决定下一步。</li>
+</ul>
+<h3 id="36-patch局部精确修改完整代码">3.6 <code>patch</code>：局部精确修改，完整代码</h3>
+<p><code>hunks</code> 是 <code>old</code> + <code>new</code> 的对象数组，逐条应用。配套的类型与常量先看：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 写入前 diff 预览最多展示的行数，避免整文件覆盖时刷屏。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> MAX_DIFF_LINES</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 100</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** patch 的单个修改片段：把文件中唯一出现的 old 替换为 new。 */</span></span>
+<span class="line"><span style="color:#D73A49">interface</span><span style="color:#6F42C1"> PatchHunk</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    old</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    new</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>完整工具定义：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#6F42C1">        name</span><span style="color:#24292E">: </span><span style="color:#032F62">'patch'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        description</span><span style="color:#24292E">: </span><span style="color:#032F62">'对已有文本文件做局部修改：hunks 里每个 { old, new } 把文件中唯一出现的 old 片段替换为 new。应用前展示 diff 并请求确认；old 须在文件中唯一匹配，否则该片段失败。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        parameters</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">            type</span><span style="color:#24292E">: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">            properties</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">                path</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'要修改的文件路径。'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#6F42C1">                hunks</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">                    type</span><span style="color:#24292E">: </span><span style="color:#032F62">'array'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">                    description</span><span style="color:#24292E">: </span><span style="color:#032F62">'修改片段列表：每个片段把文件中唯一匹配的 old 替换为 new。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">                    items</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">                        type</span><span style="color:#24292E">: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">                        properties</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">                            old</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'要从文件中替换的原文片段，须唯一匹配（建议带上足够上下文）。'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#6F42C1">                            new</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'替换后的新文本。'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">                        },</span></span>
+<span class="line"><span style="color:#6F42C1">                        required</span><span style="color:#24292E">: [</span><span style="color:#032F62">'old'</span><span style="color:#24292E">, </span><span style="color:#032F62">'new'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#6F42C1">                        additionalProperties</span><span style="color:#24292E">: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                    },</span></span>
+<span class="line"><span style="color:#24292E">                },</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            required</span><span style="color:#24292E">: [</span><span style="color:#032F62">'path'</span><span style="color:#24292E">, </span><span style="color:#032F62">'hunks'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#6F42C1">            additionalProperties</span><span style="color:#24292E">: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> file</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.path </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">file) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '缺少参数 path'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> hunks</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> (Array.</span><span style="color:#6F42C1">isArray</span><span style="color:#24292E">(args.hunks) </span><span style="color:#D73A49">?</span><span style="color:#24292E"> args.hunks </span><span style="color:#D73A49">:</span><span style="color:#24292E"> []) </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> PatchHunk</span><span style="color:#24292E">[];</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (hunks.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> 'hunks 为空，未做任何修改'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            let</span><span style="color:#24292E"> original</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">                original </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(file, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `读取文件失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#D73A49">            let</span><span style="color:#24292E"> patched </span><span style="color:#D73A49">=</span><span style="color:#24292E"> original;</span></span>
+<span class="line"><span style="color:#D73A49">            for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> h</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> hunks) {</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">h.old) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> 'hunks 中存在空的 old 片段'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> i</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> patched.</span><span style="color:#6F42C1">indexOf</span><span style="color:#24292E">(h.old);</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> `未找到匹配片段：${</span><span style="color:#6F42C1">truncate</span><span style="color:#032F62">(</span><span style="color:#24292E">h</span><span style="color:#032F62">.</span><span style="color:#24292E">old</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (patched.</span><span style="color:#6F42C1">indexOf</span><span style="color:#24292E">(h.old, i </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">) </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> `片段匹配到多处，请加长 old 使其唯一：${</span><span style="color:#6F42C1">truncate</span><span style="color:#032F62">(</span><span style="color:#24292E">h</span><span style="color:#032F62">.</span><span style="color:#24292E">old</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">                patched </span><span style="color:#D73A49">=</span><span style="color:#24292E"> patched.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, i) </span><span style="color:#D73A49">+</span><span style="color:#24292E"> h.new </span><span style="color:#D73A49">+</span><span style="color:#24292E"> patched.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(i </span><span style="color:#D73A49">+</span><span style="color:#24292E"> h.old.</span><span style="color:#005CC5">length</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (patched </span><span style="color:#D73A49">===</span><span style="color:#24292E"> original) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '替换后内容与原文件一致，未做任何修改'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> wrote</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> commitWrite</span><span style="color:#24292E">(file, patched);</span></span>
+<span class="line"><span style="color:#D73A49">            return</span><span style="color:#24292E"> wrote </span><span style="color:#D73A49">?</span><span style="color:#032F62"> `已应用 ${</span><span style="color:#24292E">hunks</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 处修改到 ${</span><span style="color:#24292E">file</span><span style="color:#032F62">}`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> '已取消修改'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span></code></pre>
+<p>几个实现细节：</p>
+<ul>
+<li><strong>唯一性检查是两问</strong>：第一问 <code>indexOf &#x3C; 0</code> 判「没找到」，第二问 <code>indexOf(h.old, i + 1)</code> 判「还有第二处」。两问都返回明确的错误文本，且用 <code>truncate</code> 截断超长片段，避免把一大段原文塞回上下文。这些错误走的是「结果文本」通道，模型自己读、自己改——这正是 2.3 选的锚点策略落地的样子。</li>
+<li><strong>修改是累积的</strong>：<code>patched</code> 先等于原文件，每个 hunk 在上一次替换的基础上继续找、继续换——多个 hunk 覆盖文件中不同位置时，各自都能命中。</li>
+<li>最后同样交给 <code>commitWrite</code>：同样展示 diff、确认、落盘——「局部手术」和「整体重写」共用同一道确认闸门。</li>
+</ul>
+<h3 id="37-两道写工具的公共底座commitwrite--simplediff">3.7 两道写工具的公共底座：commitWrite + simpleDiff</h3>
+<p><code>write</code> 和 <code>patch</code> 殊途同归，最后都调用同一个函数。它就干四件事：读旧内容 → 算 diff → 展示 + 确认 → 写盘。完整代码：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 展示 diff 并确认后写盘；新文件也照常走此流程。内容没变则不打扰用户，直接返回成功。 */</span></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> commitWrite</span><span style="color:#24292E">(</span><span style="color:#E36209">file</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">next</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">boolean</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> oldtxt </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        oldtxt </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(file, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">        /* 新文件：旧内容视为空 */</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (oldtxt </span><span style="color:#D73A49">===</span><span style="color:#24292E"> next) </span><span style="color:#D73A49">return</span><span style="color:#005CC5"> true</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">(</span><span style="color:#D73A49">await</span><span style="color:#6F42C1"> confirm</span><span style="color:#24292E">(</span><span style="color:#032F62">`</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#6F42C1">simpleDiff</span><span style="color:#032F62">(</span><span style="color:#24292E">oldtxt</span><span style="color:#032F62">, </span><span style="color:#24292E">next</span><span style="color:#032F62">)</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n</span><span style="color:#032F62">确认写入 ${</span><span style="color:#24292E">file</span><span style="color:#032F62">}？`</span><span style="color:#24292E">))) </span><span style="color:#D73A49">return</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#6F42C1"> mkdir</span><span style="color:#24292E">(</span><span style="color:#6F42C1">dirname</span><span style="color:#24292E">(file), { recursive: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#6F42C1"> writeFile</span><span style="color:#24292E">(file, next);</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#005CC5"> true</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>要点：</p>
+<ul>
+<li><strong>新文件也走同一流程</strong>：读旧内容失败（文件不存在），就把旧内容当空字符串，diff 自然变成全 <code>+</code>——新建和覆盖没有两条逻辑。</li>
+<li><strong>确认复用 Day 3 的 <code>confirm</code></strong>：<code>\n{diff}\n确认写入 …</code> 作为一条 prompt 传进去，<code>buildCliConfirm</code> 原样打印并等待 <code>[y/N]</code>。这个函数签名没变，后续权限模型要替换它的位置也没变。</li>
+<li><strong>父目录自动创建</strong>：<code>mkdir(dirname(file), { recursive: true })</code>，模型写 <code>day4/foo/bar.ts</code> 时不用先建 <code>day4/foo</code>。</li>
+</ul>
+<p>再看 diff 预览本身——不带算法的算法：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 按行拆文本：忽略结尾换行带来的空串；空文本返回空数组。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#6F42C1"> splitLines</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> (</span><span style="color:#E36209">s</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=></span><span style="color:#24292E"> (s </span><span style="color:#D73A49">===</span><span style="color:#032F62"> ''</span><span style="color:#D73A49"> ?</span><span style="color:#24292E"> [] </span><span style="color:#D73A49">:</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/</span><span style="color:#005CC5">\r\n</span><span style="color:#032F62">/</span><span style="color:#D73A49">g</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">).</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/</span><span style="color:#005CC5">\n</span><span style="color:#D73A49">$</span><span style="color:#032F62">/</span><span style="color:#24292E">, </span><span style="color:#032F62">''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">split</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 最小 diff：砍掉公共前缀与公共后缀，剩下的就是变更部分，前后各留 3 行上下文。</span></span>
+<span class="line"><span style="color:#6A737D"> * 只覆盖「单处整体修改」这一最常见场景（新建/覆盖/局部小改），够用且零依赖。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> simpleDiff</span><span style="color:#24292E">(</span><span style="color:#E36209">oldText</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">newText</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> a</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> splitLines</span><span style="color:#24292E">(oldText), </span><span style="color:#005CC5">b</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> splitLines</span><span style="color:#24292E">(newText);</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> p </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    while</span><span style="color:#24292E"> (p </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> a.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> p </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> a[p] </span><span style="color:#D73A49">===</span><span style="color:#24292E"> b[p]) p</span><span style="color:#D73A49">++</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> q </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    while</span><span style="color:#24292E"> (q </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> a.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#24292E"> p </span><span style="color:#D73A49">&#x26;&#x26;</span><span style="color:#24292E"> q </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#24292E"> p </span><span style="color:#D73A49">&#x26;&#x26;</span><span style="color:#24292E"> a[a.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#005CC5"> 1</span><span style="color:#D73A49"> -</span><span style="color:#24292E"> q] </span><span style="color:#D73A49">===</span><span style="color:#24292E"> b[b.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#005CC5"> 1</span><span style="color:#D73A49"> -</span><span style="color:#24292E"> q]) q</span><span style="color:#D73A49">++</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> ctx</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 3</span><span style="color:#24292E">, </span><span style="color:#005CC5">out</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">let</span><span style="color:#24292E"> i </span><span style="color:#D73A49">=</span><span style="color:#24292E"> Math.</span><span style="color:#6F42C1">max</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, p </span><span style="color:#D73A49">-</span><span style="color:#24292E"> ctx); i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> p; i</span><span style="color:#D73A49">++</span><span style="color:#24292E">) out.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(</span><span style="color:#032F62">' '</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> a[i]);</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">let</span><span style="color:#24292E"> i </span><span style="color:#D73A49">=</span><span style="color:#24292E"> p; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> a.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#24292E"> q; i</span><span style="color:#D73A49">++</span><span style="color:#24292E">) out.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(</span><span style="color:#032F62">'-'</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> a[i]);</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">let</span><span style="color:#24292E"> i </span><span style="color:#D73A49">=</span><span style="color:#24292E"> p; i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> b.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#24292E"> q; i</span><span style="color:#D73A49">++</span><span style="color:#24292E">) out.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(</span><span style="color:#032F62">'+'</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> b[i]);</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">let</span><span style="color:#24292E"> i </span><span style="color:#D73A49">=</span><span style="color:#24292E"> Math.</span><span style="color:#6F42C1">max</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, b.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#24292E"> q); i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> Math.</span><span style="color:#6F42C1">min</span><span style="color:#24292E">(b.</span><span style="color:#005CC5">length</span><span style="color:#24292E">, b.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#24292E"> q </span><span style="color:#D73A49">+</span><span style="color:#24292E"> ctx); i</span><span style="color:#D73A49">++</span><span style="color:#24292E">) out.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(</span><span style="color:#032F62">' '</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> b[i]);</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (out.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> MAX_DIFF_LINES</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">        out.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> MAX_DIFF_LINES</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        out.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(</span><span style="color:#032F62">`...(diff 太长，仅展示前 ${</span><span style="color:#005CC5">MAX_DIFF_LINES</span><span style="color:#032F62">} 行)`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> out.</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>理解它只要三步：</p>
+<ul>
+<li><strong><code>p</code> 是公共前缀长度，<code>q</code> 是公共后缀长度</strong>：两个 <code>while</code> 分别从两头推进，把两边完全一样的行跳过。它们之间（<code>p</code> 到 <code>a.length - q</code>、<code>p</code> 到 <code>b.length - q</code>）就是真正的改动区。</li>
+<li><strong>四段输出</strong>：改动前 3 行上下文 → 旧行的 <code>-</code> → 新行的 <code>+</code> → 改动后 3 行上下文。回看 Demo：<code>line1 hello</code> 是前缀、<code>-line2 world</code> 是删除、<code>+line2 CHANGED</code> 是新增、<code> line3 end</code> 是后缀里的上下文，正好四段齐活。</li>
+<li><strong><code>splitLines</code> 只在做一件事</strong>：把 <code>a\nb\n</code> 结尾那个换行产生的空串扔掉，避免多出一行幽灵空行干扰 diff。</li>
+</ul>
+<h3 id="38-两个出口换绑注册表--indexts-两行文案">3.8 两个出口换绑注册表 + index.ts 两行文案</h3>
+<p><code>toOpenAITools</code> 和 <code>execTool</code> 各改一处引用，数组换成注册表，行为不变：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/tools.ts</span></span>
+<span class="line"><span style="color:#6A737D">// toOpenAITools() 内：</span></span>
+<span class="line"><span style="color:#D73A49">return</span><span style="color:#24292E"> registry.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">tool</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> ({</span></span>
+<span class="line"><span style="color:#6A737D">    // ……类型、名字、描述、参数，原样</span></span>
+<span class="line"><span style="color:#24292E">}));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// execTool() 内：</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> tool</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> registry.</span><span style="color:#6F42C1">find</span><span style="color:#24292E">((</span><span style="color:#E36209">t</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> t.name </span><span style="color:#D73A49">===</span><span style="color:#24292E"> name);</span></span></code></pre>
+<p>启动 banner 和 <code>/help</code> 也补上两个写工具，并说明写入前会展示 diff、等待确认。</p>
+<h2 id="4-验证">4. 验证</h2>
+<ul>
+<li><code>npm run typecheck</code> ✅：<code>day4/</code> 全部源文件类型检查通过（<code>tsc --noEmit</code>）</li>
+<li><strong>离线自测</strong>（不需要 API Key，直接驱动工具层；<code>setConfirmFn</code> 把确认替换成「打印 diff 预览并自动同意」）：</li>
+</ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 从仓库根执行：glob 找全部 tools.ts，node_modules 被排除</span></span>
+<span class="line"><span style="color:#6F42C1">npx</span><span style="color:#032F62"> tsx</span><span style="color:#005CC5"> -e</span><span style="color:#032F62"> "import('./day4/tools.js').then(async m => console.log(await m.execTool('glob', JSON.stringify({ pattern: '**/tools.ts' }))))"</span></span>
+<span class="line"><span style="color:#6A737D"># read 带 offset 分段读：返回第 100-2100 段，头部元信息正确</span></span>
+<span class="line"><span style="color:#6F42C1">npx</span><span style="color:#032F62"> tsx</span><span style="color:#005CC5"> -e</span><span style="color:#032F62"> "import('./day4/tools.js').then(async m => console.log((await m.execTool('read', JSON.stringify({ path: 'day4/index.ts', offset: 100 }))).split('\n')[0]))"</span></span></code></pre>
+<p>read 那条只打印第一行，应为 <code>（文件共 2182 字符，已读第 100-2100 段）</code>。</p>
+<p>写工具链路（在临时目录跑，不用碰仓库文件；<code>setConfirmFn</code> 把确认替换成「打印 diff 预览并自动同意」）：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">mkdir</span><span style="color:#005CC5"> -p</span><span style="color:#032F62"> /tmp/d5</span><span style="color:#24292E"> &#x26;&#x26; </span><span style="color:#005CC5">cd</span><span style="color:#032F62"> /tmp/d5</span></span>
+<span class="line"><span style="color:#6F42C1">npx</span><span style="color:#032F62"> tsx</span><span style="color:#005CC5"> -e</span><span style="color:#032F62"> "import('/home/daijie/git/geekagent/day4/tools.js').then(async m => {</span></span>
+<span class="line"><span style="color:#032F62">  m.setConfirmFn(async (p) => { console.log(p); return true; });</span></span>
+<span class="line"><span style="color:#032F62">  console.log(await m.execTool('write',  JSON.stringify({ path: 'd5.txt', content: 'line1 hello\nline2 world\nline3 end' })));</span></span>
+<span class="line"><span style="color:#032F62">  console.log(await m.execTool('patch',  JSON.stringify({ path: 'd5.txt', hunks: [{ old: 'line2 world', new: 'line2 CHANGED' }] })));</span></span>
+<span class="line"><span style="color:#032F62">  console.log(await m.execTool('patch',  JSON.stringify({ path: 'd5.txt', hunks: [{ old: '不存在', new: 'x' }] })));</span></span>
+<span class="line"><span style="color:#032F62">  console.log(await m.execTool('patch',  JSON.stringify({ path: 'd5.txt', hunks: [{ old: 'line', new: 'x' }] })));</span></span>
+<span class="line"><span style="color:#032F62">})"</span></span></code></pre>
+<p>预期输出依次是：</p>
+<ul>
+<li>
+<p>write：先打出全 <code>+</code> 的 diff 预览，再返回 <code>已写入 d5.txt</code></p>
+</li>
+<li>
+<p>patch：先打出「上下文 / <code>-</code> / <code>+</code>」四段 diff，再返回 <code>已应用 1 处修改到 d5.txt</code></p>
+</li>
+<li>
+<p>第二个 patch：返回 <code>未找到匹配片段：不存在</code></p>
+</li>
+<li>
+<p>第三个 patch：返回 <code>片段匹配到多处，请加长 old 使其唯一：line</code></p>
+</li>
+<li>
+<p><strong>真实对话</strong>（需要 API Key）：<code>npm run dev -- day4/index.ts</code>，先输入第 3.0 节那句「列目录 + glob + 读文件」——三个工具串行自洽、全程免确认；再输入第 3.3 节那句「write + patch」。模型应依次调用，两次都在终端亮出 diff，输入 <code>y</code> 后落盘。</p>
+</li>
+<li>
+<p>代码量：5 个源文件共 570 行，净增 211 行（<code>tools.ts</code> 142 → 353）。</p>
+</li>
+</ul>
+<h2 id="5-day-4-明确没做">5. Day 4 明确没做</h2>
+<ul>
+<li><strong>权限与目录隔离</strong>：工具只有「只读 / 需确认」两类，而且仍能访问工作区之外的路径。</li>
+<li><strong>撤销 / 回滚</strong>：写入前没有自动备份，改坏后需要手动恢复。</li>
+<li><strong>diff 能力</strong>：预览只做前缀 / 后缀修剪，不提供标准 diff 的行号与细粒度差异。</li>
+<li><strong>文件类型</strong>：读写只处理 UTF-8 文本，不支持二进制文件。</li>
+</ul>
+<h2 id="6-下一步">6. 下一步</h2>
+<p>至此阶段 A 收官：Day 1 能聊、Day 2 会下单、Day 3 能动 shell、Day 4 看清楚也改得动手——「读 → 改 → 验证」闭环第一次完整走通，Agent 真正在代码上干起了活。接下来进入阶段 B「上下文与记忆」：聊得越久，<code>history</code> 越长，模型淡忘地越早。Day 5 先解决最眼前的问题——<strong>历史压缩</strong>，用摘要把旧对话变薄，腾出上下文给更重要的事。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geekagent-day3.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day3 Bash 工具</span></a><a href="/post/geekagent-day5.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day5 历史压缩</span></a></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day4";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day4.html";
+const title = "从零实现 GeekAgent —— Day4 文件工具与注册表";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

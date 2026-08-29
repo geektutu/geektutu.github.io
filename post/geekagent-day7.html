@@ -1,0 +1,565 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程，用 TypeScript 动手写一个最简单的 Agent/Harness。Day 7 给终端换一张桌：程序暂时接管整个终端，左侧放消息流，右侧常驻一块用量面板——本轮/累计 tokens 与上下文占用比例一边聊一边看得见，退出后原终端内容恢复。"><title>从零实现 GeekAgent —— Day7 轻量 TUI 与用量面板 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.BMRjXW0b.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 项目指令与长期记忆</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day7 轻量 TUI 与用量面板</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-08-26">2026-08-26</time><span aria-hidden="true">·</span><span>约 16 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-为什么需要一块一直留在屏幕上的地方" class="toc-link block text-muted" data-toc-depth="2">0. 为什么需要一块「一直留在屏幕上的地方」</a></li><li style="padding-left:0rem"><a href="#1-目标一块桌--一块面板" class="toc-link block text-muted" data-toc-depth="2">1. 目标：一块桌 + 一块面板</a></li><li style="padding-left:0rem"><a href="#2-设计这一次讲台交给库" class="toc-link block text-muted" data-toc-depth="2">2. 设计：这一次，讲台交给库</a></li><li style="padding-left:0.9rem"><a href="#21-为什么给项目引了第一个-ui-依赖" class="toc-link block text-muted" data-toc-depth="3">2.1 为什么给项目引了第一个 UI 依赖</a></li><li style="padding-left:0.9rem"><a href="#22-pi-tui-接走后我们只做三件事" class="toc-link block text-muted" data-toc-depth="3">2.2 pi-tui 接走后，我们只做三件事</a></li><li style="padding-left:0.9rem"><a href="#23-token-从哪来接口真值--字符估算" class="toc-link block text-muted" data-toc-depth="3">2.3 token 从哪来：接口真值 + 字符估算</a></li><li style="padding-left:0rem"><a href="#3-实现先效果后实现" class="toc-link block text-muted" data-toc-depth="2">3. 实现：先效果，后实现</a></li><li style="padding-left:0.9rem"><a href="#30-终端效果" class="toc-link block text-muted" data-toc-depth="3">3.0 终端效果</a></li><li style="padding-left:0.9rem"><a href="#31-tuits216-行的布局引擎" class="toc-link block text-muted" data-toc-depth="3">3.1 tui.ts：216 行的布局引擎</a></li><li style="padding-left:0.9rem"><a href="#32-chatts把用量报出去" class="toc-link block text-muted" data-toc-depth="3">3.2 chat.ts：把用量报出去</a></li><li style="padding-left:0.9rem"><a href="#33-indexts把六天的一切接上这张桌" class="toc-link block text-muted" data-toc-depth="3">3.3 index.ts：把六天的一切接上这张桌</a></li><li style="padding-left:0rem"><a href="#4-验证" class="toc-link block text-muted" data-toc-depth="2">4. 验证</a></li><li style="padding-left:0rem"><a href="#5-day-7-明确没做" class="toc-link block text-muted" data-toc-depth="2">5. Day 7 明确没做</a></li><li style="padding-left:0rem"><a href="#6-下一步" class="toc-link block text-muted" data-toc-depth="2">6. 下一步</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><h1 id="day-7把用量搬上桌轻量-tui-与常驻面板">Day 7：把用量搬上桌——轻量 TUI 与常驻面板</h1>
+<blockquote>
+<p>前六天是「读一行命令、回一串文本」的流水日志：聊得热闹，但这轮烧了多少 token、上下文离模型窗口还有多远，全是暗账。今天给终端换一张桌：程序暂时接管整个终端，左侧放消息流，右侧<strong>常驻一块用量面板</strong>——本轮 / 累计 tokens 与上下文占用比例一边聊一边看得见。退出程序后，原来的终端内容会恢复；对话、工具、会话、压缩的行为都不变。</p>
+</blockquote>
+<h2 id="0-为什么需要一块一直留在屏幕上的地方">0. 为什么需要一块「一直留在屏幕上的地方」</h2>
+<p>前六天的终端没有任何「常驻内容」。一条回复下来，输出往下滚一行，旧的缩到屏外，屏幕上永远只有「最近一段」——聊天没问题，直到有两样东西想一直摆在眼前。</p>
+<p><strong>第一样是本轮 / 累计 tokens。</strong> 花销本来不是秘密：OpenAI 兼容接口在流式请求末尾会回传 <code>usage</code>，只要带上 <code>stream_options: { include_usage: true }</code>。可从 Day 1 开始我们就没问过接口要这个数字，每轮花了多少、累计多少，全靠直觉。</p>
+<p><strong>第二样是上下文占用。</strong> Day 5 会趁 history 超长时自动压缩，但那更像「失火才救」。如果占用比例一直摆在眼皮底下，快到窗口边缘就能主动 <code>/compact</code>，而不是等模型下一次请求悄悄变慢、甚至直接失败。</p>
+<p>两样都需要数据<strong>常驻</strong>在视野里，日志流没有这个位置——它只会往下滚。所以要让出整块屏幕、换一张桌。这张桌还有一个更长远的理由：往后 todos、用量、记忆这类「展示型」能力都需要一块固定的屏幕区域，先把这块地方搭好，之后每天的增量就只是「往面板上添一行」。</p>
+<h2 id="1-目标一块桌--一块面板">1. 目标：一块桌 + 一块面板</h2>
+<p>验收标准：</p>
+<ul>
+<li>进入临时全屏双栏界面：左侧滚动消息流，右侧常驻面板；退出后恢复原来的终端内容</li>
+<li>配色完全沿用前六天的四色约定（用户青 / 模型绿 / 工具黄 / 系统灰），流式回复与工具调用、历史压缩的进度行全部进主区</li>
+<li>面板持续显示：模型、会话、上下文占用（估算 / 窗口 + 百分比）、本轮 tokens、累计 tokens</li>
+<li>输入框由 TUI 接管：打字 / 退格 / ←→ 移动、回车提交、Ctrl+C / Ctrl+D 退出；工具执行的 <code>[y/N]</code> 确认也落进输入行</li>
+<li>会话命令（<code>/new</code> <code>/sessions</code> <code>/open</code> <code>/save</code> <code>/load</code> <code>/reset</code> <code>/compact</code>）与退出自动保存全部保留、行为不变</li>
+<li>输入或输出被管道 / 重定向时给出提示并退出，不向日志混入控制终端的特殊字符</li>
+<li>当天代码行数：8 个源文件共 1115 行（Day 6 为 7 个源文件 820 行，<strong>净增 295 行</strong>）。新增 <code>tui.ts</code>（216 行）；<code>index.ts</code> 从 151 涨到 203 行（面板接线），<code>chat.ts</code> 增加 27 行（用量回调）</li>
+</ul>
+<h2 id="2-设计这一次讲台交给库">2. 设计：这一次，讲台交给库</h2>
+<h3 id="21-为什么给项目引了第一个-ui-依赖">2.1 为什么给项目引了第一个 UI 依赖</h3>
+<p>这是项目第一次引一个「界面」库。TUI 是 Terminal User Interface 的缩写，也就是直接画在终端里的界面。前六天能靠 Node.js 解决的都没有额外引库，这次破例，是因为自己画一个可用的终端界面绕不开三件事：</p>
+<ul>
+<li><strong>中英文宽度</strong>。英文字母通常占 1 格，汉字和全角符号占 2 格。宽度算错后，面板边界和输入光标都会错位。</li>
+<li><strong>输入与刷新互不打架</strong>。模型每吐出一小段文字，界面就要更新一次；与此同时，我们可能还在输入框里打字、移动光标。两边都直接写终端，很容易互相覆盖。</li>
+<li><strong>进入和退出全屏界面</strong>。启动时暂时接管终端，退出时还要把用户原来的终端内容、光标和输入状态恢复回来。不同终端、窗口大小变化和重定向都会影响这件事。</li>
+</ul>
+<p>这三件事都不是 Agent 的核心能力，只是把输出摆好的基础设施。这里选择 PI 项目拆出的 <code>@earendil-works/pi-tui</code>：<code>TuiAltScreen</code> 负责进入和退出临时全屏界面，并且只重画发生变化的内容；<code>ScrollView</code> 负责滚动消息；<code>Input</code> 负责中文输入、光标和编辑键；<code>HStack</code> / <code>VStack</code> 负责把区域横着、竖着排开。我们只写「每块显示什么、Agent 的事件送到哪里」。</p>
+<p>代价也如实讲：从此多了一个依赖，而且 pi-tui 不只是布局工具，还内置 Markdown 等这一天用不到的组件。我们换来的是完整的 TypeScript 类型、与项目直接兼容的模块格式，以及持续维护的终端处理。它只被 <code>tui.ts</code> 使用，不会渗进对话、工具和会话代码。</p>
+<h3 id="22-pi-tui-接走后我们只做三件事">2.2 pi-tui 接走后，我们只做三件事</h3>
+<p>布局、路由、数据。<code>tui.ts</code> 里 <code>TUI</code> 类管三块：</p>
+<ul>
+<li><strong>布局</strong>：<code>HStack</code> 把消息流和 28 列面板左右排开，<code>VStack</code> 再把输入行放到底部；终端不足 60 列时自动隐藏面板，保证输入和正文仍可用。</li>
+<li><strong>路由</strong>：<code>Input</code> 接住文字、退格、方向键和粘贴；<code>[y/N]</code> 确认只切换提示符，回车把答案通过 promise 交还给等待中的工具调用。</li>
+<li><strong>数据</strong>：主区仍只存 <code>{ text, color }</code>。更新时交给 <code>Text</code> 换行、<code>ScrollView</code> 跟随底部；pi-tui 能分清颜色代码和真正显示的文字，也知道一个汉字通常占两格。</li>
+</ul>
+<h3 id="23-token-从哪来接口真值--字符估算">2.3 token 从哪来：接口真值 + 字符估算</h3>
+<p>面板上两类数字，来源不同：</p>
+<ul>
+<li><strong>本轮 / 累计 tokens</strong>：以接口回传的 <code>usage</code> 为准。流式请求带上 <code>stream_options: { include_usage: true }</code>，最后一个 chunk 会带 <code>usage</code>；历史压缩的非流式请求同样回传。但「正在流」的那几秒钟拿不到真实值，面板要即时跳动，就先用 <code>estimateTokens</code> 按字符估算顶着，真实值一到立即覆盖。</li>
+<li><strong>上下文占用</strong>：<code>estimateTokens(JSON.stringify(history)) / CONTEXT_WINDOW</code>。history 被压缩变薄时分子会回落——面板因此能直观看到 Day 5 的「压缩」在干什么，这是字符估算派上的最大用场。</li>
+</ul>
+<p><code>estimateTokens</code> 只有一行：中文 1 字≈1 token、英文约 4 字符≈1 token，混合取 2 字符 1 token。够面板参考，真金白银的数字永远看接口。</p>
+<h2 id="3-实现先效果后实现">3. 实现：先效果，后实现</h2>
+<h3 id="30-终端效果">3.0 终端效果</h3>
+<p>第一帧是刚启动的样子：主区两行提示语，面板上下文 <code>1% used</code>、本轮 / 累计 0（空 history 的 JSON <code>[]</code> 按 2 字符估出 1 token，所以是 1 / 64000；占比向上取整）：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;display:grid;grid-template-columns:minmax(0,1fr) 15rem"><span style="color:#808080"> GeekAgent Day 7 —— 轻量 TUI + 用量显示</span><span style="color:#808080">│ 模型  deepseek-v4-flash</span>
+<span style="color:#808080"> 输入 /help 查看命令；右侧面板实时显示用量。</span><span style="color:#808080">│ 会话  default</span>
+<span style="color:#808080"></span><span style="color:#808080">│ ──── 上下文 ────</span>
+<span style="color:#808080"></span><span style="color:#808080">│ 1 / 64000 tokens</span>
+<span style="color:#808080"></span><span style="color:#808080">│ 1% used</span>
+<span style="color:#808080"></span><span style="color:#808080">│ ──── 本轮 ────</span>
+<span style="color:#808080"></span><span style="color:#808080">│ 0 tokens</span>
+<span style="color:#808080"></span><span style="color:#808080">│ ──── 累计 ────</span>
+<span style="color:#808080"></span><span style="color:#808080">│ 0 tokens</span>
+<span style="grid-column:1/-1;border-top:1px solid #808080;height:0"></span>
+<span style="color:#00cdcd">You › </span><span style="color:#808080"></span>
+</pre>
+<p>问一句「现在几点了？」，模型调 <code>get_current_time</code> 工具拿时间再回答后，主区多了一整套对话（问题青色、工具进度黄色、回答绿色），面板同步刷新——本轮 / 累计 2329 tokens、上下文 188 / 64000：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px;display:grid;grid-template-columns:minmax(0,1fr) 15rem"><span style="color:#808080"> GeekAgent Day 7 —— 轻量 TUI + 用量显示</span><span style="color:#808080">│ 模型  deepseek-v4-flash</span>
+<span style="color:#808080"> 输入 /help 查看命令；右侧面板实时显示用量。</span><span style="color:#808080">│ 会话  default</span>
+<span style="color:#00cdcd"> You › 现在几点了？</span><span style="color:#808080">│ ──── 上下文 ────</span>
+<span style="color:#808080"></span><span style="color:#808080">│ 188 / 64000 tokens</span>
+<span style="color:#808080"></span><span style="color:#808080">│ 1% used</span>
+<span style="color:#cdcd00"> [调用工具 get_current_time → 2026/8/29 20:01:53]</span><span style="color:#808080">│ ──── 本轮 ────</span>
+<span style="color:#00cd00"> 现在是 **2026年8月29日 20:01:53**</span><span style="color:#808080">│ 2329 tokens</span>
+<span style="color:#00cd00"> （Asia/Shanghai 本地时间）。</span><span style="color:#808080">│ ──── 累计 ────</span>
+<span style="color:#808080"></span><span style="color:#808080">│ 2329 tokens</span>
+<span style="grid-column:1/-1;border-top:1px solid #808080;height:0"></span>
+<span style="color:#00cdcd">You › </span><span style="color:#808080"></span>
+</pre>
+<p>两帧只是两个时刻的快照，面板是<strong>常驻</strong>的：每流出一个字符、每执行一次工具调用，右侧就在刷新。上下文 token 数和占比随对话变长而增长、<code>/compact</code> 后回落——一眼看清「压缩腾出了多少」（验证一节有步骤）。</p>
+<p>数字从哪来：上面这轮真实试跑的接口 <code>usage</code> 是两次请求之和（工具轮 1058、回答轮 1271＝2329）；history 序列化约 376 字符按估算折 188 token。换成真实模型数字自然不同，但「接口给的 + 字符估的」这套机制不变。注意模型回答里的 <code>**…**</code> 是它原样输出的 markdown，我们没做渲染（见没做一节）。</p>
+<h3 id="31-tuits216-行的布局引擎">3.1 tui.ts：216 行的布局引擎</h3>
+<p>pi-tui 这一版要求 Node.js 22.19 或更高。仓库把版本精确锁住，后面即使组件 API 变化，这一天的代码仍能复现：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> install</span><span style="color:#005CC5"> --save-exact</span><span style="color:#032F62"> @earendil-works/pi-tui@0.84.4</span></span></code></pre>
+<p>当天新增的源文件只有这一个，完整代码：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day7/tui.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    HStack,</span></span>
+<span class="line"><span style="color:#24292E">    Input,</span></span>
+<span class="line"><span style="color:#24292E">    Key,</span></span>
+<span class="line"><span style="color:#24292E">    matchesKey,</span></span>
+<span class="line"><span style="color:#24292E">    ProcessTerminal,</span></span>
+<span class="line"><span style="color:#24292E">    ScrollView,</span></span>
+<span class="line"><span style="color:#24292E">    sliceByColumn,</span></span>
+<span class="line"><span style="color:#24292E">    Text,</span></span>
+<span class="line"><span style="color:#24292E">    TuiAltScreen,</span></span>
+<span class="line"><span style="color:#24292E">    truncateToWidth,</span></span>
+<span class="line"><span style="color:#24292E">    visibleWidth,</span></span>
+<span class="line"><span style="color:#24292E">    VStack,</span></span>
+<span class="line"><span style="color:#D73A49">    type</span><span style="color:#24292E"> Component,</span></span>
+<span class="line"><span style="color:#D73A49">    type</span><span style="color:#24292E"> Focusable,</span></span>
+<span class="line"><span style="color:#24292E">} </span><span style="color:#D73A49">from</span><span style="color:#032F62"> '@earendil-works/pi-tui'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { paint } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './color.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> type</span><span style="color:#6F42C1"> Color</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> 'user'</span><span style="color:#D73A49"> |</span><span style="color:#032F62"> 'model'</span><span style="color:#D73A49"> |</span><span style="color:#032F62"> 'tool'</span><span style="color:#D73A49"> |</span><span style="color:#032F62"> 'sys'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 简易 token 估算：中文 1 字约 1 token、英文约 4 字符 1 token，混合取 2 字符 1 token。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> estimateTokens</span><span style="color:#24292E">(</span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> Math.</span><span style="color:#6F42C1">ceil</span><span style="color:#24292E">([</span><span style="color:#D73A49">...</span><span style="color:#24292E">text].</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> /</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">interface</span><span style="color:#6F42C1"> Line</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    color</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Color</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> PANEL_WIDTH</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 28</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> MAX_LINES</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 1000</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 固定宽度的右侧信息栏；窄终端下由 HStack 自动隐藏。 */</span></span>
+<span class="line"><span style="color:#D73A49">class</span><span style="color:#6F42C1"> Panel</span><span style="color:#D73A49"> implements</span><span style="color:#6F42C1"> Component</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    constructor</span><span style="color:#24292E">(</span><span style="color:#D73A49">private</span><span style="color:#6F42C1"> getLines</span><span style="color:#D73A49">:</span><span style="color:#24292E"> () </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> string</span><span style="color:#24292E">[]) {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    render</span><span style="color:#24292E">(</span><span style="color:#E36209">width</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">getLines</span><span style="color:#24292E">().</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">line</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> paint</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">`│ ${</span><span style="color:#6F42C1">truncateToWidth</span><span style="color:#032F62">(</span><span style="color:#24292E">line</span><span style="color:#032F62">, </span><span style="color:#24292E">Math</span><span style="color:#032F62">.</span><span style="color:#6F42C1">max</span><span style="color:#032F62">(</span><span style="color:#005CC5">1</span><span style="color:#032F62">, </span><span style="color:#24292E">width</span><span style="color:#D73A49"> -</span><span style="color:#005CC5"> 2</span><span style="color:#032F62">))</span><span style="color:#032F62">}`</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    invalidate</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 输入区把提示符和 pi-tui 的单行 Input 拼在一起，并把焦点传给 Input 以支持中文输入法。 */</span></span>
+<span class="line"><span style="color:#D73A49">class</span><span style="color:#6F42C1"> InputRow</span><span style="color:#D73A49"> implements</span><span style="color:#6F42C1"> Component</span><span style="color:#24292E">, </span><span style="color:#6F42C1">Focusable</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> input</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Input</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> prompt</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Color</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> 'user'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> promptText</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> 'You › '</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    constructor</span><span style="color:#24292E">(</span><span style="color:#6F42C1">onSubmit</span><span style="color:#D73A49">:</span><span style="color:#24292E"> (</span><span style="color:#E36209">value</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.input.onSubmit </span><span style="color:#D73A49">=</span><span style="color:#24292E"> onSubmit;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    get</span><span style="color:#6F42C1"> focused</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> boolean</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.input.focused;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    set</span><span style="color:#6F42C1"> focused</span><span style="color:#24292E">(</span><span style="color:#E36209">value</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> boolean</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.input.focused </span><span style="color:#D73A49">=</span><span style="color:#24292E"> value;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    setPrompt</span><span style="color:#24292E">(</span><span style="color:#E36209">color</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Color</span><span style="color:#24292E">, </span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.prompt </span><span style="color:#D73A49">=</span><span style="color:#24292E"> color;</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.promptText </span><span style="color:#D73A49">=</span><span style="color:#24292E"> text;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    takeValue</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> value</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.input.</span><span style="color:#6F42C1">getValue</span><span style="color:#24292E">().</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.input.</span><span style="color:#6F42C1">setValue</span><span style="color:#24292E">(</span><span style="color:#032F62">''</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> value;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    clear</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.input.</span><span style="color:#6F42C1">setValue</span><span style="color:#24292E">(</span><span style="color:#032F62">''</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    handleInput</span><span style="color:#24292E">(</span><span style="color:#E36209">data</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.input.</span><span style="color:#6F42C1">handleInput</span><span style="color:#24292E">(data);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    render</span><span style="color:#24292E">(</span><span style="color:#E36209">width</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> prompt</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> paint</span><span style="color:#24292E">(</span><span style="color:#005CC5">this</span><span style="color:#24292E">.prompt, </span><span style="color:#005CC5">this</span><span style="color:#24292E">.promptText);</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> inputWidth</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> Math.</span><span style="color:#6F42C1">max</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">, width </span><span style="color:#D73A49">-</span><span style="color:#6F42C1"> visibleWidth</span><span style="color:#24292E">(prompt));</span></span>
+<span class="line"><span style="color:#6A737D">        // Input 自带 "> "，这里切掉后换成项目沿用的提示符。</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> value</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> sliceByColumn</span><span style="color:#24292E">(</span><span style="color:#005CC5">this</span><span style="color:#24292E">.input.</span><span style="color:#6F42C1">render</span><span style="color:#24292E">(inputWidth </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">)[</span><span style="color:#005CC5">0</span><span style="color:#24292E">] </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, inputWidth, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> [</span><span style="color:#6F42C1">paint</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'─'</span><span style="color:#24292E">.</span><span style="color:#6F42C1">repeat</span><span style="color:#24292E">(width)), </span><span style="color:#032F62">`${</span><span style="color:#24292E">prompt</span><span style="color:#032F62">}${</span><span style="color:#24292E">value</span><span style="color:#032F62">}`</span><span style="color:#24292E">];</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    invalidate</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.input.</span><span style="color:#6F42C1">invalidate</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 轻量 TUI：左侧滚动消息流，右侧常驻面板，底部单行输入。</span></span>
+<span class="line"><span style="color:#6A737D"> * 全屏切换、局部刷新、中文宽度、输入编辑与窗口大小变化交给 pi-tui。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> class</span><span style="color:#6F42C1"> TUI</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> terminal</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> ProcessTerminal</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> screen</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> TuiAltScreen</span><span style="color:#24292E">(</span><span style="color:#005CC5">this</span><span style="color:#24292E">.terminal, </span><span style="color:#005CC5">true</span><span style="color:#24292E">, </span><span style="color:#005CC5">undefined</span><span style="color:#24292E">, { mouse: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> log</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Text</span><span style="color:#24292E">(</span><span style="color:#032F62">''</span><span style="color:#24292E">, </span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> input</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> InputRow</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> lines</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Line</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> panelLines</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> busy</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> exiting</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> confirmQuestion</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#D73A49"> |</span><span style="color:#005CC5"> null</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> confirmResolve</span><span style="color:#D73A49">:</span><span style="color:#24292E"> ((</span><span style="color:#E36209">ok</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> boolean</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">) </span><span style="color:#D73A49">|</span><span style="color:#005CC5"> null</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    constructor</span><span style="color:#24292E">(</span></span>
+<span class="line"><span style="color:#D73A49">        private</span><span style="color:#6F42C1"> onLine</span><span style="color:#D73A49">:</span><span style="color:#24292E"> (</span><span style="color:#E36209">line</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#D73A49">        private</span><span style="color:#6F42C1"> onExit</span><span style="color:#D73A49">:</span><span style="color:#24292E"> () </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    ) {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.input </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> InputRow</span><span style="color:#24292E">(() </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">submit</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> body</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> HStack</span><span style="color:#24292E">([</span></span>
+<span class="line"><span style="color:#24292E">            {</span></span>
+<span class="line"><span style="color:#24292E">                component: </span><span style="color:#D73A49">new</span><span style="color:#6F42C1"> ScrollView</span><span style="color:#24292E">(</span><span style="color:#005CC5">this</span><span style="color:#24292E">.log, { follow: </span><span style="color:#032F62">'end'</span><span style="color:#24292E">, primary: </span><span style="color:#005CC5">true</span><span style="color:#24292E">, scrollbar: </span><span style="color:#032F62">'auto'</span><span style="color:#24292E"> }),</span></span>
+<span class="line"><span style="color:#24292E">                basis: </span><span style="color:#005CC5">0</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                grow: </span><span style="color:#005CC5">1</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                minSize: </span><span style="color:#005CC5">20</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#24292E">            {</span></span>
+<span class="line"><span style="color:#24292E">                component: </span><span style="color:#D73A49">new</span><span style="color:#6F42C1"> Panel</span><span style="color:#24292E">(() </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> this</span><span style="color:#24292E">.panelLines),</span></span>
+<span class="line"><span style="color:#24292E">                basis: </span><span style="color:#005CC5">PANEL_WIDTH</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                shrink: </span><span style="color:#005CC5">0</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">                visible</span><span style="color:#24292E">: ({ </span><span style="color:#E36209">width</span><span style="color:#24292E"> }) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> width </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 60</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#24292E">        ], { gap: </span><span style="color:#005CC5">1</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.screen.</span><span style="color:#6F42C1">setLayoutRoot</span><span style="color:#24292E">(</span><span style="color:#D73A49">new</span><span style="color:#6F42C1"> VStack</span><span style="color:#24292E">([</span></span>
+<span class="line"><span style="color:#24292E">            { component: body, basis: </span><span style="color:#005CC5">0</span><span style="color:#24292E">, grow: </span><span style="color:#005CC5">1</span><span style="color:#24292E">, minSize: </span><span style="color:#005CC5">1</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">            { component: </span><span style="color:#005CC5">this</span><span style="color:#24292E">.input, basis: </span><span style="color:#005CC5">2</span><span style="color:#24292E">, shrink: </span><span style="color:#005CC5">0</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">        ]));</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.screen.</span><span style="color:#6F42C1">addInputListener</span><span style="color:#24292E">((</span><span style="color:#E36209">data</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#6F42C1">matchesKey</span><span style="color:#24292E">(data, Key.</span><span style="color:#6F42C1">ctrl</span><span style="color:#24292E">(</span><span style="color:#032F62">'c'</span><span style="color:#24292E">)) </span><span style="color:#D73A49">||</span><span style="color:#6F42C1"> matchesKey</span><span style="color:#24292E">(data, Key.</span><span style="color:#6F42C1">ctrl</span><span style="color:#24292E">(</span><span style="color:#032F62">'d'</span><span style="color:#24292E">))) {</span></span>
+<span class="line"><span style="color:#D73A49">                void</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">onExit</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#24292E"> { consume: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> };</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    start</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.screen.</span><span style="color:#6F42C1">start</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.screen.</span><span style="color:#6F42C1">setFocus</span><span style="color:#24292E">(</span><span style="color:#005CC5">this</span><span style="color:#24292E">.input);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    stop</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#005CC5">this</span><span style="color:#24292E">.exiting) </span><span style="color:#D73A49">return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.exiting </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> true</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.screen.</span><span style="color:#6F42C1">stop</span><span style="color:#24292E">({ preserveScreen: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    append</span><span style="color:#24292E">(</span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">color</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Color</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> line</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> text.</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/</span><span style="color:#005CC5">\r\n</span><span style="color:#032F62">/</span><span style="color:#D73A49">g</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">).</span><span style="color:#6F42C1">split</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">)) </span><span style="color:#005CC5">this</span><span style="color:#24292E">.lines.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ text: line, color });</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#005CC5">this</span><span style="color:#24292E">.lines.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> MAX_LINES</span><span style="color:#24292E">) </span><span style="color:#005CC5">this</span><span style="color:#24292E">.lines.</span><span style="color:#6F42C1">splice</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">this</span><span style="color:#24292E">.lines.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#005CC5"> MAX_LINES</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">render</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    appendInline</span><span style="color:#24292E">(</span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">color</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Color</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> last</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.lines[</span><span style="color:#005CC5">this</span><span style="color:#24292E">.lines.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">];</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (last </span><span style="color:#D73A49">&#x26;&#x26;</span><span style="color:#24292E"> last.color </span><span style="color:#D73A49">===</span><span style="color:#24292E"> color) last.text </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> text;</span></span>
+<span class="line"><span style="color:#D73A49">        else</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.lines.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ text, color });</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">render</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    setPanel</span><span style="color:#24292E">(</span><span style="color:#E36209">lines</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[])</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.panelLines </span><span style="color:#D73A49">=</span><span style="color:#24292E"> lines;</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.screen.</span><span style="color:#6F42C1">requestRender</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    setBusy</span><span style="color:#24292E">(</span><span style="color:#E36209">busy</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> boolean</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.busy </span><span style="color:#D73A49">=</span><span style="color:#24292E"> busy;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    ready</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#005CC5">this</span><span style="color:#24292E">.busy </span><span style="color:#D73A49">&#x26;&#x26;</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.confirmQuestion </span><span style="color:#D73A49">===</span><span style="color:#005CC5"> null</span><span style="color:#24292E">) </span><span style="color:#005CC5">this</span><span style="color:#24292E">.screen.</span><span style="color:#6F42C1">setFocus</span><span style="color:#24292E">(</span><span style="color:#005CC5">this</span><span style="color:#24292E">.input);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    confirm</span><span style="color:#24292E">(</span><span style="color:#E36209">prompt</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">boolean</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> parts</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> prompt.</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/</span><span style="color:#005CC5">\r\n</span><span style="color:#032F62">/</span><span style="color:#D73A49">g</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">).</span><span style="color:#6F42C1">split</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">).</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">s</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">trimEnd</span><span style="color:#24292E">()).</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">(Boolean);</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> question</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> parts.</span><span style="color:#6F42C1">pop</span><span style="color:#24292E">() </span><span style="color:#D73A49">??</span><span style="color:#032F62"> '确认'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> part</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> parts) </span><span style="color:#005CC5">this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(part, </span><span style="color:#032F62">'tool'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(question, </span><span style="color:#032F62">'tool'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.confirmQuestion </span><span style="color:#D73A49">=</span><span style="color:#24292E"> question;</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.input.</span><span style="color:#6F42C1">setPrompt</span><span style="color:#24292E">(</span><span style="color:#032F62">'tool'</span><span style="color:#24292E">, </span><span style="color:#032F62">'[y/N] '</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.input.</span><span style="color:#6F42C1">clear</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.screen.</span><span style="color:#6F42C1">setFocus</span><span style="color:#24292E">(</span><span style="color:#005CC5">this</span><span style="color:#24292E">.input);</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.screen.</span><span style="color:#6F42C1">requestRender</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#D73A49"> new</span><span style="color:#005CC5"> Promise</span><span style="color:#24292E">((</span><span style="color:#E36209">resolve</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">            this</span><span style="color:#24292E">.confirmResolve </span><span style="color:#D73A49">=</span><span style="color:#24292E"> resolve;</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#6F42C1"> submit</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> line</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.input.</span><span style="color:#6F42C1">takeValue</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#005CC5">this</span><span style="color:#24292E">.confirmQuestion </span><span style="color:#D73A49">!==</span><span style="color:#005CC5"> null</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> ok</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> line.</span><span style="color:#6F42C1">toLowerCase</span><span style="color:#24292E">() </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'y'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> question</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.confirmQuestion;</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> resolve</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.confirmResolve;</span></span>
+<span class="line"><span style="color:#005CC5">            this</span><span style="color:#24292E">.confirmQuestion </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#005CC5">            this</span><span style="color:#24292E">.confirmResolve </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#005CC5">            this</span><span style="color:#24292E">.input.</span><span style="color:#6F42C1">setPrompt</span><span style="color:#24292E">(</span><span style="color:#032F62">'user'</span><span style="color:#24292E">, </span><span style="color:#032F62">'You › '</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> last</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.lines[</span><span style="color:#005CC5">this</span><span style="color:#24292E">.lines.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">];</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (last?.color </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'tool'</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> last.text </span><span style="color:#D73A49">===</span><span style="color:#24292E"> question) {</span></span>
+<span class="line"><span style="color:#24292E">                last.text </span><span style="color:#D73A49">+=</span><span style="color:#032F62"> ` → ${</span><span style="color:#24292E">ok</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> 'y'</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> 'n'}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#005CC5">                this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">render</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">                this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">`${</span><span style="color:#24292E">question</span><span style="color:#032F62">} → ${</span><span style="color:#24292E">ok</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> 'y'</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> 'n'}`</span><span style="color:#24292E">, </span><span style="color:#032F62">'tool'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#6F42C1">            resolve</span><span style="color:#24292E">?.(ok);</span></span>
+<span class="line"><span style="color:#D73A49">            return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">line </span><span style="color:#D73A49">||</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.busy) </span><span style="color:#D73A49">return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">`You › ${</span><span style="color:#24292E">line</span><span style="color:#032F62">}`</span><span style="color:#24292E">, </span><span style="color:#032F62">'user'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">onLine</span><span style="color:#24292E">(line);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#6F42C1"> render</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.log.</span><span style="color:#6F42C1">setText</span><span style="color:#24292E">(</span><span style="color:#005CC5">this</span><span style="color:#24292E">.lines.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">line</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> paint</span><span style="color:#24292E">(line.color, line.text)).</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.screen.</span><span style="color:#6F42C1">requestRender</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>拆开讲四块：</p>
+<ul>
+<li><strong>布局</strong>。<code>VStack</code> 把屏幕纵向分成「正文 + 两行输入」，正文里的 <code>HStack</code> 再横向分成「可增长的消息区 + 固定 28 列的面板」。<code>visible</code> 每帧都能读到终端宽度，小于 60 列时不画面板，正文不会被挤成几列。</li>
+<li><strong>存与画</strong>。<code>append</code> 把文本按 <code>\n</code> 拆开推入 <code>lines</code>，<code>setPanel</code> 只替换面板数据；<code>render()</code> 用项目原有的 <code>paint</code> 包颜色，再交给 <code>Text</code> 换行。<code>ScrollView</code> 的 <code>follow: 'end'</code> 让流式输出始终跟到底部，<code>requestRender()</code> 只安排下一次界面更新，不需要我们自己拼控制终端的特殊字符。</li>
+<li><strong>流式续写 <code>appendInline</code></strong>。模型流是「一次吐一两个词」的增量，若每个增量都 <code>append</code> 成新行，回答会碎成一行两三个字。它把增量接到上一行同色文本末尾，回答因此连成自然段；遇到用户 / 工具 / 系统换色时另起新行，天然分段。</li>
+<li><strong>输入与确认</strong>。<code>InputRow</code> 把焦点继续传给内层 <code>Input</code>，中文输入法的候选窗因此能跟着真实光标。工具要 <code>[y/N]</code> 时，<code>confirm()</code> 用 <code>[y/N] </code> 顶替 <code>You › </code>；回车把答案通过 promise 交还，并把「问题 → 回答」记成一行黄色日志。</li>
+</ul>
+<h3 id="32-chatts把用量报出去">3.2 chat.ts：把用量报出去</h3>
+<p><code>Chat</code> 原本闷头干活，从不过问花销。今天加一根回调线：<code>usage</code> 一到账，就归一成 <code>{ prompt, completion, total }</code> 报给外头累计。增量共 27 行，分四处：</p>
+<ol>
+<li>新增 <code>UsageInfo</code> 接口与 <code>onUsage</code> 回调：</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day7/chat.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 单次请求的用量信息（同 OpenAI 的 usage 字段）。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> UsageInfo</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    prompt</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    completion</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    total</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">…</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  /** Day 7：每次请求拿到用量就回调出去，供 TUI 面板累计显示。 */</span></span>
+<span class="line"><span style="color:#24292E">  private onUsage</span><span style="color:#D73A49">?:</span><span style="color:#24292E"> (</span><span style="color:#E36209">u</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> UsageInfo</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> void</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  …</span></span>
+<span class="line"><span style="color:#6F42C1">  setUsageListener</span><span style="color:#24292E">(fn: (</span><span style="color:#E36209">u</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> UsageInfo</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> void</span><span style="color:#24292E">): </span><span style="color:#D73A49">void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">    this</span><span style="color:#24292E">.onUsage </span><span style="color:#D73A49">=</span><span style="color:#24292E"> fn;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<ol start="2">
+<li>流式请求带上 <code>stream_options: { include_usage: true }</code>，并在 chunk 循环里认出结尾那一个（只有它带 usage）：</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day7/chat.ts</span></span>
+<span class="line"><span style="color:#6F42C1">          stream</span><span style="color:#24292E">: </span><span style="color:#005CC5">true</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">          stream_options</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">include_usage</span><span style="color:#24292E">: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> }, </span><span style="color:#6A737D">// Day 7：请求末尾的 chunk 里带上本次用量</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">…</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">          if</span><span style="color:#24292E"> (chunk.usage) </span><span style="color:#005CC5">this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">reportUsage</span><span style="color:#24292E">(chunk.usage); </span><span style="color:#6A737D">// 只有最后一个 chunk 才带 usage</span></span></code></pre>
+<ol start="3">
+<li>历史压缩的非流式请求同样回传 usage，顺手报一次：</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day7/chat.ts</span></span>
+<span class="line"><span style="color:#24292E">      ],</span></span>
+<span class="line"><span style="color:#24292E">    });</span></span>
+<span class="line"><span style="color:#005CC5">    this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">reportUsage</span><span style="color:#24292E">(res.usage);</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> text</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> res.choices[</span><span style="color:#005CC5">0</span><span style="color:#24292E">]?.message?.content?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span></code></pre>
+<ol start="4">
+<li><code>reportUsage</code> 把接口的 <code>prompt_tokens / completion_tokens / total_tokens</code> 归一成 <code>UsageInfo</code>，统一走回调：</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day7/chat.ts</span></span>
+<span class="line"><span style="color:#6A737D">  /** 把接口返回的 usage 归一化成 UsageInfo，回调给外部累计。 */</span></span>
+<span class="line"><span style="color:#24292E">  private </span><span style="color:#6F42C1">reportUsage</span><span style="color:#24292E">(usage: OpenAI.CompletionUsage </span><span style="color:#D73A49">|</span><span style="color:#005CC5"> null</span><span style="color:#D73A49"> |</span><span style="color:#005CC5"> undefined</span><span style="color:#24292E">): </span><span style="color:#D73A49">void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">usage) </span><span style="color:#D73A49">return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#005CC5">    this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">onUsage</span><span style="color:#24292E">?.({</span></span>
+<span class="line"><span style="color:#24292E">      prompt: usage.prompt_tokens,</span></span>
+<span class="line"><span style="color:#24292E">      completion: usage.completion_tokens,</span></span>
+<span class="line"><span style="color:#24292E">      total: usage.total_tokens,</span></span>
+<span class="line"><span style="color:#24292E">    });</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<p>对 Agent 主干零侵入：<code>streamReply</code> 的工具调用循环、历史压缩、出错回滚一行没碰，只是每个请求多带回一个数字。</p>
+<h3 id="33-indexts把六天的一切接上这张桌">3.3 index.ts：把六天的一切接上这张桌</h3>
+<p>CLI 层从「逐个 <code>out(...)</code> 打印」换成「往 TUI 里塞行」，会话逻辑一行没动。先接线：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day7/index.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 用量状态：live 是流式进行中按字符估算的增量；正式总数以接口 usage 为准。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> usage</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> { cum: </span><span style="color:#005CC5">0</span><span style="color:#24292E">, round: </span><span style="color:#005CC5">0</span><span style="color:#24292E">, live: </span><span style="color:#005CC5">0</span><span style="color:#24292E"> };</span></span>
+<span class="line"><span style="color:#6A737D">/** 忙碌期间 TUI 不接受新输入，这里再兜一层防止异步入队重入。 */</span></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> tui</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> TUI</span><span style="color:#24292E">(onLine, onExit);</span></span>
+<span class="line"><span style="color:#6A737D">// 把工具层的执行确认接到 TUI：默认实现是「一律拒绝」，这里换成输入行上的 [y/N]</span></span>
+<span class="line"><span style="color:#6F42C1">setConfirmFn</span><span style="color:#24292E">((</span><span style="color:#E36209">prompt</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> tui.</span><span style="color:#6F42C1">confirm</span><span style="color:#24292E">(prompt));</span></span>
+<span class="line"><span style="color:#24292E">chat.</span><span style="color:#6F42C1">setUsageListener</span><span style="color:#24292E">((</span><span style="color:#E36209">u</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    usage.live </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; </span><span style="color:#6A737D">// 真实用量到了，清掉流式估算，避免短暂重复计数</span></span>
+<span class="line"><span style="color:#24292E">    usage.cum </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> u.total;</span></span>
+<span class="line"><span style="color:#24292E">    usage.round </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> u.total;</span></span>
+<span class="line"><span style="color:#6F42C1">    updatePanel</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">});</span></span></code></pre>
+<p><code>usage</code> 是面板的数据源：<code>cum</code> 累计所有请求的 <code>total</code>，<code>round</code> 记当前回合，<code>live</code> 是流式进行中的估算。<code>setConfirmFn</code> 把工具层默认的「一律拒绝」换成 TUI 的 <code>[y/N]</code>——确认的行画法由 <code>tui.confirm</code> 接管，Day 3/4 的工具代码毫无知觉。</p>
+<p>再定义面板长什么样，并暴露唯一的刷新口 <code>updatePanel</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day7/index.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 右侧面板：模型、会话、上下文占用与本轮 / 累计 tokens。 */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> buildPanel</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> window</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> CONTEXT_WINDOW</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> ctx</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> estimateTokens</span><span style="color:#24292E">(</span><span style="color:#005CC5">JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">stringify</span><span style="color:#24292E">(chat.</span><span style="color:#6F42C1">exportHistory</span><span style="color:#24292E">()));</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> [</span></span>
+<span class="line"><span style="color:#032F62">        `模型  ${</span><span style="color:#24292E">config</span><span style="color:#032F62">.</span><span style="color:#24292E">model</span><span style="color:#032F62">}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `会话  ${</span><span style="color:#24292E">sessions</span><span style="color:#032F62">.</span><span style="color:#6F42C1">currentId</span><span style="color:#032F62">()</span><span style="color:#032F62">}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        '──── 上下文 ────'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `${</span><span style="color:#24292E">ctx</span><span style="color:#032F62">} / ${</span><span style="color:#24292E">window</span><span style="color:#032F62">} tokens`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `${</span><span style="color:#24292E">Math</span><span style="color:#032F62">.</span><span style="color:#6F42C1">ceil</span><span style="color:#032F62">((</span><span style="color:#24292E">ctx</span><span style="color:#D73A49"> /</span><span style="color:#24292E"> window</span><span style="color:#032F62">) </span><span style="color:#D73A49">*</span><span style="color:#005CC5"> 100</span><span style="color:#032F62">)</span><span style="color:#032F62">}% used`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        '──── 本轮 ────'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `${</span><span style="color:#24292E">usage</span><span style="color:#032F62">.</span><span style="color:#24292E">round</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> usage</span><span style="color:#032F62">.</span><span style="color:#24292E">live</span><span style="color:#032F62">} tokens`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        '──── 累计 ────'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `${</span><span style="color:#24292E">usage</span><span style="color:#032F62">.</span><span style="color:#24292E">cum</span><span style="color:#032F62">} tokens`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    ];</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> updatePanel</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    tui.</span><span style="color:#6F42C1">setPanel</span><span style="color:#24292E">(</span><span style="color:#6F42C1">buildPanel</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>面板五段式：模型、会话、上下文 token 数 + 占比、本轮（<code>round + live</code>）、累计。<code>ctx</code> 就是上文说的「上下文占用的分子」。占比向上取整，刚产生少量上下文时也会显示 <code>1% used</code>。</p>
+<p>流式转发进主区：进度行（<code>[调用工具…]</code> / <code>[历史压缩…]</code>）上黄色，回复正文绿色用 <code>appendInline</code> 连成一段，边转发边按字符估算 <code>live</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day7/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> reply</span><span style="color:#24292E">(</span><span style="color:#E36209">line</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#24292E">    usage.round </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">''</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">); </span><span style="color:#6A737D">// 回复前空一行，把上一段对话隔开</span></span>
+<span class="line"><span style="color:#D73A49">        for</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> delta</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> chat.</span><span style="color:#6F42C1">streamReply</span><span style="color:#24292E">(line)) {</span></span>
+<span class="line"><span style="color:#6A737D">            // 进度行（工具调用 / 历史压缩）用黄色；流式期间按字符估算本轮增量</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (delta.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">[调用工具'</span><span style="color:#24292E">) </span><span style="color:#D73A49">||</span><span style="color:#24292E"> delta.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">[历史压缩'</span><span style="color:#24292E">)) {</span></span>
+<span class="line"><span style="color:#24292E">                usage.live </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">                tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(delta, </span><span style="color:#032F62">'tool'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">                tui.</span><span style="color:#6F42C1">appendInline</span><span style="color:#24292E">(delta, </span><span style="color:#032F62">'model'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">                usage.live </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> estimateTokens</span><span style="color:#24292E">(delta);</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#6F42C1">            updatePanel</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">        usage.live </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">''</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) {</span></span>
+<span class="line"><span style="color:#24292E">        tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">`请求失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">e</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#6F42C1">    updatePanel</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>onLine</code> 把 Day 6 的输入循环搬进新界面：<code>busy</code> 防止上一轮没结束又提交下一轮，随后区分命令和普通对话。<code>/exit</code>、Ctrl+C、Ctrl+D 都先自动保存，再退出临时全屏界面，最后回到原来的终端打印结果：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day7/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> onLine</span><span style="color:#24292E">(</span><span style="color:#E36209">line</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (busy) </span><span style="color:#D73A49">return</span><span style="color:#24292E">; </span><span style="color:#6A737D">// TUI 已挡一道，这里再兜一次防止重入</span></span>
+<span class="line"><span style="color:#24292E">    busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> true</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    tui.</span><span style="color:#6F42C1">setBusy</span><span style="color:#24292E">(</span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (line.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'/'</span><span style="color:#24292E">)) {</span></span>
+<span class="line"><span style="color:#D73A49">        await</span><span style="color:#6F42C1"> handleCommand</span><span style="color:#24292E">(line);</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        await</span><span style="color:#6F42C1"> reply</span><span style="color:#24292E">(line);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">    busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    tui.</span><span style="color:#6F42C1">setBusy</span><span style="color:#24292E">(</span><span style="color:#005CC5">false</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    tui.</span><span style="color:#6F42C1">ready</span><span style="color:#24292E">(); </span><span style="color:#6A737D">// 恢复到输入状态，读下一行</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> onExit</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#24292E">    tui.</span><span style="color:#6F42C1">stop</span><span style="color:#24292E">(); </span><span style="color:#6A737D">// 恢复原来的终端内容后再用 console 打印</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#24292E"> { </span><span style="color:#005CC5">count</span><span style="color:#24292E">, </span><span style="color:#005CC5">file</span><span style="color:#24292E"> } </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> saveAll</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">        console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(</span><span style="color:#032F62">`（退出前已保存 ${</span><span style="color:#24292E">count</span><span style="color:#032F62">} 个会话到 ${</span><span style="color:#24292E">file</span><span style="color:#032F62">}）`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) {</span></span>
+<span class="line"><span style="color:#24292E">        console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">`退出前保存失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">e</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">    console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(</span><span style="color:#032F62">'bye'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>会话命令的 <code>switch</code> 只是把原先的 <code>out('sys', …)</code> 换成 <code>tui.append(…, 'sys')</code>，其余不动，不再贴。启动时先让界面接管终端，再补两行提示语、刷一次面板：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day7/index.ts</span></span>
+<span class="line"><span style="color:#24292E">tui.</span><span style="color:#6F42C1">start</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#6F42C1">updatePanel</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">'GeekAgent Day 7 —— 轻量 TUI + 用量显示'</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">'输入 /help 查看命令；右侧面板实时显示用量。'</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span></code></pre>
+<h2 id="4-验证">4. 验证</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> typecheck</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day7/index.ts</span></span></code></pre>
+<p>在真实终端（建议至少 80 列）里逐条走：</p>
+<ol>
+<li>启动即进入双栏界面：左侧两行提示语、右侧面板显示模型与 <code>会话 default</code>、上下文 <code>1% used</code>、本轮 / 累计 0。</li>
+<li>输入 <code>现在几点了？</code>：主区黄色打印 <code>[调用工具 get_current_time → …]</code>，随后绿色回答；面板本轮 / 累计开始跳动（流式期间按估算、结束后以接口 <code>usage</code> 为准），工具能拿到的当前时间与面板数字一一对应。</li>
+<li>输入 <code>/help</code>、<code>/new work</code>、<code>/sessions</code>：面板 <code>会话</code> 一栏跟着切到 <code>work</code>，列表照常进主区。</li>
+<li>让模型执行一条 <code>run_shell</code>：确认帧落到输入行（<code>[y/N] </code> 顶替 <code>You › </code>），此时输入 <code>n</code> 回车，主区记一行「… → n」，命令不执行；模型读回「已取消」并自行处理。</li>
+<li>再聊几轮让 history 变长，输入 <code>/compact</code>：上下文 token 数和 <code>used</code> 百分比回落——面板能直观看到「压缩腾出了多少」。</li>
+<li>输入 <code>/exit</code>（或 Ctrl+C / Ctrl+D）：先看到退出提醒与 <code>bye</code>，回到主屏——改造前的终端内容原样还在。</li>
+<li>重定向兜底：<code>npm run dev -- day7/index.ts &#x3C; /dev/null</code> 应给出「需要真实终端」提示并退出，不输出控制终端的特殊字符。</li>
+</ol>
+<h2 id="5-day-7-明确没做">5. Day 7 明确没做</h2>
+<ul>
+<li><strong>管道 / 重定向降级</strong>：这两种情况下程序直接退出，没有退回 Day 6 的纯文本模式。</li>
+<li><strong>历史浏览</strong>：输入框还不能用 ↑ 找回上一条输入，主区也只保留最近 1000 行。</li>
+<li><strong>markdown 渲染</strong>：模型输出仍原样带 <code>**</code> / 反引号，渲染留给体验阶段。</li>
+</ul>
+<h2 id="6-下一步">6. 下一步</h2>
+<p>桌面搭好了，接下来该给「敢动手」兜底。聊得越深、工具越多，「确认」这条线越需要精细管理：哪些工具免确认、哪些必须问、哪些直接不许，应该由<strong>配置声明</strong>而不是写死在代码里；同时文件工具还指哪儿写哪儿，需要圈一个允许访问的根目录。下一站，把权限模型与目录隔离落进第一份配置文件。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geekagent-day6.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day6 多会话与持久化</span></a><a href="/post/geekagent-day8.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day8 权限与回滚</span></a></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day7";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day7.html";
+const title = "从零实现 GeekAgent —— Day7 轻量 TUI 与用量面板";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

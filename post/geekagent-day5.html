@@ -1,0 +1,285 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程，用 TypeScript 动手写一个最简单的 Agent/Harness。Day 5 解决「聊得长、不淡忘」：当 history 数组只增不减、对话越来越长，通过压缩历史来控制上下文规模，让长对话不超出模型上下文窗口。"><title>从零实现 GeekAgent —— Day5 历史压缩 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.BMRjXW0b.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 项目指令与长期记忆</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day5 历史压缩</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-08-24">2026-08-24</time><span aria-hidden="true">·</span><span>约 8 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-为什么要压缩-history" class="toc-link block text-muted" data-toc-depth="2">0. 为什么要压缩 history</a></li><li style="padding-left:0rem"><a href="#1-目标自动压缩--手动入口" class="toc-link block text-muted" data-toc-depth="2">1. 目标：自动压缩 + 手动入口</a></li><li style="padding-left:0rem"><a href="#2-设计何时压压什么怎么压" class="toc-link block text-muted" data-toc-depth="2">2. 设计：何时压、压什么、怎么压</a></li><li style="padding-left:0.9rem"><a href="#21-何时压字符数超过阈值" class="toc-link block text-muted" data-toc-depth="3">2.1 何时压：字符数超过阈值</a></li><li style="padding-left:0.9rem"><a href="#22-压什么摘要旧消息保留最近-6-条" class="toc-link block text-muted" data-toc-depth="3">2.2 压什么：摘要旧消息，保留最近 6 条</a></li><li style="padding-left:0.9rem"><a href="#23-怎么压一次摘要请求两个调用入口" class="toc-link block text-muted" data-toc-depth="3">2.3 怎么压：一次摘要请求，两个调用入口</a></li><li style="padding-left:0rem"><a href="#3-实现先效果后实现" class="toc-link block text-muted" data-toc-depth="2">3. 实现：先效果，后实现</a></li><li style="padding-left:0.9rem"><a href="#31-三个常量阈值保留条数压缩指令" class="toc-link block text-muted" data-toc-depth="3">3.1 三个常量：阈值、保留条数、压缩指令</a></li><li style="padding-left:0.9rem"><a href="#32-公共核心测量-history再压缩旧消息" class="toc-link block text-muted" data-toc-depth="3">3.2 公共核心：测量 history，再压缩旧消息</a></li><li style="padding-left:0.9rem"><a href="#33-自动入口每轮请求前检查" class="toc-link block text-muted" data-toc-depth="3">3.3 自动入口：每轮请求前检查</a></li><li style="padding-left:0.9rem"><a href="#34-手动入口compact" class="toc-link block text-muted" data-toc-depth="3">3.4 手动入口：compact()</a></li><li style="padding-left:0.9rem"><a href="#35-cli-接线命令提示与配色" class="toc-link block text-muted" data-toc-depth="3">3.5 CLI 接线：命令、提示与配色</a></li><li style="padding-left:0rem"><a href="#4-验证" class="toc-link block text-muted" data-toc-depth="2">4. 验证</a></li><li style="padding-left:0rem"><a href="#5-day-5-明确没做" class="toc-link block text-muted" data-toc-depth="2">5. Day 5 明确没做</a></li><li style="padding-left:0rem"><a href="#6-下一步" class="toc-link block text-muted" data-toc-depth="2">6. 下一步</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><h1 id="day-5聊得长不淡忘历史压缩">Day 5：聊得长，不淡忘——历史压缩</h1>
+<h2 id="0-为什么要压缩-history">0. 为什么要压缩 history</h2>
+<p>前四天的成果连起来是一条完整的链路：Day 1 能聊、Day 2 会下单、Day 3 能动 shell、Day 4 看清楚也改得动手。可这一切都建立在一个前提上——<code>Chat</code> 对象里那条 <code>history</code> 数组，从出生起就只增不减：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day4/chat.ts（省略其他细节）</span></span>
+<span class="line"><span style="color:#005CC5">this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ role: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">, content: userInput });        </span><span style="color:#6A737D">// 每轮先放用户消息</span></span>
+<span class="line"><span style="color:#005CC5">this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ role: </span><span style="color:#032F62">'assistant'</span><span style="color:#24292E">, content: answer });      </span><span style="color:#6A737D">// 再把回答放回去</span></span>
+<span class="line"><span style="color:#005CC5">this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ role: </span><span style="color:#032F62">'tool'</span><span style="color:#24292E">, tool_call_id: c.id, content: result }); </span><span style="color:#6A737D">// 工具结果也放回去</span></span></code></pre>
+<p>每次发请求，都是把整条 <code>history</code> 全量送给模型（<code>chat.ts</code> 里那行 <code>messages: this.history</code>）。聊五句没问题，聊五十句呢？五个文件读下来，每条工具结果三千字呢？</p>
+<p>解决办法有三个：</p>
+<ol>
+<li><strong>全部保留</strong>。记忆最完整，但上下文窗口总有上限，而且输入越长，每个 token 的成本和响应延迟都在涨。迟早爆。</li>
+<li><strong>只留最近 N 条，旧的直接扔</strong>。窗口永不满，但信息被”一刀切”：昨晚讨论的方案、报错里的那行关键线索，全跟着旧消息一起蒸发。第二天接着聊，它对着熟人一脸茫然。</li>
+<li><strong>摘要变薄</strong>（今天选它）。旧对话不删，而是让模型先”读一遍、写要点”，用一条精炼的摘要消息替换掉大段原文。像记笔记：逐字录音装不下，只留标题又是断章取义，读一遍再写下关键点，字少了，信息还在。</li>
+</ol>
+<p>Day 5 选择第三种：复用现有模型生成摘要，不增加新的依赖和调用通道。接下来只需回答三个问题：什么时候压、压哪些消息、摘要怎样放回 <code>history</code>。</p>
+<h2 id="1-目标自动压缩--手动入口">1. 目标：自动压缩 + 手动入口</h2>
+<p>验收标准：</p>
+<ol>
+<li><code>history</code> 累计超过阈值（默认 4000 字符，可用环境变量 <code>GEEKAGENT_MAX_HISTORY</code> 覆盖）时，在下一轮对话开始前自动压缩，全程不打断用户</li>
+<li>只压旧消息：把除最近 6 条以外的旧消息，交给模型摘成 1 条 system「此前对话摘要」；最近的对话原样保留，保住刚发生的事</li>
+<li>压缩发生时，终端能看见黄色进度行 <code>[历史压缩：N 条旧消息合并为 1 条摘要]</code></li>
+<li>提供手动入口 <code>/compact</code>：不等超阈值，随时主动压缩旧对话（复用同一套压缩逻辑）</li>
+<li>压缩后模型的”记忆”没丢：回头问起旧对话里的事实，仍能答对（Demo 第 6 轮）</li>
+</ol>
+<p><strong>当天代码行数</strong>：5 个源文件共 646 行（Day 4 为 570 行，<strong>净增 76 行</strong>）。改动在 <code>day5/chat.ts</code>（98 → 166）与 <code>day5/index.ts</code>（74 → 82）。</p>
+<h2 id="2-设计何时压压什么怎么压">2. 设计：何时压、压什么、怎么压</h2>
+<h3 id="21-何时压字符数超过阈值">2.1 何时压：字符数超过阈值</h3>
+<p>压缩要有个触发条件，得先给”history 有多长”定义一把尺子。最直接的当然是 token——模型接口按 token 计费、按 token 数窗口，可<strong>精确数 token 需要分词器</strong>，那是一个要按模型维护的字典。用它，就得先为”换模型该换哪套分词”操心，这不是今天该背的包袱。</p>
+<p>退一步：<code>history</code> 是内存里的一堆对象，把它们 <code>JSON.stringify</code> 之后数一下字符数，就能粗略判断上下文大小。Day 5 使用 4000 字符作为默认阈值，精确 token 统计留给后续实现。</p>
+<p>为了不用先聊很久才能看到效果，阈值也可以通过 <code>GEEKAGENT_MAX_HISTORY</code> 临时调小。第 3 节的 Demo 使用 600。</p>
+<h3 id="22-压什么摘要旧消息保留最近-6-条">2.2 压什么：摘要旧消息，保留最近 6 条</h3>
+<p>压缩不能把整个 <code>history</code> 一锅端——最近几轮对话是当下问题的上下文，模型正指着它组织回答，压没了是给自己挖坑。所以划一刀：<strong>除最近 <code>KEEP_RECENT</code>（取 6）条以外</strong>的统统算”旧消息”，交给模型摘成一条摘要；最近 6 条原样保留，跟摘要拼在一起继续聊。6 大约是”最近两三轮问答再加几条工具结果”，够当下用，也让压缩有得可压。</p>
+<p>这一刀怎么砍有个细节值得看：砍点 <code>split = history.length - KEEP_RECENT</code>，从数组头往后数——因为消息按时间排列，旧的一定在前。当切点小得没有”更旧的”可压（当前消息还不到 6 条），直接返回 0 不折腾。</p>
+<h3 id="23-怎么压一次摘要请求两个调用入口">2.3 怎么压：一次摘要请求，两个调用入口</h3>
+<p>摘要走哪条路？两个选择：</p>
+<ul>
+<li><strong>流式</strong>：像聊天那样一段段吐给用户看。可摘要只是过程性的，用户其实看个进度就行，不必逐字观赏。</li>
+<li><strong>非流式</strong>：一个普通请求等返回，拿到完整摘要文本后直接拼接。代码少，行为也直白。</li>
+</ul>
+<p>我们选非流式，一条 <code>/chat/completions</code> 请求，带上两句 prompt：一句 system 命令（<code>COMPRESS_SYSTEM</code>：把对话压成要点，保留目标、决定、文件路径、未完成事项），一句 user（把要压缩的旧消息，<code>JSON.stringify</code> 成文本贴进去）。模型读一遍、吐一份要点，我们把要点包成一条 system 消息接回 <code>history</code>。</p>
+<p>摘要使用同一个模型和同一份配置，不需要新增调用通道。生成后，用一条 system 消息替换旧消息，再拼回原样保留的最近 6 条。</p>
+<p>这段逻辑集中在 <code>compactOldMessages()</code>，外面有两个入口：每轮对话开始前检查阈值，超过就自动调用；用户输入 <code>/compact</code> 时手动调用。两条路径共用同一套切分和摘要逻辑。</p>
+<h2 id="3-实现先效果后实现">3. 实现：先效果，后实现</h2>
+<p>下面是用 <code>GEEKAGENT_MAX_HISTORY=600</code> 跑出来的真实回放：我让模型”记住”五条事实（每轮只准回两个字，控制每次回复都很短，这样历史会匀速变长），等到第六轮提问时，<code>history</code> 已经攒超了 600 字符，压缩自动触发：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#808080">GeekAgent Day 5 —— 历史压缩（模型：deepseek-v4-flash，输入 /help 查看命令）</span>
+<span style="color:#00cdcd">You › 记住：项目名是 GeekAgent，用的语言是 TypeScript。请只回复「好的」，不要输出任何其他内容。</span>
+<span style="color:#00cd00">好的</span>
+<span style="color:#00cdcd">You › 记住：作者是 geektutu。请只回复「好的」，不要输出任何其他内容。</span>
+<span style="color:#00cd00">好的</span>
+<span style="color:#00cdcd">You › 记住：启动命令是 npm run dev。请只回复「好的」，不要输出任何其他内容。</span>
+<span style="color:#00cd00">好的</span>
+<span style="color:#00cdcd">You › 记住：目标是做一个最简单可运行的 Agent。请只回复「好的」，不要输出任何其他内容。</span>
+<span style="color:#00cd00">好的</span>
+<span style="color:#00cdcd">You › 记住：代码目录在 /home/daijie/git/geekagent。请只回复「好的」，不要输出任何其他内容。</span>
+<span style="color:#00cd00">好的</span>
+<span style="color:#00cdcd">You › 我们刚才逐条记了很多信息。请把你记得的都列出来，包括项目名、语言、作者、启动命令、目标、代码目录。只列事实，用分号分隔，一句话。</span>
+<span style="color:#cdcd00">[历史压缩：5 条旧消息合并为 1 条摘要]</span>
+<span style="color:#00cd00">项目名 GeekAgent；语言 TypeScript；作者 geektutu；启动命令 npm run dev；目标是做一个最简单可运行的 Agent；代码目录 /home/daijie/git/geekagent。</span>
+</pre>
+<p>这段回放验证了两件事：</p>
+<ul>
+<li><strong>自动压缩触发了</strong>：第六轮提问入队后，<code>history</code> 超过 600 字符，5 条旧消息被合并成 1 条 system 摘要，终端显示黄色进度行。</li>
+<li><strong>压缩没让模型失忆</strong>：六条事实里，项目名 / 语言 / 作者 / 启动命令在前五轮的<strong>旧</strong>消息里（已被压缩），目标 / 代码目录在未被压掉的<strong>最近</strong>消息里。模型照样全答出来了——两边都对得上，说明摘要把那几条事实嚼进去了，不是截断丢弃。</li>
+</ul>
+<p>改动有两处：<code>day5/chat.ts</code> 增加压缩逻辑，<code>day5/index.ts</code> 增加命令、提示文案和进度配色。</p>
+<h3 id="31-三个常量阈值保留条数压缩指令">3.1 三个常量：阈值、保留条数、压缩指令</h3>
+<p><code>day5/chat.ts</code> 顶部新增三个常量：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day5/chat.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 触发历史压缩的字符阈值：history 序列化总长超过即把旧消息压成摘要。可用环境变量调小以便观察触发过程。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> MAX_HISTORY_CHARS</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> Number</span><span style="color:#24292E">(process.env.</span><span style="color:#005CC5">GEEKAGENT_MAX_HISTORY</span><span style="color:#24292E">) </span><span style="color:#D73A49">||</span><span style="color:#005CC5"> 4000</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">/** 压缩时保留最近几条完整消息，只摘要更早的——刚发生的对话需要原样细节，久远的才值得变薄。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> KEEP_RECENT</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 6</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 历史压缩的指令：把旧对话压成要点，浓缩关键事实、决定与未完成事项。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> COMPRESS_SYSTEM</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> `你是对话压缩器。把用户贴出的历史对话压缩成简洁的中文要点，尽量保留以下信息：</span></span>
+<span class="line"><span style="color:#032F62">- 用户的目标、需求、做过的决定与偏好；</span></span>
+<span class="line"><span style="color:#032F62">- 出现过的文件路径、shell 命令、工具调用与关键结论；</span></span>
+<span class="line"><span style="color:#032F62">- 尚未完成、仍在推进中的事项。</span></span>
+<span class="line"><span style="color:#032F62">只输出压缩后的要点，不要解释、不要寒暄、不要保留逐字对话。`</span><span style="color:#24292E">;</span></span></code></pre>
+<p>要点：</p>
+<ul>
+<li><code>MAX_HISTORY_CHARS</code> 就是 2.1 说的那把”尺子”，默认 4000，也可以临时调小观察触发过程。</li>
+<li><code>COMPRESS_SYSTEM</code> 是告诉模型”怎么压缩”的说明书。三条保序的指令（事实 / 路径命令 / 未竟事项）写全，因为摘要丢掉什么、保留什么，全靠这十几行字把方向定住。它会以 system 角色贴给压缩请求。</li>
+</ul>
+<h3 id="32-公共核心测量-history再压缩旧消息">3.2 公共核心：测量 history，再压缩旧消息</h3>
+<p>紧接着的两个新方法：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day5/chat.ts</span></span>
+<span class="line"><span style="color:#6A737D">  /** history 的粗略体积：按消息序列化后的字符数估算，超出 MAX_HISTORY_CHARS 即需压缩。 */</span></span>
+<span class="line"><span style="color:#24292E">  private </span><span style="color:#6F42C1">historySize</span><span style="color:#24292E">(): number {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">reduce</span><span style="color:#24292E">((</span><span style="color:#E36209">n</span><span style="color:#24292E">, </span><span style="color:#E36209">m</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> n </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">stringify</span><span style="color:#24292E">(m).</span><span style="color:#005CC5">length</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  /**</span></span>
+<span class="line"><span style="color:#6A737D">   * 历史压缩：把除最近 KEEP_RECENT 条以外的旧消息交给模型摘要，</span></span>
+<span class="line"><span style="color:#6A737D">   * 用一条 system 摘要消息替换它们，让上下文变薄。</span></span>
+<span class="line"><span style="color:#6A737D">   * 返回被合并掉的旧消息条数；模型没产出摘要时返回 0，本次不做替换。</span></span>
+<span class="line"><span style="color:#6A737D">   */</span></span>
+<span class="line"><span style="color:#24292E">  private async </span><span style="color:#6F42C1">compactOldMessages</span><span style="color:#24292E">(): </span><span style="color:#005CC5">Promise</span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E">number</span><span style="color:#D73A49">></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    const split </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.history.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> -</span><span style="color:#005CC5"> KEEP_RECENT</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6F42C1">    if</span><span style="color:#24292E"> (</span><span style="color:#E36209">split</span><span style="color:#24292E"> &#x3C;</span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) return 0; </span><span style="color:#6A737D">// 历史还不够长，无旧消息可压</span></span>
+<span class="line"><span style="color:#24292E">    const old </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, split);</span></span>
+<span class="line"><span style="color:#24292E">    const recent </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(split);</span></span>
+<span class="line"><span style="color:#24292E">    const res </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.client.chat.completions.</span><span style="color:#6F42C1">create</span><span style="color:#24292E">({</span></span>
+<span class="line"><span style="color:#24292E">      model: </span><span style="color:#005CC5">this</span><span style="color:#24292E">.model,</span></span>
+<span class="line"><span style="color:#24292E">      messages: [</span></span>
+<span class="line"><span style="color:#24292E">        { role: </span><span style="color:#032F62">'system'</span><span style="color:#24292E">, content: </span><span style="color:#005CC5">COMPRESS_SYSTEM</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">        { role: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">, content: </span><span style="color:#005CC5">JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">stringify</span><span style="color:#24292E">(old, </span><span style="color:#005CC5">null</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">) },</span></span>
+<span class="line"><span style="color:#24292E">      ],</span></span>
+<span class="line"><span style="color:#24292E">    });</span></span>
+<span class="line"><span style="color:#24292E">    const text </span><span style="color:#D73A49">=</span><span style="color:#24292E"> res.choices[</span><span style="color:#005CC5">0</span><span style="color:#24292E">]?.message?.content?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#6F42C1">    if</span><span style="color:#24292E"> (!</span><span style="color:#E36209">text</span><span style="color:#24292E">) return 0;</span></span>
+<span class="line"><span style="color:#24292E">    this.history </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [{ role: </span><span style="color:#032F62">'system'</span><span style="color:#24292E">, content: </span><span style="color:#032F62">`【此前对话摘要】</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">text</span><span style="color:#032F62">}`</span><span style="color:#24292E"> }, </span><span style="color:#D73A49">...</span><span style="color:#24292E">recent];</span></span>
+<span class="line"><span style="color:#24292E">    return old.length;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<p>这两个方法分别负责测量和压缩：</p>
+<ul>
+<li><strong><code>historySize</code></strong>：<code>JSON.stringify(m).length</code> 把每条消息序列化后计算字符数并求和。字符数是代价的近似，这与 2.1 的判断一致。</li>
+<li><strong><code>compactOldMessages</code> 走完三步</strong>：划一刀（<code>split</code>）把它切成 <code>old</code> 和 <code>recent</code> → 调一次非流式请求让模型读 <code>old</code> 出摘要 → 用摘要消息和新列表重建 <code>history</code>。返回的 <code>old.length</code> 是”合并掉了多少条”，供外层那句进度行播报。</li>
+</ul>
+<h3 id="33-自动入口每轮请求前检查">3.3 自动入口：每轮请求前检查</h3>
+<p>自动压缩挂在 <code>streamReply</code> 入口：用户消息进入 <code>history</code> 后，先测量最新大小；超过阈值就调用 <code>compactOldMessages()</code>，再继续原有的工具调用循环。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day5/chat.ts</span></span>
+<span class="line"><span style="color:#24292E">  async </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">streamReply</span><span style="color:#24292E">(userInput: string): AsyncGenerator</span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E">string</span><span style="color:#D73A49">></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    this.history.push({ </span><span style="color:#6F42C1">role</span><span style="color:#24292E">: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">content</span><span style="color:#24292E">: userInput });</span></span>
+<span class="line"><span style="color:#24292E">    try {</span></span>
+<span class="line"><span style="color:#6A737D">      // Day 5：历史超长时先把旧消息压成摘要，腾出上下文给本轮；压缩失败也不打断对话。</span></span>
+<span class="line"><span style="color:#D73A49">      if</span><span style="color:#24292E"> (</span><span style="color:#005CC5">this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">historySize</span><span style="color:#24292E">() </span><span style="color:#D73A49">></span><span style="color:#005CC5"> MAX_HISTORY_CHARS</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">        try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">          const</span><span style="color:#005CC5"> dropped</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">compactOldMessages</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">          yield</span><span style="color:#24292E"> dropped </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#D73A49">              ?</span><span style="color:#032F62"> `</span><span style="color:#005CC5">\n</span><span style="color:#032F62">[历史压缩：${</span><span style="color:#24292E">dropped</span><span style="color:#032F62">} 条旧消息合并为 1 条摘要]</span><span style="color:#005CC5">\n</span><span style="color:#032F62">`</span></span>
+<span class="line"><span style="color:#D73A49">              :</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\n</span><span style="color:#032F62">[历史压缩：模型未产出摘要，保留原历史]</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">          yield</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\n</span><span style="color:#032F62">[历史压缩失败：保留原历史]</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span></code></pre>
+<p>这里有两个顺序不能颠倒：先把本轮用户消息入队，阈值才包含最新输入；压缩要发生在正式请求之前，模型收到的才是变薄后的 <code>history</code>。黄色进度行只通过 <code>yield</code> 显示，不写入对话历史。</p>
+<h3 id="34-手动入口compact">3.4 手动入口：compact()</h3>
+<p><code>compact()</code> 直接复用 <code>compactOldMessages()</code>，把压缩结果转成 <code>/compact</code> 命令需要的提示文本：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day5/chat.ts</span></span>
+<span class="line"><span style="color:#6A737D">  /**</span></span>
+<span class="line"><span style="color:#6A737D">   * 主动压缩：随时把旧消息摘成一条摘要，不等历史超阈值（/compact 命令调用）。</span></span>
+<span class="line"><span style="color:#6A737D">   * 返回给用户看的提示文案，不带方括号；压缩失败不抛错，返回失败说明。</span></span>
+<span class="line"><span style="color:#6A737D">   */</span></span>
+<span class="line"><span style="color:#24292E">  async </span><span style="color:#6F42C1">compact</span><span style="color:#24292E">(): </span><span style="color:#005CC5">Promise</span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E">string</span><span style="color:#D73A49">></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">    if</span><span style="color:#24292E"> (this.history.length &#x3C;</span><span style="color:#D73A49">=</span><span style="color:#005CC5"> KEEP_RECENT</span><span style="color:#24292E">) return '历史压缩：没有可压缩的旧消息';</span></span>
+<span class="line"><span style="color:#24292E">    try {</span></span>
+<span class="line"><span style="color:#D73A49">      const</span><span style="color:#005CC5"> dropped</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">compactOldMessages</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#24292E"> dropped </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#D73A49">          ?</span><span style="color:#032F62"> `历史压缩：${</span><span style="color:#24292E">dropped</span><span style="color:#032F62">} 条旧消息合并为 1 条摘要`</span></span>
+<span class="line"><span style="color:#D73A49">          :</span><span style="color:#032F62"> '历史压缩：模型未产出摘要，保留原历史'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    } catch {</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#032F62"> '历史压缩失败：保留原历史'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<p>自动和手动入口的区别只在触发时机：前者由字符阈值触发，后者由用户命令触发。</p>
+<h3 id="35-cli-接线命令提示与配色">3.5 CLI 接线：命令、提示与配色</h3>
+<p><code>/compact</code> 命令加在 <code>/reset</code> 后面，直接调用 <code>chat.compact()</code> 并输出：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day5/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">                case</span><span style="color:#032F62"> '/compact'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">                    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">); </span><span style="color:#6A737D">// 压缩进度另起一行</span></span>
+<span class="line"><span style="color:#6F42C1">                    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'tool'</span><span style="color:#24292E">, </span><span style="color:#032F62">`[${</span><span style="color:#D73A49">await</span><span style="color:#24292E"> chat</span><span style="color:#032F62">.</span><span style="color:#6F42C1">compact</span><span style="color:#032F62">()</span><span style="color:#032F62">}]`</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                    break</span><span style="color:#24292E">;</span></span></code></pre>
+<p><code>/help</code> 里也登记它：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="plaintext"><code><span class="line"><span>  /compact 立即压缩旧对话摘要（不等自动触发）</span></span></code></pre>
+<p>其余三处文案和配色与之前一样：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day5/index.ts</span></span>
+<span class="line"><span style="color:#6A737D">// /help 里新增一行（progress 提示）：</span></span>
+<span class="line"><span style="color:#24292E"> 历史保护：history 累积过久时自动压缩——让模型把旧对话摘要成一条「此前对话摘要」，保留最近几条消息原样，腾出上下文（压缩进度以黄色行提示）。</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 渲染循环里的两行（把压缩进度行认成"进度"，别染成正文绿）：</span></span>
+<span class="line"><span style="color:#6A737D">                    // 进度行（工具调用 / 历史压缩）用黄色，真正的回复用绿色</span></span>
+<span class="line"><span style="color:#D73A49">                    const</span><span style="color:#005CC5"> isProgress</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> delta.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">[调用工具'</span><span style="color:#24292E">) </span><span style="color:#D73A49">||</span><span style="color:#24292E"> delta.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">[历史压缩'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">                    out</span><span style="color:#24292E">(isProgress </span><span style="color:#D73A49">?</span><span style="color:#032F62"> 'tool'</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> 'model'</span><span style="color:#24292E">, delta);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// banner 文案：</span></span>
+<span class="line"><span style="color:#6F42C1">out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">`GeekAgent Day 5 —— 历史压缩（模型：${</span><span style="color:#24292E">config</span><span style="color:#032F62">.</span><span style="color:#24292E">model</span><span style="color:#032F62">}，输入 /help 查看命令）`</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span></code></pre>
+<ul>
+<li>配色那两行，从”只认 <code>\n[调用工具</code>”扩展成”也认 <code>\n[历史压缩</code>”——两处进度行共用黄色的 <code>tool</code> 色，正文仍走绿色 <code>model</code>，对照前面终端里的黄色行，颜色和源码对得上。</li>
+</ul>
+<p>阈值没有写进 <code>.env</code>——它是给调试 / 演示用的临时旋钮，直接在前缀里带过去最省事，不用污染配置文件。想看压缩触发，起一条命令时临时调小即可：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#24292E">GEEKAGENT_MAX_HISTORY</span><span style="color:#D73A49">=</span><span style="color:#032F62">600</span><span style="color:#6F42C1"> npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day5/index.ts</span></span></code></pre>
+<h2 id="4-验证">4. 验证</h2>
+<ul>
+<li><code>npm run typecheck</code> ✅：<code>day5/</code> 全部源文件类型检查通过</li>
+<li><strong>聊爆它</strong>（需要 API Key，真跑压缩）：</li>
+</ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#24292E">GEEKAGENT_MAX_HISTORY</span><span style="color:#D73A49">=</span><span style="color:#032F62">600</span><span style="color:#6F42C1"> npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day5/index.ts</span></span></code></pre>
+<p>逐条喂几条短事实（让它每轮只回两个字），再问”刚才记了什么”。当 <code>history</code> 超过 600 字符的那一轮，会先看到黄色 <code>[历史压缩：N 条旧消息合并为 1 条摘要]</code>，随后回答依旧完整——压缩触发、记忆存续两个行为一次看全。默认阈值 4000 同理，只是要多聊不少。</p>
+<ul>
+<li><strong>手动压缩</strong>（需要 API Key）：照常起 <code>day5/index.ts</code>，聊几轮后敲 <code>/compact</code>。历史超过 6 条时看到 <code>[历史压缩：N 条旧消息合并为 1 条摘要]</code>；历史太短（≤ 6 条）则提示 <code>[历史压缩：没有可压缩的旧消息]</code>。</li>
+<li>代码量：5 个源文件共 646 行，净增 76 行（<code>chat.ts</code> 98 → 166、<code>index.ts</code> 74 → 82）。</li>
+</ul>
+<h2 id="5-day-5-明确没做">5. Day 5 明确没做</h2>
+<ul>
+<li><strong>摘要可能被再次摘要</strong>：旧摘要串本来就是普通消息，下轮再压缩时它同样可能被当旧消息二次压缩，信息层层折损——没有”摘要只允许压一次”的保护。</li>
+<li><strong>一轮内的中期压缩</strong>：只在每轮开始前检查一次，连续工具调用要等下一轮用户输入才会触发压缩。</li>
+<li><strong>会话管理</strong>：仍然只有一条内存会话，退出后 history 会丢失。</li>
+</ul>
+<h2 id="6-下一步">6. 下一步</h2>
+<p>历史能「变薄」了，可它仍然只存在于进程内：今天聊完，窗口一关，整段对话连同刚压好的摘要烟消云散。阶段 B 的第二枚钉子——<strong>多会话与持久化</strong>——就在眼前：明天我们让模型同时维护几条互相独立的 <code>history</code>，再把整个集合连同当前 ID 一次性落成 JSON，把「聊得长」升级成「分得开、留得住」。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geekagent-day4.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day4 文件工具与注册表</span></a><a href="/post/geekagent-day6.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day6 多会话与持久化</span></a></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day5";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day5.html";
+const title = "从零实现 GeekAgent —— Day5 历史压缩";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

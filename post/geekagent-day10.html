@@ -1,0 +1,366 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程，用 TypeScript 动手写一个最简单的 Agent/Harness。Day 10 补上两种跨会话信息：AGENTS.md 保存项目规则，memory 保存运行中积累的经验，让新建会话后的模型既知道项目规则，也想得起以前确认过的偏好。"><title>从零实现 GeekAgent —— Day10 项目指令与长期记忆 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.BMRjXW0b.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day10 项目指令与长期记忆</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day10 项目指令与长期记忆</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-08-29">2026-08-29</time><span aria-hidden="true">·</span><span>约 8 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-两种记住不是一回事" class="toc-link block text-muted" data-toc-depth="2">0. 两种“记住”不是一回事</a></li><li style="padding-left:0rem"><a href="#1-目标" class="toc-link block text-muted" data-toc-depth="2">1. 目标</a></li><li style="padding-left:0rem"><a href="#2-agentsmd项目写给-agent-的说明书" class="toc-link block text-muted" data-toc-depth="2">2. AGENTS.md：项目写给 Agent 的说明书</a></li><li style="padding-left:0.9rem"><a href="#21-先看效果" class="toc-link block text-muted" data-toc-depth="3">2.1 先看效果</a></li><li style="padding-left:0.9rem"><a href="#22-读取哪一份文件" class="toc-link block text-muted" data-toc-depth="3">2.2 读取哪一份文件</a></li><li style="padding-left:0.9rem"><a href="#23-instructionsts读取完整项目指令" class="toc-link block text-muted" data-toc-depth="3">2.3 instructions.ts：读取完整项目指令</a></li><li style="padding-left:0.9rem"><a href="#24-chatts每轮都带给模型" class="toc-link block text-muted" data-toc-depth="3">2.4 chat.ts：每轮都带给模型</a></li><li style="padding-left:0rem"><a href="#3-memoryagent-随手记下的便签" class="toc-link block text-muted" data-toc-depth="2">3. memory：Agent 随手记下的便签</a></li><li style="padding-left:0.9rem"><a href="#31-先看效果" class="toc-link block text-muted" data-toc-depth="3">3.1 先看效果</a></li><li style="padding-left:0.9rem"><a href="#32-记忆写进本地-json" class="toc-link block text-muted" data-toc-depth="3">3.2 记忆写进本地 JSON</a></li><li style="padding-left:0.9rem"><a href="#33-主流方案是-embedding今天先用关键词" class="toc-link block text-muted" data-toc-depth="3">3.3 主流方案是 embedding，今天先用关键词</a></li><li style="padding-left:0.9rem"><a href="#34-memoryts写入与搜索" class="toc-link block text-muted" data-toc-depth="3">3.4 memory.ts：写入与搜索</a></li><li style="padding-left:0rem"><a href="#4-启动时加载两种信息" class="toc-link block text-muted" data-toc-depth="2">4. 启动时加载两种信息</a></li><li style="padding-left:0rem"><a href="#5-验证" class="toc-link block text-muted" data-toc-depth="2">5. 验证</a></li><li style="padding-left:0rem"><a href="#6-没做什么" class="toc-link block text-muted" data-toc-depth="2">6. 没做什么</a></li><li style="padding-left:0rem"><a href="#7-下一步" class="toc-link block text-muted" data-toc-depth="2">7. 下一步</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><h1 id="day-10项目指令与长期记忆">Day 10：项目指令与长期记忆</h1>
+<blockquote>
+<p>GeekAgent 已经能保存会话，但新建会话后，模型不知道项目规则，也想不起以前确认过的偏好。今天补上两种跨会话信息：<code>AGENTS.md</code> 保存项目规则，memory 保存运行中积累的经验。</p>
+</blockquote>
+<h2 id="0-两种记住不是一回事">0. 两种“记住”不是一回事</h2>
+<p>假设我们希望 Agent 写博客时使用第一人称。这句话既可以写进 <code>AGENTS.md</code>，也可以在聊天时告诉 Agent「请记住」。看起来都是让模型记住一句话，实际用途不同。</p>
+<p><code>AGENTS.md</code> 像项目说明书，由我们写好，和代码一起提交。模型每次回答前都要读它。</p>
+<p>memory 更像 Agent 的便签。模型在工作时把用户偏好、项目事实和重要决定记下来，以后需要时再搜索。它属于本地运行数据，不进入版本库。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>对比项</th><th><code>AGENTS.md</code></th><th>memory</th></tr></thead><tbody><tr><td>谁来写</td><td>我们手工编写</td><td>模型调用 <code>memory_write</code> 写入</td></tr><tr><td>保存什么</td><td>项目规则、编码约定、工作流程</td><td>用户偏好、项目事实、重要决定</td></tr><tr><td>是否进入版本库</td><td>是</td><td>否，<code>.geekagent/</code> 已被忽略</td></tr><tr><td>何时更新</td><td>修改文件后，下次启动生效</td><td>运行时动态更新，写完即可搜索</td></tr><tr><td>模型怎么读取</td><td>每次请求完整带上</td><td>调用 <code>memory_search</code> 按需读取</td></tr><tr><td>上下文占用</td><td>文件多长，就带上多少</td><td>最多返回 10 条搜索结果</td></tr><tr><td>跨会话</td><td>是</td><td>是</td></tr></tbody></table>
+<p>如果把全部 memory 也放进每次请求，它就和 <code>AGENTS.md</code> 没有多少区别。今天让项目规则始终可见，让长期记忆只在需要时出现。</p>
+<h2 id="1-目标">1. 目标</h2>
+<p>今天的验收标准：</p>
+<ol>
+<li>启动时读取项目根目录的 <code>AGENTS.md</code>，每轮请求完整带上</li>
+<li>模型能用 <code>memory_write</code> 把重要结论写入 <code>.geekagent/memory.json</code></li>
+<li>memory 不提前交给模型，通过 <code>memory_search</code> 按关键词查找</li>
+<li>memory 跨会话、跨重启保留，<code>/memory</code> 可查看</li>
+</ol>
+<p><strong>当天代码行数</strong>：Day 10 源码相对 Day 9 新增 128 行、删除 13 行，净增 115 行，控制在 500 行以内。</p>
+<h2 id="2-agentsmd项目写给-agent-的说明书">2. AGENTS.md：项目写给 Agent 的说明书</h2>
+<h3 id="21-先看效果">2.1 先看效果</h3>
+<p>项目根 <code>AGENTS.md</code> 写着“全文少用你，多用我/我们”。这条规则每轮都会带给模型，所以第一次对话就能使用：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#00cdcd">You › 写一句开场白，不用阅读项目内容</span>
+<span style="color:#00cd00">我们常说 Agent 很复杂，但我想试试，用最笨的办法、最少的代码，把它从零搭出来。</span>
+</pre>
+<h3 id="22-读取哪一份文件">2.2 读取哪一份文件</h3>
+<p>Day 8 已经在 <code>.geekagent/GeekAgent.json</code> 中配置了工作根目录。我们直接读取这个目录下的 <code>AGENTS.md</code>，不再增加新的路径配置。</p>
+<p>启动时读取一次文件，之后每次请求都把完整内容放在聊天记录前面。文件不存在就使用空字符串。项目指令不属于某一段会话，所以保存会话时不会重复保存。</p>
+<h3 id="23-instructionsts读取完整项目指令">2.3 instructions.ts：读取完整项目指令</h3>
+<p>项目指令读取只有 13 行，完整代码如下：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day10/instructions.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { readFile } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:fs/promises'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { resolve } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:path'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 读取项目根目录的 AGENTS.md；没有项目指令时返回空文本。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> loadInstructions</span><span style="color:#24292E">(</span><span style="color:#E36209">root</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> (</span><span style="color:#D73A49">await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(</span><span style="color:#6F42C1">resolve</span><span style="color:#24292E">(root, </span><span style="color:#032F62">'AGENTS.md'</span><span style="color:#24292E">), </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">)).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> ((err </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> NodeJS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ErrnoException</span><span style="color:#24292E">).code </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'ENOENT'</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        throw</span><span style="color:#24292E"> err;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>我们只读工作根目录这一份文件：有就返回全文，没有就返回空字符串。</p>
+<h3 id="24-chatts每轮都带给模型">2.4 chat.ts：每轮都带给模型</h3>
+<p><code>Chat</code> 在构造时接收 <code>AGENTS.md</code> 的内容。每轮请求把它放在当前会话历史前面：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day10/chat.ts</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> stream</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.client.chat.completions.</span><span style="color:#6F42C1">create</span><span style="color:#24292E">({</span></span>
+<span class="line"><span style="color:#24292E">          model: </span><span style="color:#005CC5">this</span><span style="color:#24292E">.model,</span></span>
+<span class="line"><span style="color:#24292E">          messages: [{ role: </span><span style="color:#032F62">'system'</span><span style="color:#24292E">, content: </span><span style="color:#032F62">`${</span><span style="color:#005CC5">AGENT_SYSTEM</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n\n</span><span style="color:#032F62">项目指令（AGENTS.md）：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#005CC5">this</span><span style="color:#032F62">.</span><span style="color:#24292E">instructions</span><span style="color:#D73A49"> ||</span><span style="color:#032F62"> '暂无'}`</span><span style="color:#24292E"> }, </span><span style="color:#D73A49">...</span><span style="color:#005CC5">this</span><span style="color:#24292E">.history],</span></span>
+<span class="line"><span style="color:#24292E">          tools: </span><span style="color:#6F42C1">toOpenAITools</span><span style="color:#24292E">(),</span></span>
+<span class="line"><span style="color:#24292E">          tool_choice: forceTodo</span></span>
+<span class="line"><span style="color:#D73A49">              ?</span><span style="color:#24292E"> { type: </span><span style="color:#032F62">'function'</span><span style="color:#24292E">, function: { name: </span><span style="color:#032F62">'todo_write'</span><span style="color:#24292E"> } }</span></span>
+<span class="line"><span style="color:#D73A49">              :</span><span style="color:#032F62"> 'auto'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">          stream: </span><span style="color:#005CC5">true</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">          stream_options: { include_usage: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> }, </span><span style="color:#6A737D">// Day 7：请求末尾的 chunk 里带上本次用量</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span></code></pre>
+<p>这里没有 memory。项目指令直接出现，长期记忆要搜索后才会出现。</p>
+<h2 id="3-memoryagent-随手记下的便签">3. memory：Agent 随手记下的便签</h2>
+<h3 id="31-先看效果">3.1 先看效果</h3>
+<p>先让 Agent 记住一条偏好，然后切到新会话：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#00cdcd">You › 请记住：用户希望回答先给结论</span>
+<span style="color:#cdcd00">[调用工具 memory_write → 已记住：用户希望回答先给结论]</span>
+<span style="color:#00cd00">记住了。</span>
+<span style="color:#00cdcd">You › /new review</span>
+<span style="color:#808080">（已新建并切换到会话 review）</span>
+<span style="color:#00cdcd">You › 回忆一下用户对回答方式有什么偏好</span>
+<span style="color:#cdcd00">[调用工具 memory_search → 找到 1 条记忆：</span>
+<span style="color:#cdcd00">1. 用户希望回答先给结论]</span>
+<span style="color:#00cd00">用户希望回答先给结论。</span>
+</pre>
+<p>新会话里没有原来的聊天记录，memory 也没有提前交给模型。模型先搜索，再根据结果回答。</p>
+<h3 id="32-记忆写进本地-json">3.2 记忆写进本地 JSON</h3>
+<p>长期记忆使用最直接的字符串数组：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#24292E">[</span></span>
+<span class="line"><span style="color:#032F62">  "博客正文使用第一人称‘我/我们’"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">  "用户希望回答先给结论"</span></span>
+<span class="line"><span style="color:#24292E">]</span></span></code></pre>
+<p>文件放在 <code>.geekagent/memory.json</code>。<code>.gitignore</code> 已经忽略这个目录，所以本地记忆不会混进代码提交。</p>
+<p><code>memory_write</code> 每次写一条完整事实。模型决定记什么，程序只负责去重和写盘。</p>
+<h3 id="33-主流方案是-embedding今天先用关键词">3.3 主流方案是 embedding，今天先用关键词</h3>
+<p>现在主流的记忆搜索会使用 embedding：先用模型把文字转换成一串数字，再比较两串数字有多接近。这样搜索「回复风格」，也可能找到「用户希望回答先给结论」。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="text"><code><span class="line"><span>写入：记忆文本 ──embedding──> 向量，随记忆一起保存</span></span>
+<span class="line"><span>搜索：用户问题 ──embedding──> 查询向量</span></span>
+<span class="line"><span>                              │</span></span>
+<span class="line"><span>                              └─ 与记忆向量计算相似度 ──> topN</span></span></code></pre>
+<p>只有几百条记忆时，向量可以存在 JSON 中，再在内存里逐条比较，不需要向量数据库。记忆更多时，才需要数据库加快查找。记忆的 embedding 在写入时算一次并保存，搜索时只计算问题的 embedding。</p>
+<p>不过，embedding 需要额外的模型和配置，当前使用的服务也不一定支持。今天先用关键词代替：模型给出几个关键词，程序统计每条记忆命中了几个，按命中数排序，最多返回 10 条。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="text"><code><span class="line"><span>query: "博客 人称"</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>记忆 A：博客正文使用第一人称“我/我们”   命中 2 个词</span></span>
+<span class="line"><span>记忆 B：用户希望回答先给结论             命中 0 个词</span></span>
+<span class="line"><span>记忆 C：博客示例使用真实终端输出           命中 1 个词</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>返回顺序：A → C</span></span></code></pre>
+<p>关键词没对上时可能漏掉相关记忆，这是今天接受的边界。以后换成 embedding，两个工具和外层工具循环仍然可以保留。</p>
+<h3 id="34-memoryts写入与搜索">3.4 memory.ts：写入与搜索</h3>
+<p><code>memory.ts</code> 共 78 行：启动时读取文件，注册写入和搜索两个工具，再给界面提供记忆列表。完整代码如下：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day10/memory.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { mkdir, readFile, writeFile } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:fs/promises'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { dirname, resolve } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:path'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { registerTool, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> Tool } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './tools.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> MEMORY_FILE</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> resolve</span><span style="color:#24292E">(</span><span style="color:#032F62">'.geekagent/memory.json'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> items</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 启动时从磁盘恢复长期记忆；文件不存在等同于还没有记忆。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> loadMemory</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> value</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">parse</span><span style="color:#24292E">(</span><span style="color:#D73A49">await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(</span><span style="color:#005CC5">MEMORY_FILE</span><span style="color:#24292E">, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">)) </span><span style="color:#D73A49">as</span><span style="color:#005CC5"> unknown</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">Array.</span><span style="color:#6F42C1">isArray</span><span style="color:#24292E">(value) </span><span style="color:#D73A49">||</span><span style="color:#24292E"> value.</span><span style="color:#6F42C1">some</span><span style="color:#24292E">((</span><span style="color:#E36209">item</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> typeof</span><span style="color:#24292E"> item </span><span style="color:#D73A49">!==</span><span style="color:#032F62"> 'string'</span><span style="color:#24292E">)) {</span></span>
+<span class="line"><span style="color:#D73A49">            throw</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(</span><span style="color:#032F62">'memory.json 必须是字符串数组'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">        items </span><span style="color:#D73A49">=</span><span style="color:#24292E"> value.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">item</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> item.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">()).</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">(Boolean);</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> ((err </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> NodeJS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ErrnoException</span><span style="color:#24292E">).code </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'ENOENT'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">            items </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">            return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#D73A49">        throw</span><span style="color:#24292E"> err;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 注册写记忆工具；模型判断某条信息值得跨会话保留时主动调用。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> setupMemory</span><span style="color:#24292E">(</span><span style="color:#6F42C1">changed</span><span style="color:#D73A49">:</span><span style="color:#24292E"> () </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> tools</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [</span></span>
+<span class="line"><span style="color:#24292E">        {</span></span>
+<span class="line"><span style="color:#24292E">            name: </span><span style="color:#032F62">'memory_write'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            description: </span><span style="color:#032F62">'把值得跨会话保留的用户偏好、项目事实或重要决定写入长期记忆。不要记录临时任务进度或可随时从文件读到的内容。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            parameters: {</span></span>
+<span class="line"><span style="color:#24292E">                type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                properties: { content: { type: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, description: </span><span style="color:#032F62">'一条独立、简洁、脱离当前对话也能理解的事实'</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#24292E">                required: [</span><span style="color:#032F62">'content'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">                additionalProperties: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> content</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.content </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">content) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '缺少参数 content'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (items.</span><span style="color:#6F42C1">includes</span><span style="color:#24292E">(content)) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '这条记忆已经存在'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> next</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> [</span><span style="color:#D73A49">...</span><span style="color:#24292E">items, content];</span></span>
+<span class="line"><span style="color:#D73A49">                await</span><span style="color:#6F42C1"> mkdir</span><span style="color:#24292E">(</span><span style="color:#6F42C1">dirname</span><span style="color:#24292E">(</span><span style="color:#005CC5">MEMORY_FILE</span><span style="color:#24292E">), { recursive: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#D73A49">                await</span><span style="color:#6F42C1"> writeFile</span><span style="color:#24292E">(</span><span style="color:#005CC5">MEMORY_FILE</span><span style="color:#24292E">, </span><span style="color:#032F62">`${</span><span style="color:#005CC5">JSON</span><span style="color:#032F62">.</span><span style="color:#6F42C1">stringify</span><span style="color:#032F62">(</span><span style="color:#24292E">next</span><span style="color:#032F62">, </span><span style="color:#005CC5">null</span><span style="color:#032F62">, </span><span style="color:#005CC5">2</span><span style="color:#032F62">)</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n</span><span style="color:#032F62">`</span><span style="color:#24292E">, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">                items </span><span style="color:#D73A49">=</span><span style="color:#24292E"> next;</span></span>
+<span class="line"><span style="color:#6F42C1">                changed</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `已记住：${</span><span style="color:#24292E">content</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">        {</span></span>
+<span class="line"><span style="color:#24292E">            name: </span><span style="color:#032F62">'memory_search'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            description: </span><span style="color:#032F62">'按关键词搜索长期记忆。需要回忆用户偏好、项目事实或以前的决定时调用；query 使用一个或多个空格分隔的关键词。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            parameters: {</span></span>
+<span class="line"><span style="color:#24292E">                type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                properties: { query: { type: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, description: </span><span style="color:#032F62">'搜索关键词，多个词用空格分隔，如“博客 人称”'</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#24292E">                required: [</span><span style="color:#032F62">'query'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">                additionalProperties: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            run</span><span style="color:#24292E">: (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> keywords</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.query </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">toLowerCase</span><span style="color:#24292E">().</span><span style="color:#6F42C1">split</span><span style="color:#24292E">(</span><span style="color:#032F62">/</span><span style="color:#005CC5">\s</span><span style="color:#D73A49">+</span><span style="color:#032F62">/</span><span style="color:#24292E">).</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">(Boolean);</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (keywords.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '缺少参数 query'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> matches</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> items</span></span>
+<span class="line"><span style="color:#24292E">                    .</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">content</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> ({ content, score: keywords.</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">word</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> content.</span><span style="color:#6F42C1">toLowerCase</span><span style="color:#24292E">().</span><span style="color:#6F42C1">includes</span><span style="color:#24292E">(word)).</span><span style="color:#005CC5">length</span><span style="color:#24292E"> }))</span></span>
+<span class="line"><span style="color:#24292E">                    .</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">item</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> item.score </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">                    .</span><span style="color:#6F42C1">sort</span><span style="color:#24292E">((</span><span style="color:#E36209">a</span><span style="color:#24292E">, </span><span style="color:#E36209">b</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> b.score </span><span style="color:#D73A49">-</span><span style="color:#24292E"> a.score)</span></span>
+<span class="line"><span style="color:#24292E">                    .</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">10</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#24292E"> matches.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#D73A49">                    ?</span><span style="color:#032F62"> `找到 ${</span><span style="color:#24292E">matches</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 条记忆：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">matches</span><span style="color:#032F62">.</span><span style="color:#6F42C1">map</span><span style="color:#032F62">((</span><span style="color:#005CC5">item</span><span style="color:#032F62">, </span><span style="color:#005CC5">i</span><span style="color:#032F62">) </span><span style="color:#D73A49">=></span><span style="color:#032F62"> `${</span><span style="color:#24292E">i</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 1</span><span style="color:#032F62">}. ${</span><span style="color:#24292E">item</span><span style="color:#032F62">.</span><span style="color:#24292E">content</span><span style="color:#032F62">}`</span><span style="color:#032F62">).</span><span style="color:#6F42C1">join</span><span style="color:#032F62">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span></span>
+<span class="line"><span style="color:#D73A49">                    :</span><span style="color:#032F62"> '没有找到相关记忆'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    ];</span></span>
+<span class="line"><span style="color:#24292E">    tools.</span><span style="color:#6F42C1">forEach</span><span style="color:#24292E">(registerTool);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> listMemories</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> readonly</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> items;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>搜索只做三步：拆关键词、数命中、取前 10 条。</p>
+<p>内置指令告诉模型何时写、何时搜：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day10/chat.ts</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> AGENT_SYSTEM</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> `你是一个本地编码 Agent。遇到需要多个步骤的任务时，先调用 todo_write 制定简短计划，再逐项执行并更新状态；用户明确要求 TODO 或任务清单时，必须先调用 todo_write。简单任务直接完成，不要为了形式创建 TODO。可把边界清楚的分析、设计或审查任务交给 delegate_task，多个子任务必须串行委派。用户偏好、项目事实或重要决定值得跨会话保留时，调用 memory_write；需要回忆这些信息时调用 memory_search，不要假设记忆内容。不要记录临时任务进度或可随时从文件读到的内容。`</span><span style="color:#24292E">;</span></span></code></pre>
+<p>调用 <code>memory_search</code> 后，搜索结果和其他工具结果一样进入当前会话。</p>
+<h2 id="4-启动时加载两种信息">4. 启动时加载两种信息</h2>
+<p>入口先加载权限，确定项目根目录；然后读取 memory 和 <code>AGENTS.md</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day10/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> config</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> loadConfig</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> permissions;</span></span>
+<span class="line"><span style="color:#D73A49">try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    permissions </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> loadPermissions</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">} </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) {</span></span>
+<span class="line"><span style="color:#24292E">    console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">`.geekagent/GeekAgent.json 读取失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">e</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> instructions </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#6F42C1"> loadMemory</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    instructions </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> loadInstructions</span><span style="color:#24292E">(permissions.root);</span></span>
+<span class="line"><span style="color:#24292E">} </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) {</span></span>
+<span class="line"><span style="color:#24292E">    console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">`项目上下文读取失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">e</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> chat</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Chat</span><span style="color:#24292E">(config.baseURL, config.apiKey, config.model, instructions);</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> sessions</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Sessions</span><span style="color:#24292E">();</span></span></code></pre>
+<p>两个 memory 工具也要加入权限表：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day10/permissions.ts</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> DEFAULT_TOOLS</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Record</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#6F42C1">Policy</span><span style="color:#24292E">> </span><span style="color:#D73A49">=</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    get_current_time: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    run_shell: </span><span style="color:#032F62">'ask'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    ls: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    read: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    glob: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    write: </span><span style="color:#032F62">'ask'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    patch: </span><span style="color:#032F62">'ask'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    todo_write: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    delegate_task: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    memory_write: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    memory_search: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">};</span></span></code></pre>
+<p>右栏显示“指令 已加载/无”和“记忆 N 条”。<code>/memory</code> 供我们查看本地记忆，不会把全部内容送给模型。</p>
+<h2 id="5-验证">5. 验证</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> typecheck</span></span>
+<span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day10/index.ts</span></span></code></pre>
+<ol>
+<li>确认右栏显示“指令 已加载”，让 Agent 复述一条根 <code>AGENTS.md</code> 中的规则</li>
+<li>输入“请记住：用户希望回答先给结论”，确认出现 <code>memory_write</code> 结果</li>
+<li>输入 <code>/new review</code>，再问“回忆用户对回答方式的偏好”，确认先出现 <code>memory_search</code>，再给出答案</li>
+<li>输入 <code>/memory</code> 并重启 Day 10，确认本地记忆仍然存在</li>
+<li>检查 <code>git status</code>，确认 <code>.geekagent/memory.json</code> 没有进入版本库</li>
+</ol>
+<p>搜索“博客 人称”应该只返回包含这些词的记忆；搜索“不存在”应该返回“没有找到相关记忆”。</p>
+<h2 id="6-没做什么">6. 没做什么</h2>
+<ul>
+<li><code>AGENTS.md</code> 只读取项目根的一份，不合并多级指令</li>
+<li>memory 只能追加，不能编辑或删除</li>
+<li>搜索只匹配关键词，不理解语义</li>
+</ul>
+<h2 id="7-下一步">7. 下一步</h2>
+<p>现在，项目规则会始终生效，运行中积累的经验也能按需找回。下一步把相关指令和工具组成可选择的能力包，需要时再加载。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geekagent-day9.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day9 任务规划与子 Agent</span></a><span></span></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day10";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day10.html";
+const title = "从零实现 GeekAgent —— Day10 项目指令与长期记忆";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>
