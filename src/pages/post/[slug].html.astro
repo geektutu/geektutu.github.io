@@ -39,6 +39,9 @@ if (post.data.book) {
 const isBook = Boolean(book);
 // 正文顶部的仓库提示：单篇文章 repo 优先于所属书的 repo
 const repo = post.data.repo ?? book?.repo;
+// Gitalk 用 id 拼 issue 标签（旧 hexo 站 id = window.location.pathname，形如 /post/<slug>.html），
+// 沿用该格式才能拉到历史评论
+const gitalkId = `/post/${post.id}.html`;
 ---
 
 <Layout title={post.data.title} description={post.data.description}>
@@ -78,7 +81,7 @@ const repo = post.data.repo ?? book?.repo;
           <Tip />
           <ChapterNav prev={adjacent.prev} next={adjacent.next} />
             <SaveLastRead bookId={book!.id} slug={post.id} />
-            <Gitalk id={post.id} title={post.data.title} />
+            <Gitalk id={gitalkId} title={post.data.title} />
           </div>
         </article>
       </div>
@@ -90,7 +93,7 @@ const repo = post.data.repo ?? book?.repo;
             <div class="mt-6 markdown"><Content /></div>
           </div>
           <Tip />
-          <Gitalk id={post.id} title={post.data.title} />
+          <Gitalk id={gitalkId} title={post.data.title} />
         </article>
     )}
   </div>
