@@ -1,0 +1,499 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程，用 TypeScript 动手写一个最简单的 Agent/Harness。Day 14 复用 Day 13 的切块和 BM25 搜索，实现一个能采集网页与文件、按问题返回相关段落的轻量知识库。"><title>从零实现 GeekAgent —— Day14 轻 RAG 知识库 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.gdZOuXSV.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 项目指令与长期记忆</a></li><li><a href="/post/geekagent-day11.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day11 技能系统（Skills）</a></li><li><a href="/post/geekagent-day12.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day12 代码搜索与网页抓取</a></li><li><a href="/post/geekagent-day13.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day13 主动记忆</a></li><li><a href="/post/geekagent-day14.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day14 轻 RAG 知识库</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day14 轻 RAG 知识库</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-09-01">2026-09-01</time><span aria-hidden="true">·</span><span>约 11 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-知识库不就是更多的长期记忆吗" class="toc-link block text-muted" data-toc-depth="2">0. 知识库不就是更多的长期记忆吗？</a></li><li style="padding-left:0rem"><a href="#1-为什么不能把整篇文档都塞进上下文" class="toc-link block text-muted" data-toc-depth="2">1. 为什么：不能把整篇文档都塞进上下文</a></li><li style="padding-left:0rem"><a href="#2-目标" class="toc-link block text-muted" data-toc-depth="2">2. 目标</a></li><li style="padding-left:0rem"><a href="#3-设计采集存储检索" class="toc-link block text-muted" data-toc-depth="2">3. 设计：采集、存储、检索</a></li><li style="padding-left:0.9rem"><a href="#31-一条简单的-rag-流程" class="toc-link block text-muted" data-toc-depth="3">3.1 一条简单的 RAG 流程</a></li><li style="padding-left:0.9rem"><a href="#32-采集和阅读分开" class="toc-link block text-muted" data-toc-depth="3">3.2 采集和阅读分开</a></li><li style="padding-left:0.9rem"><a href="#33-复用-day-13-的搜索函数" class="toc-link block text-muted" data-toc-depth="3">3.3 复用 Day 13 的搜索函数</a></li><li style="padding-left:0.9rem"><a href="#34-用一个-json-文件保存" class="toc-link block text-muted" data-toc-depth="3">3.4 用一个 JSON 文件保存</a></li><li style="padding-left:0rem"><a href="#4-实现先效果后实现" class="toc-link block text-muted" data-toc-depth="2">4. 实现：先效果，后实现</a></li><li style="padding-left:0.9rem"><a href="#41-先看效果" class="toc-link block text-muted" data-toc-depth="3">4.1 先看效果</a></li><li style="padding-left:0.9rem"><a href="#42-ragts知识库本体完整-149-行" class="toc-link block text-muted" data-toc-depth="3">4.2 rag.ts：知识库本体（完整 149 行）</a></li><li style="padding-left:0.9rem"><a href="#43-memoryts复用搜索能力" class="toc-link block text-muted" data-toc-depth="3">4.3 memory.ts：复用搜索能力</a></li><li style="padding-left:0.9rem"><a href="#44-permissionsts-与-toolsts补上接线" class="toc-link block text-muted" data-toc-depth="3">4.4 permissions.ts 与 tools.ts：补上接线</a></li><li style="padding-left:0.9rem"><a href="#45-indexts加载知识库与处理命令" class="toc-link block text-muted" data-toc-depth="3">4.5 index.ts：加载知识库与处理命令</a></li><li style="padding-left:0rem"><a href="#5-验证" class="toc-link block text-muted" data-toc-depth="2">5. 验证</a></li><li style="padding-left:0rem"><a href="#6-没做什么" class="toc-link block text-muted" data-toc-depth="2">6. 没做什么</a></li><li style="padding-left:0rem"><a href="#7-下一步" class="toc-link block text-muted" data-toc-depth="2">7. 下一步</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><h1 id="day-14先查资料再回答轻-rag-知识库">Day 14：先查资料，再回答——轻 RAG 知识库</h1>
+<blockquote>
+<p>Day 13 能从长期记忆里找到相关内容。今天把同一套方法用到网页和文件：文档保存在磁盘里，提问时只取回相关的几段。</p>
+</blockquote>
+<h2 id="0-知识库不就是更多的长期记忆吗">0. 知识库不就是更多的长期记忆吗？</h2>
+<p>两者都在“保存内容，再按问题搜索”，但保存的对象不同。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>长期记忆</th><th>RAG 知识库</th></tr></thead><tbody><tr><td>保存什么</td><td>用户偏好、项目事实、重要决定</td><td>教程、手册、博客等外部资料</td></tr><tr><td>内容规模</td><td>少量、短文本</td><td>多篇、长文档</td></tr><tr><td>写入方式</td><td>模型提炼后调用 <code>memory_write</code></td><td>程序采集原文并切块</td></tr><tr><td>回答作用</td><td>补充过去的上下文</td><td>为资料问题提供依据和来源</td></tr></tbody></table>
+<p>把整篇教程写进记忆，会混淆“需要长期记住的事实”和“需要随时查阅的资料”。因此我们单独建立知识库，但复用 Day 13 的切块与搜索算法。</p>
+<h2 id="1-为什么不能把整篇文档都塞进上下文">1. 为什么：不能把整篇文档都塞进上下文</h2>
+<p>长期记忆适合保存用户偏好、项目决定等短信息。教程、接口文档和博客通常更长，不适合当成一条记忆保存。</p>
+<p>如果每次都让模型读取整篇文档，会遇到两个问题：</p>
+<ul>
+<li>文档会占用大量上下文；</li>
+<li>模型只需要其中几段，却要反复阅读全文。</li>
+</ul>
+<p>RAG 的全称是“检索增强生成”。先把文档保存在知识库中，再根据问题搜索相关段落，最后把这些段落交给模型回答。简单说，就是<strong>先查资料，再回答</strong>。</p>
+<p>Day 13 已经实现了切块、分词和 BM25 打分。今天复用这些函数，只补上文档采集、存储和工具接线。</p>
+<h2 id="2-目标">2. 目标</h2>
+<ol>
+<li><code>rag_add</code> 读取网页或本地文件，把正文按 800 字窗口切块并写入 <code>.geekagent/rag/index.json</code>；采集过程只返回摘要，全文不进入当前上下文；</li>
+<li><code>rag_search</code> 对自然语言问题分词并用 BM25 排序，最多返回四个相关块，每块带文档标题和段号；</li>
+<li><code>/rag add &#x3C;URL 或路径>...</code> 可以连续采集多个来源，<code>/rag</code> 展示文档数、块数和来源清单。</li>
+</ol>
+<p><strong>当天代码行数</strong>：相对 Day 13，源码新增 184 行、删除 5 行，净增 179 行。</p>
+<h2 id="3-设计采集存储检索">3. 设计：采集、存储、检索</h2>
+<h3 id="31-一条简单的-rag-流程">3.1 一条简单的 RAG 流程</h3>
+<p>一个常见的 RAG 系统包含两段流程。</p>
+<p><strong>入库阶段</strong>负责准备资料：采集文档、清洗正文、切块，再用 embedding 模型生成向量并写入向量数据库。</p>
+<p><strong>问答阶段</strong>负责寻找依据：把问题也转成向量，检索相近文本块，必要时用 reranker 重新排序，最后把少量结果交给大模型生成答案。</p>
+<p>这里出现了两个常见概念：embedding 把文字变成可比较的数字向量；reranker 会更仔细地重新判断候选结果与问题是否相关。</p>
+<p>当前 demo 保留主干，把向量检索换成 Day 13 的 BM25，把向量数据库换成一个 JSON 文件：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>环节</th><th>主流 RAG</th><th>当前 demo</th></tr></thead><tbody><tr><td>文档处理</td><td>解析、清洗、按语义切块</td><td>基础 HTML 清理、固定窗口切块</td></tr><tr><td>检索表示</td><td>embedding 向量</td><td>bigram token</td></tr><tr><td>索引存储</td><td>向量数据库</td><td>JSON 文件中的文本块</td></tr><tr><td>召回与排序</td><td>向量召回，常配合 reranker</td><td>BM25 直接取前四块</td></tr><tr><td>文档维护</td><td>增量更新、删除、版本管理</td><td>新增文档后全量写回</td></tr></tbody></table>
+<p>代码最终仍是四步：</p>
+<ol>
+<li>读取网页或文件；</li>
+<li>把正文切成 800 字左右的小块；</li>
+<li>把标题、来源和文本块写进 JSON；</li>
+<li>提问时用 BM25 选出最相关的四块。</li>
+</ol>
+<p>这已经能跑通“资料入库 → 按问题搜索 → 带来源回答”的核心原理，所以称为轻 RAG。它适合少量教程和本地资料，不适合直接替代面向大规模语料的向量数据库。</p>
+<h3 id="32-采集和阅读分开">3.2 采集和阅读分开</h3>
+<p>Day 12 的 <code>fetch</code> 会把网页正文直接返回给模型。<code>rag_add</code> 不同：它在程序内部完成读取、切块和写盘，只返回一行入库结果。这样，采集一篇长文不会占用当前上下文。</p>
+<p>等模型调用 <code>rag_search</code> 时，程序才把命中的几段返回给它。<code>rag_add</code> 需要读取外部内容并写入知识库，所以执行前询问；<code>rag_search</code> 只读本地数据，可以直接执行。</p>
+<h3 id="33-复用-day-13-的搜索函数">3.3 复用 Day 13 的搜索函数</h3>
+<p><code>rag_search</code> 不再重复编写打分代码，而是直接导入 Day 13 的函数：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day14/rag.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { STOPWORDS, bm25, chunkEntry, tokenize, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> Chunk } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './memory.js'</span><span style="color:#24292E">;</span></span></code></pre>
+<p><code>rag.ts</code> 直接导入 Day 13 的四个成员：<code>chunkEntry</code> 负责切块，<code>tokenize</code> 负责拆分问题，<code>STOPWORDS</code> 去掉常见词，<code>bm25</code> 负责打分。</p>
+<p>记忆默认按 320 字切块，知识库调用 <code>chunkEntry</code> 时传入 800。搜索方法相同，只是两类内容使用不同的块大小。</p>
+<p>知识库使用更大的块，是为了给模型保留一段较完整的文档上下文。固定窗口实现简单，但可能在标题与正文之间切开；成熟方案常按段落、标题或 token 数切块，有时还会为每块补上文档标题。</p>
+<h3 id="34-用一个-json-文件保存">3.4 用一个 JSON 文件保存</h3>
+<p>库的持久化就一个 <code>.geekagent/rag/index.json</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#005CC5">  "docs"</span><span style="color:#24292E">: [</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#005CC5">      "title"</span><span style="color:#24292E">: </span><span style="color:#032F62">"Day 5 学习笔记"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">      "source"</span><span style="color:#24292E">: </span><span style="color:#032F62">"http://127.0.0.1:8934/notes/day5.html"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">      "addedAt"</span><span style="color:#24292E">: </span><span style="color:#032F62">"2026-09-01T..."</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">      "chunks"</span><span style="color:#24292E">: [{ </span><span style="color:#005CC5">"start"</span><span style="color:#24292E">: </span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">"text"</span><span style="color:#24292E">: </span><span style="color:#032F62">"…"</span><span style="color:#24292E"> }, { </span><span style="color:#005CC5">"start"</span><span style="color:#24292E">: </span><span style="color:#005CC5">720</span><span style="color:#24292E">, </span><span style="color:#005CC5">"text"</span><span style="color:#24292E">: </span><span style="color:#032F62">"…"</span><span style="color:#24292E"> }]</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">  ]</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>每个文档保存标题、来源、加入时间和文本块。启动时读入文件，搜索时遍历所有块并打分。对于几十篇教程，这种做法已经够用。</p>
+<h2 id="4-实现先效果后实现">4. 实现：先效果，后实现</h2>
+<h3 id="41-先看效果">4.1 先看效果</h3>
+<p>启动后，先把两页笔记采集进库（本地起服务，<code>python3 -m http.server 8934</code>，页面我放在 <code>notes/day5.html</code> 和 <code>notes/day9.html</code>）：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#808080">GeekAgent Day 14 —— 轻 RAG 知识库</span>
+<span style="color:#808080">长期记忆保存项目事实，知识库保存外部资料：/rag add 采集网页或文件，rag_search 返回带来源的相关段落。</span>
+<span style="color:#00cdcd">You › /rag add http://127.0.0.1:8934/notes/day5.html</span>
+<span style="color:#cdcd00">即将把以下内容加入知识库：</span>
+<span style="color:#cdcd00">http://127.0.0.1:8934/notes/day5.html</span>
+<span style="color:#cdcd00">确认采集？[y/N] → y</span>
+<span style="color:#cdcd00">[已加入知识库：《Day 5 学习笔记》共 1042 字符 / 2 块]</span>
+<span style="color:#00cdcd">You › /rag add http://127.0.0.1:8934/notes/day9.html</span>
+<span style="color:#cdcd00">即将把以下内容加入知识库：</span>
+<span style="color:#cdcd00">http://127.0.0.1:8934/notes/day9.html</span>
+<span style="color:#cdcd00">确认采集？[y/N] → y</span>
+<span style="color:#cdcd00">[已加入知识库：《Day 9 学习笔记》共 886 字符 / 2 块]</span>
+<span style="color:#00cdcd">You › /rag</span>
+<span style="color:#808080">知识库共 2 个文档 / 4 块 / 2088 字符：</span>
+<span style="color:#808080">1. 《Day 5 学习笔记》（2 块，http://127.0.0.1:8934/notes/day5.html）</span>
+<span style="color:#808080">2. 《Day 9 学习笔记》（2 块，http://127.0.0.1:8934/notes/day9.html）</span>
+<span style="color:#00cdcd">You › 这套笔记里，历史压缩相关的触发阈值是多少？</span>
+<span style="color:#cdcd00">[调用工具 rag_search → 命中 2 块：</span>
+<span style="color:#cdcd00">1. 《Day 5 学习笔记》第 2 段：…触发阈值 MAX_HISTORY_CHARS 默认 4000 字符，压缩保留最近 6 条…</span>
+<span style="color:#cdcd00">2. 《Day 9 学习笔记》第 1 段：第二章 规划器。…]</span>
+<span style="color:#00cd00">《Day 5 学习笔记》第 2 段明确写了历史压缩的触发阈值是 MAX_HISTORY_CHARS 默认 4000 字符，压缩保留最近 6 条。这个答案来自知识库检索，不是我猜的。</span>
+</pre>
+<p><code>/rag add</code> 先询问再采集，并且只返回一行结果。真正提问时，模型调用 <code>rag_search</code>，拿到带标题和段号的相关内容。</p>
+<h3 id="42-ragts知识库本体完整-149-行">4.2 rag.ts：知识库本体（完整 149 行）</h3>
+<p>新文件 <code>day14/rag.ts</code>，全量贴出：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day14/rag.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { mkdir, readFile, writeFile } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:fs/promises'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { basename, dirname, resolve } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:path'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { registerTool, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> Tool } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './tools.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { authorize, safePath } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './permissions.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { STOPWORDS, bm25, chunkEntry, tokenize, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> Chunk } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './memory.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { htmlToText } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './tools.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> RAG_FILE</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> resolve</span><span style="color:#24292E">(</span><span style="color:#032F62">'.geekagent/rag/index.json'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6A737D">/** 文档切块窗口：比记忆条目大（整篇文档），知识库检索的块粒度更粗。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> RAG_CHUNK_SIZE</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 800</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">/** 网络抓取最长等待。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> FETCH_TIMEOUT_MS</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 15_000</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">/** 单篇文档入库上限，超出直接整篇弃掉，防失控。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> MAX_DOC_CHARS</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 2</span><span style="color:#D73A49"> *</span><span style="color:#005CC5"> 1024</span><span style="color:#D73A49"> *</span><span style="color:#005CC5"> 1024</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">/** 一次检索最多返回的命中块数。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> MAX_RESULTS</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 4</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 知识库里的一个文档：标题、来源、切块后的段落。 */</span></span>
+<span class="line"><span style="color:#D73A49">interface</span><span style="color:#6F42C1"> RagDoc</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    title</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    source</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    addedAt</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    chunks</span><span style="color:#D73A49">:</span><span style="color:#24292E"> { </span><span style="color:#E36209">start</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">; </span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> }[];</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> docs</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> RagDoc</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 启动时从磁盘恢复知识库；文件不存在等同于空库。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> loadRag</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> value</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">parse</span><span style="color:#24292E">(</span><span style="color:#D73A49">await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(</span><span style="color:#005CC5">RAG_FILE</span><span style="color:#24292E">, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">)) </span><span style="color:#D73A49">as</span><span style="color:#24292E"> { </span><span style="color:#E36209">docs</span><span style="color:#D73A49">?:</span><span style="color:#005CC5"> unknown</span><span style="color:#24292E"> };</span></span>
+<span class="line"><span style="color:#24292E">        docs </span><span style="color:#D73A49">=</span><span style="color:#24292E"> Array.</span><span style="color:#6F42C1">isArray</span><span style="color:#24292E">(value.docs)</span></span>
+<span class="line"><span style="color:#D73A49">            ?</span><span style="color:#24292E"> value.docs.</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">d</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#E36209"> d</span><span style="color:#D73A49"> is</span><span style="color:#6F42C1"> RagDoc</span><span style="color:#D73A49"> =></span><span style="color:#D73A49"> !!</span><span style="color:#24292E">d </span><span style="color:#D73A49">&#x26;&#x26;</span><span style="color:#D73A49"> typeof</span><span style="color:#24292E"> (d </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> RagDoc</span><span style="color:#24292E">).title </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'string'</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> Array.</span><span style="color:#6F42C1">isArray</span><span style="color:#24292E">((d </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> RagDoc</span><span style="color:#24292E">).chunks))</span></span>
+<span class="line"><span style="color:#D73A49">            :</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> ((err </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> NodeJS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ErrnoException</span><span style="color:#24292E">).code </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'ENOENT'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">            docs </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">            return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#D73A49">        throw</span><span style="color:#24292E"> err;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 把 docs 整体写盘。 */</span></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> saveRag</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#6F42C1"> mkdir</span><span style="color:#24292E">(</span><span style="color:#6F42C1">dirname</span><span style="color:#24292E">(</span><span style="color:#005CC5">RAG_FILE</span><span style="color:#24292E">), { recursive: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#6F42C1"> writeFile</span><span style="color:#24292E">(</span><span style="color:#005CC5">RAG_FILE</span><span style="color:#24292E">, </span><span style="color:#032F62">`${</span><span style="color:#005CC5">JSON</span><span style="color:#032F62">.</span><span style="color:#6F42C1">stringify</span><span style="color:#032F62">({ </span><span style="color:#24292E">docs</span><span style="color:#032F62"> }, </span><span style="color:#005CC5">null</span><span style="color:#032F62">, </span><span style="color:#005CC5">2</span><span style="color:#032F62">)</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n</span><span style="color:#032F62">`</span><span style="color:#24292E">, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 采集一个网页（http/https）或本地文件进知识库。全文走内部通道，不经模型上下文；</span></span>
+<span class="line"><span style="color:#6A737D"> * 切块后连同一份索引落盘，之后按 rag_search 检索。重复来源直接跳过。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> addToRag</span><span style="color:#24292E">(</span><span style="color:#E36209">source</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> target</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> source.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">target) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '缺少要采集的来源'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">(</span><span style="color:#D73A49">await</span><span style="color:#6F42C1"> authorize</span><span style="color:#24292E">(</span><span style="color:#032F62">'rag_add'</span><span style="color:#24292E">, </span><span style="color:#032F62">`</span><span style="color:#005CC5">\n</span><span style="color:#032F62">即将把以下内容加入知识库：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">target</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n</span><span style="color:#032F62">确认采集？`</span><span style="color:#24292E">))) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '已取消采集'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (docs.</span><span style="color:#6F42C1">some</span><span style="color:#24292E">((</span><span style="color:#E36209">d</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> d.source </span><span style="color:#D73A49">===</span><span style="color:#24292E"> target)) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '已在知识库中，跳过（重复采集）'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> title</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#032F62">/</span><span style="color:#D73A49">^</span><span style="color:#032F62">https</span><span style="color:#D73A49">?</span><span style="color:#032F62">:</span><span style="color:#22863A;font-weight:bold">\/\/</span><span style="color:#032F62">/</span><span style="color:#D73A49">i</span><span style="color:#24292E">.</span><span style="color:#6F42C1">test</span><span style="color:#24292E">(target)) {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> res</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> fetch</span><span style="color:#24292E">(target, { signal: AbortSignal.</span><span style="color:#6F42C1">timeout</span><span style="color:#24292E">(</span><span style="color:#005CC5">FETCH_TIMEOUT_MS</span><span style="color:#24292E">), redirect: </span><span style="color:#032F62">'follow'</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">res.ok) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> `抓取失败：HTTP ${</span><span style="color:#24292E">res</span><span style="color:#032F62">.</span><span style="color:#24292E">status</span><span style="color:#032F62">} ${</span><span style="color:#24292E">res</span><span style="color:#032F62">.</span><span style="color:#24292E">statusText</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> body</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> res.</span><span style="color:#6F42C1">text</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> isHtml</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> /</span><span style="color:#D73A49">\b</span><span style="color:#032F62">html</span><span style="color:#D73A49">\b</span><span style="color:#032F62">/</span><span style="color:#24292E">.</span><span style="color:#6F42C1">test</span><span style="color:#24292E">(res.headers.</span><span style="color:#6F42C1">get</span><span style="color:#24292E">(</span><span style="color:#032F62">'content-type'</span><span style="color:#24292E">) </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            text </span><span style="color:#D73A49">=</span><span style="color:#24292E"> isHtml </span><span style="color:#D73A49">?</span><span style="color:#6F42C1"> htmlToText</span><span style="color:#24292E">(body) </span><span style="color:#D73A49">:</span><span style="color:#24292E"> body;</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> m</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> isHtml </span><span style="color:#D73A49">?</span><span style="color:#24292E"> body.</span><span style="color:#6F42C1">match</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x3C;title</span><span style="color:#005CC5">[</span><span style="color:#D73A49">^</span><span style="color:#005CC5">>]</span><span style="color:#D73A49">*</span><span style="color:#032F62">>(</span><span style="color:#005CC5">[</span><span style="color:#D73A49">^</span><span style="color:#005CC5">&#x3C;]</span><span style="color:#D73A49">+</span><span style="color:#032F62">)&#x3C;</span><span style="color:#22863A;font-weight:bold">\/</span><span style="color:#032F62">title>/</span><span style="color:#D73A49">i</span><span style="color:#24292E">) </span><span style="color:#D73A49">:</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            title </span><span style="color:#D73A49">=</span><span style="color:#24292E"> m </span><span style="color:#D73A49">?</span><span style="color:#24292E"> m[</span><span style="color:#005CC5">1</span><span style="color:#24292E">].</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">:</span><span style="color:#24292E"> target;</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> file</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> safePath</span><span style="color:#24292E">(target);</span></span>
+<span class="line"><span style="color:#24292E">            text </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(file, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#032F62">/</span><span style="color:#22863A;font-weight:bold">\.</span><span style="color:#032F62">html</span><span style="color:#D73A49">?$</span><span style="color:#032F62">/</span><span style="color:#D73A49">i</span><span style="color:#24292E">.</span><span style="color:#6F42C1">test</span><span style="color:#24292E">(target)) text </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> htmlToText</span><span style="color:#24292E">(text);</span></span>
+<span class="line"><span style="color:#24292E">            title </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> basename</span><span style="color:#24292E">(file);</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#032F62"> `采集失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">text.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">()) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '内容为空，未入库'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (text.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> MAX_DOC_CHARS</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> `内容过大（${</span><span style="color:#24292E">text</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 字符，上限 2MB），未入库`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> chunks</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> chunkEntry</span><span style="color:#24292E">(text, </span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">RAG_CHUNK_SIZE</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    docs.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ title: title.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">120</span><span style="color:#24292E">), source: target, addedAt: </span><span style="color:#D73A49">new</span><span style="color:#6F42C1"> Date</span><span style="color:#24292E">().</span><span style="color:#6F42C1">toISOString</span><span style="color:#24292E">(), chunks });</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#6F42C1"> saveRag</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#032F62"> `已加入知识库：《${</span><span style="color:#24292E">title</span><span style="color:#032F62">.</span><span style="color:#6F42C1">slice</span><span style="color:#032F62">(</span><span style="color:#005CC5">0</span><span style="color:#032F62">, </span><span style="color:#005CC5">120</span><span style="color:#032F62">)</span><span style="color:#032F62">}》共 ${</span><span style="color:#24292E">text</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 字符 / ${</span><span style="color:#24292E">chunks</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 块`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 在知识库里按 BM25 检索相关段落：query 支持自然语言（内部切 bigram token）或空格分隔关键词。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> ragSearch</span><span style="color:#24292E">(</span><span style="color:#E36209">query</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> keywords</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> tokenize</span><span style="color:#24292E">(query).</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">t</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> !</span><span style="color:#005CC5">STOPWORDS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">has</span><span style="color:#24292E">(t));</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (keywords.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '没有命中任何知识块'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> all</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Chunk</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> docs.</span><span style="color:#6F42C1">flatMap</span><span style="color:#24292E">((</span><span style="color:#E36209">doc</span><span style="color:#24292E">, </span><span style="color:#E36209">di</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> doc.chunks.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">c</span><span style="color:#24292E">, </span><span style="color:#E36209">ci</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> ({ entry: di, index: ci, start: c.start, text: c.text })));</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (all.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '知识库还是空的，先用 rag_add 或 /rag add 采集'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> hits</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> all</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">chunk</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> ({ chunk, score: </span><span style="color:#6F42C1">bm25</span><span style="color:#24292E">(chunk.text, keywords, all) }))</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">hit</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> hit.score </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">sort</span><span style="color:#24292E">((</span><span style="color:#E36209">a</span><span style="color:#24292E">, </span><span style="color:#E36209">b</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> b.score </span><span style="color:#D73A49">-</span><span style="color:#24292E"> a.score)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">MAX_RESULTS</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (hits.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '没有命中任何知识块，换个更聚焦的说法再试'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#032F62"> `命中 ${</span><span style="color:#24292E">hits</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 块：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">hits</span></span>
+<span class="line"><span style="color:#032F62">        .</span><span style="color:#6F42C1">map</span><span style="color:#032F62">((</span><span style="color:#005CC5">h</span><span style="color:#032F62">, </span><span style="color:#005CC5">i</span><span style="color:#032F62">) </span><span style="color:#D73A49">=></span><span style="color:#032F62"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> doc</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> docs</span><span style="color:#032F62">[</span><span style="color:#24292E">h</span><span style="color:#032F62">.</span><span style="color:#24292E">chunk</span><span style="color:#032F62">.</span><span style="color:#24292E">entry</span><span style="color:#032F62">];</span></span>
+<span class="line"><span style="color:#D73A49">            return</span><span style="color:#032F62"> `${</span><span style="color:#24292E">i</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 1</span><span style="color:#032F62">}. 《${</span><span style="color:#24292E">doc</span><span style="color:#032F62">.</span><span style="color:#24292E">title</span><span style="color:#032F62">}》第 ${</span><span style="color:#24292E">h</span><span style="color:#032F62">.</span><span style="color:#24292E">chunk</span><span style="color:#032F62">.</span><span style="color:#24292E">index</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 1</span><span style="color:#032F62">} 段：${</span><span style="color:#24292E">h</span><span style="color:#032F62">.</span><span style="color:#24292E">chunk</span><span style="color:#032F62">.</span><span style="color:#24292E">text</span><span style="color:#032F62">.</span><span style="color:#6F42C1">trim</span><span style="color:#032F62">()</span><span style="color:#032F62">}`</span><span style="color:#032F62">;</span></span>
+<span class="line"><span style="color:#032F62">        })</span></span>
+<span class="line"><span style="color:#032F62">        .</span><span style="color:#6F42C1">join</span><span style="color:#032F62">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 知识库总览：文档数、块数、字符数与文档清单，供 /rag 命令直接展示。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> ragStats</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (docs.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '知识库还是空的（用 /rag add 采集，或让模型调用 rag_add）'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> blocks</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> docs.</span><span style="color:#6F42C1">reduce</span><span style="color:#24292E">((</span><span style="color:#E36209">n</span><span style="color:#24292E">, </span><span style="color:#E36209">d</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> n </span><span style="color:#D73A49">+</span><span style="color:#24292E"> d.chunks.</span><span style="color:#005CC5">length</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> chars</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> docs.</span><span style="color:#6F42C1">reduce</span><span style="color:#24292E">((</span><span style="color:#E36209">n</span><span style="color:#24292E">, </span><span style="color:#E36209">d</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> n </span><span style="color:#D73A49">+</span><span style="color:#24292E"> d.chunks.</span><span style="color:#6F42C1">reduce</span><span style="color:#24292E">((</span><span style="color:#E36209">m</span><span style="color:#24292E">, </span><span style="color:#E36209">c</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> m </span><span style="color:#D73A49">+</span><span style="color:#24292E"> c.text.</span><span style="color:#005CC5">length</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">), </span><span style="color:#005CC5">0</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#032F62"> `知识库共 ${</span><span style="color:#24292E">docs</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 个文档 / ${</span><span style="color:#24292E">blocks</span><span style="color:#032F62">} 块 / ${</span><span style="color:#24292E">chars</span><span style="color:#032F62">} 字符：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">docs</span></span>
+<span class="line"><span style="color:#032F62">        .</span><span style="color:#6F42C1">map</span><span style="color:#032F62">((</span><span style="color:#005CC5">d</span><span style="color:#032F62">, </span><span style="color:#005CC5">i</span><span style="color:#032F62">) </span><span style="color:#D73A49">=></span><span style="color:#032F62"> `${</span><span style="color:#24292E">i</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 1</span><span style="color:#032F62">}. 《${</span><span style="color:#24292E">d</span><span style="color:#032F62">.</span><span style="color:#24292E">title</span><span style="color:#032F62">}》（${</span><span style="color:#24292E">d</span><span style="color:#032F62">.</span><span style="color:#24292E">chunks</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 块，${</span><span style="color:#24292E">d</span><span style="color:#032F62">.</span><span style="color:#24292E">source</span><span style="color:#032F62">}）`</span><span style="color:#032F62">)</span></span>
+<span class="line"><span style="color:#032F62">        .</span><span style="color:#6F42C1">join</span><span style="color:#032F62">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 注册 rag 工具：采集（ask）与检索（allow）。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> setupRag</span><span style="color:#24292E">(</span><span style="color:#6F42C1">changed</span><span style="color:#D73A49">:</span><span style="color:#24292E"> () </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> tools</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [</span></span>
+<span class="line"><span style="color:#24292E">        {</span></span>
+<span class="line"><span style="color:#24292E">            name: </span><span style="color:#032F62">'rag_add'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            description: </span><span style="color:#032F62">'把一个网页（http/https）或本地文件采集进知识库：全文切块、建索引，之后用 rag_search 按问检索。采集经过内部通道，正文不进入当前上下文，适合批量灌文档。回答涉及教程、资料前，若发现相关文档没入库，可先采集。默认 ask 策略。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            parameters: {</span></span>
+<span class="line"><span style="color:#24292E">                type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                properties: { source: { type: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, description: </span><span style="color:#032F62">'网页完整 URL（http/https）或仓库内文件路径'</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#24292E">                required: [</span><span style="color:#032F62">'source'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">                additionalProperties: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            run</span><span style="color:#24292E">: (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> addToRag</span><span style="color:#24292E">(</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(args.source </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">()),</span></span>
+<span class="line"><span style="color:#24292E">            authorizes: </span><span style="color:#005CC5">true</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">        {</span></span>
+<span class="line"><span style="color:#24292E">            name: </span><span style="color:#032F62">'rag_search'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            description: </span><span style="color:#032F62">'在知识库里按 BM25 检索相关段落，返回命中块与来源标题。回答涉及项目文档、教程、系列博客、本地资料等知识库内容之前，先调用它找到依据。query 直接用自然语言提问即可，也支持空格分隔关键词。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            parameters: {</span></span>
+<span class="line"><span style="color:#24292E">                type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                properties: { query: { type: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, description: </span><span style="color:#032F62">'要检索的说法，直接写自然语言，如「这套教程 Day 5 做了什么」'</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#24292E">                required: [</span><span style="color:#032F62">'query'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">                additionalProperties: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            run</span><span style="color:#24292E">: (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> ragSearch</span><span style="color:#24292E">(</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(args.query </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">)),</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    ];</span></span>
+<span class="line"><span style="color:#24292E">    tools.</span><span style="color:#6F42C1">forEach</span><span style="color:#24292E">(registerTool);</span></span>
+<span class="line"><span style="color:#6F42C1">    changed</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>三个函数组成主要流程：</p>
+<ol>
+<li><code>addToRag</code> 读取来源，把 HTML 转成纯文本，按 800 字切块并保存；</li>
+<li><code>ragSearch</code> 拆分问题，给所有块打分，返回前四块；</li>
+<li><code>ragStats</code> 汇总文档数、块数和来源，供 <code>/rag</code> 展示。</li>
+</ol>
+<h3 id="43-memoryts复用搜索能力">4.3 memory.ts：复用搜索能力</h3>
+<p><code>chunkEntry</code> 已经支持传入块大小。知识库传入 800，记忆不传参数，继续使用默认的 320：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day14/memory.ts</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> Chunk</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    entry</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    index</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    start</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 按固定窗口 + 重叠把条目切成块；短条目（不超过窗口）就是一块。</span></span>
+<span class="line"><span style="color:#6A737D"> * size 参数供 Day 14 的知识库按更大窗口切文档，省略时沿用记忆的默认窗口。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> chunkEntry</span><span style="color:#24292E">(</span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">entry</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">, </span><span style="color:#E36209">size</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> CHUNK_SIZE</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Chunk</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (text.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> &#x3C;=</span><span style="color:#24292E"> size) </span><span style="color:#D73A49">return</span><span style="color:#24292E"> [{ entry, index: </span><span style="color:#005CC5">0</span><span style="color:#24292E">, start: </span><span style="color:#005CC5">0</span><span style="color:#24292E">, text }];</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> chunks</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Chunk</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> step</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> size </span><span style="color:#D73A49">-</span><span style="color:#005CC5"> CHUNK_OVERLAP</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">let</span><span style="color:#24292E"> start </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; ; start </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> step) {</span></span>
+<span class="line"><span style="color:#24292E">        chunks.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ entry, index: chunks.</span><span style="color:#005CC5">length</span><span style="color:#24292E">, start, text: text.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(start, start </span><span style="color:#D73A49">+</span><span style="color:#24292E"> size) });</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (start </span><span style="color:#D73A49">+</span><span style="color:#24292E"> size </span><span style="color:#D73A49">>=</span><span style="color:#24292E"> text.</span><span style="color:#005CC5">length</span><span style="color:#24292E">) </span><span style="color:#D73A49">break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> chunks;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>tokenize</code>、<code>bm25</code> 和 <code>STOPWORDS</code> 也直接从 <code>memory.ts</code> 导入。<code>rag.ts</code> 不再重复实现分词和打分。</p>
+<h3 id="44-permissionsts-与-toolsts补上接线">4.4 permissions.ts 与 tools.ts：补上接线</h3>
+<p>权限表加入两个工具。采集默认询问，搜索默认允许：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day14/permissions.ts</span></span>
+<span class="line"><span style="color:#6F42C1">    memory_write</span><span style="color:#24292E">: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">    memory_search</span><span style="color:#24292E">: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">    rag_add</span><span style="color:#24292E">: </span><span style="color:#032F62">'ask'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">    rag_search</span><span style="color:#24292E">: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">};</span></span>
+<span class="line"></span></code></pre>
+<p><code>tools.ts</code> 中已有 <code>htmlToText</code>，给它加上 <code>export</code>，<code>rag.ts</code> 就能复用网页转文本的代码。</p>
+<h3 id="45-indexts加载知识库与处理命令">4.5 index.ts：加载知识库与处理命令</h3>
+<p>先引入知识库函数，并在启动时加载数据：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day14/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { addToRag, loadRag, ragStats, setupRag } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './rag.js'</span><span style="color:#24292E">;</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day14/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#6F42C1"> loadRag</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">} </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) {</span></span>
+<span class="line"><span style="color:#24292E">    console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">`知识库读取失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">e</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>然后注册两个 RAG 工具：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day14/index.ts</span></span>
+<span class="line"><span style="color:#6F42C1">setupMemory</span><span style="color:#24292E">(updatePanel);</span></span>
+<span class="line"><span style="color:#6F42C1">setupRag</span><span style="color:#24292E">(updatePanel);</span></span></code></pre>
+<p>最后处理 <code>/rag</code> 命令。无参数时显示总览，<code>add</code> 后可以跟一个或多个来源：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day14/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">        case</span><span style="color:#032F62"> '/rag'</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#24292E">            const args </span><span style="color:#D73A49">=</span><span style="color:#24292E"> line.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#032F62">'/rag'</span><span style="color:#24292E">.</span><span style="color:#005CC5">length</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#6F42C1">            if</span><span style="color:#24292E"> (!</span><span style="color:#E36209">args</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">                tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#6F42C1">ragStats</span><span style="color:#24292E">(), </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            } else </span><span style="color:#6F42C1">if</span><span style="color:#24292E"> (args.startsWith(</span><span style="color:#032F62">'add '</span><span style="color:#24292E">)) {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> sources</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> args.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">4</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">().</span><span style="color:#6F42C1">split</span><span style="color:#24292E">(</span><span style="color:#032F62">/</span><span style="color:#005CC5">\s</span><span style="color:#D73A49">+</span><span style="color:#032F62">/</span><span style="color:#24292E">).</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">(Boolean);</span></span>
+<span class="line"><span style="color:#D73A49">                for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> src</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> sources) {</span></span>
+<span class="line"><span style="color:#D73A49">                    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                        const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> addToRag</span><span style="color:#24292E">(src);</span></span>
+<span class="line"><span style="color:#24292E">                        tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">`[${</span><span style="color:#24292E">result</span><span style="color:#032F62">}]`</span><span style="color:#24292E">, </span><span style="color:#032F62">'tool'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">                    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) {</span></span>
+<span class="line"><span style="color:#24292E">                        tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">`采集失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">e</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">                    }</span></span>
+<span class="line"><span style="color:#24292E">                }</span></span>
+<span class="line"><span style="color:#24292E">            } else {</span></span>
+<span class="line"><span style="color:#24292E">                tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">'用法：/rag add &#x3C;网页 URL 或文件路径>... 采集建库；/rag 查看知识库'</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">            break;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span></code></pre>
+<p>到这里流程连起来了：<code>/rag add</code> 采集文档 → <code>rag_search</code> 找到相关块 → 模型根据带来源的内容回答。</p>
+<h2 id="5-验证">5. 验证</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> typecheck</span></span>
+<span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day14/index.ts</span></span></code></pre>
+<ol>
+<li>新建一篇 HTML 笔记，并在它所在的目录启动本地服务：</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="html"><code><span class="line"><span style="color:#6A737D">&#x3C;!-- notes/day5.html --></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;!</span><span style="color:#22863A">DOCTYPE</span><span style="color:#6F42C1"> html</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">html</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">head</span><span style="color:#24292E">>&#x3C;</span><span style="color:#22863A">title</span><span style="color:#24292E">>Day 5 学习笔记&#x3C;/</span><span style="color:#22863A">title</span><span style="color:#24292E">>&#x3C;/</span><span style="color:#22863A">head</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">body</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">h1</span><span style="color:#24292E">>历史压缩&#x3C;/</span><span style="color:#22863A">h1</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">p</span><span style="color:#24292E">>第一章 历史压缩。触发阈值 MAX_HISTORY_CHARS 默认 4000 字符，压缩保留最近 6 条。&#x3C;/</span><span style="color:#22863A">p</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#6A737D">&#x3C;!-- 再补一些正文，使文章超过 800 字，便于观察切块 --></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;/</span><span style="color:#22863A">body</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;/</span><span style="color:#22863A">html</span><span style="color:#24292E">></span></span></code></pre>
+<ol start="2">
+<li>运行 <code>/rag add http://127.0.0.1:8934/day5.html</code>，输入 <code>y</code> 确认；</li>
+<li>运行 <code>/rag</code>，确认能看到文档标题、块数和来源；</li>
+<li>询问“历史压缩的触发阈值是多少”；</li>
+<li>确认模型调用 <code>rag_search</code>，回答包含 4000，并标出《Day 5 学习笔记》和段号。</li>
+</ol>
+<h2 id="6-没做什么">6. 没做什么</h2>
+<ul>
+<li>不做向量检索和结果重排；</li>
+<li>不支持删除、更新和自动同步文档；</li>
+<li>只按固定字符数切块，不识别标题和章节；</li>
+<li>HTML 只做基础清理，导航和页脚可能留在正文中；</li>
+<li>长期记忆与知识库分别搜索，还没有合并结果。</li>
+</ul>
+<h2 id="7-下一步">7. 下一步</h2>
+<p>现在，Agent 能保存记忆，也能从外部资料中查找答案。下一步可以让它围绕一个目标安排多个步骤，并根据每一步的结果继续执行。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geekagent-day13.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day13 主动记忆</span></a><span></span></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day14";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day14.html";
+const title = "从零实现 GeekAgent —— Day14 轻 RAG 知识库";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

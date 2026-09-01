@@ -1,0 +1,474 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程，用 TypeScript 动手写一个最简单的 Agent/Harness。Day 13 把长期记忆切成小块，用 BM25 找出相关内容，并在每轮对话前自动放进上下文。"><title>从零实现 GeekAgent —— Day13 主动记忆 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.gdZOuXSV.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 项目指令与长期记忆</a></li><li><a href="/post/geekagent-day11.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day11 技能系统（Skills）</a></li><li><a href="/post/geekagent-day12.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day12 代码搜索与网页抓取</a></li><li><a href="/post/geekagent-day13.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day13 主动记忆</a></li><li><a href="/post/geekagent-day14.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day14 轻 RAG 知识库</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day13 主动记忆</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-09-01">2026-09-01</time><span aria-hidden="true">·</span><span>约 11 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-自动唤起和模型自己搜索有什么区别" class="toc-link block text-muted" data-toc-depth="2">0. 自动唤起和模型自己搜索，有什么区别？</a></li><li style="padding-left:0rem"><a href="#1-为什么记住了还要想得起来" class="toc-link block text-muted" data-toc-depth="2">1. 为什么：记住了，还要想得起来</a></li><li style="padding-left:0rem"><a href="#2-目标" class="toc-link block text-muted" data-toc-depth="2">2. 目标</a></li><li style="padding-left:0rem"><a href="#3-设计从一条记忆到一次自动回忆" class="toc-link block text-muted" data-toc-depth="2">3. 设计：从一条记忆到一次自动回忆</a></li><li style="padding-left:0.9rem"><a href="#31-先切块再搜索" class="toc-link block text-muted" data-toc-depth="3">3.1 先切块，再搜索</a></li><li style="padding-left:0.9rem"><a href="#32-用-bm25-排序" class="toc-link block text-muted" data-toc-depth="3">3.2 用 BM25 排序</a></li><li style="padding-left:0.9rem"><a href="#33-在对话前自动唤起" class="toc-link block text-muted" data-toc-depth="3">3.3 在对话前自动唤起</a></li><li style="padding-left:0rem"><a href="#4-实现先效果后实现" class="toc-link block text-muted" data-toc-depth="2">4. 实现：先效果，后实现</a></li><li style="padding-left:0.9rem"><a href="#41-先看效果" class="toc-link block text-muted" data-toc-depth="3">4.1 先看效果</a></li><li style="padding-left:0.9rem"><a href="#42-memoryts切块打分与唤起完整-202-行" class="toc-link block text-muted" data-toc-depth="3">4.2 memory.ts：切块、打分与唤起（完整 202 行）</a></li><li style="padding-left:0.9rem"><a href="#43-chatts接收本轮记忆9-行" class="toc-link block text-muted" data-toc-depth="3">4.3 chat.ts：接收本轮记忆（+9 行）</a></li><li style="padding-left:0.9rem"><a href="#44-indexts在回复前检索" class="toc-link block text-muted" data-toc-depth="3">4.4 index.ts：在回复前检索</a></li><li style="padding-left:0rem"><a href="#5-验证" class="toc-link block text-muted" data-toc-depth="2">5. 验证</a></li><li style="padding-left:0rem"><a href="#6-没做什么" class="toc-link block text-muted" data-toc-depth="2">6. 没做什么</a></li><li style="padding-left:0rem"><a href="#7-下一步" class="toc-link block text-muted" data-toc-depth="2">7. 下一步</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><h1 id="day-13不用提醒也能想起来主动记忆">Day 13：不用提醒，也能想起来——主动记忆</h1>
+<blockquote>
+<p>Day 10 已经能把重要信息存进长期记忆，但模型只有主动调用 <code>memory_search</code> 才能看到它。今天让程序在每轮对话前自动检索，模型一开口就能带上相关记忆。</p>
+</blockquote>
+<h2 id="0-自动唤起和模型自己搜索有什么区别">0. 自动唤起和模型自己搜索，有什么区别？</h2>
+<p>看到“自动唤起”，我们可能会问：已经有 <code>memory_search</code> 了，为什么还要让程序再搜一次？</p>
+<p><code>memory_search</code> 是一个工具。模型必须先意识到“这个问题可能与以前的信息有关”，才会主动调用它。如果模型没有想到这一步，记忆就不会进入上下文。</p>
+<p>自动唤起发生得更早：用户刚发来问题，程序就搜索长期记忆，再把相关内容和问题一起交给模型。它不是替代 <code>memory_search</code>，而是给每轮对话加一次默认回忆。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>手动 <code>memory_search</code></th><th>自动唤起</th></tr></thead><tbody><tr><td>谁发起</td><td>模型</td><td>主程序</td></tr><tr><td>何时发生</td><td>模型决定调用工具时</td><td>每轮对话开始前</td></tr><tr><td>查询内容</td><td>模型整理的关键词</td><td>用户的原始问题</td></tr><tr><td>适合用途</td><td>有目标地继续深挖</td><td>避免模型忘记搜索</td></tr></tbody></table>
+<h2 id="1-为什么记住了还要想得起来">1. 为什么：记住了，还要想得起来</h2>
+<p>Day 10 有两个记忆工具：<code>memory_write</code> 负责保存，<code>memory_search</code> 负责搜索。问题是，搜索要由模型主动发起。模型没想到调用工具，磁盘里即使有答案，也不会出现在当前对话中。</p>
+<p>还有两个搜索问题：</p>
+<ul>
+<li>长记忆只要命中一个词，就会整条返回，里面常常夹着很多无关内容；</li>
+<li>原来的排序只数命中了几个关键词，没有考虑词是否常见、记忆是否过长。</li>
+</ul>
+<p>我们分三步解决：先把长记忆切成小块，再用 BM25 给每块打分，最后在用户提问时自动检索。</p>
+<h2 id="2-目标">2. 目标</h2>
+<ol>
+<li>长记忆在搜索时按 320 字窗口、80 字重叠切块，结果标出“条目 #N、第 M 段”，不再返回整条长文；</li>
+<li>中文问题切成 bigram，英文和数字保留整词，再用 BM25 综合词频、常见程度和块长度排序；</li>
+<li>每轮用户提问到达后先自动搜索，把前五个命中块放进本轮 system prompt；整个过程不依赖模型主动调用 <code>memory_search</code>。</li>
+</ol>
+<p><strong>当天代码行数</strong>：相对 Day 12，源码新增 165 行、删除 31 行，净增 134 行。</p>
+<h2 id="3-设计从一条记忆到一次自动回忆">3. 设计：从一条记忆到一次自动回忆</h2>
+<h3 id="31-先切块再搜索">3.1 先切块，再搜索</h3>
+<p><code>memory.json</code> 仍然保存完整字符串。搜索时，我们临时把每条记忆按 320 字切开，相邻两块重叠 80 字。</p>
+<p>这样做有两个好处：搜索只返回相关的一小段；一句话即使落在切分位置，也会因为重叠而完整出现在其中一块。</p>
+<h3 id="32-用-bm25-排序">3.2 用 BM25 排序</h3>
+<p>搜索文本通常有两条路线：关键词检索和向量检索。</p>
+<p>向量检索先用 embedding 模型把问题和文本变成一组数字，再比较它们在语义上是否接近。它更擅长处理“说法不同、意思相近”的问题，是语义检索的常见方案，但需要额外的 embedding 模型和向量索引。</p>
+<p>BM25 是经典的关键词检索算法，不理解语义，但不需要训练模型。当前知识量只有几十条记忆，用它就能以很少的代码展示完整检索过程。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>BM25 关键词检索</th><th>向量检索</th></tr></thead><tbody><tr><td>比较对象</td><td>查询词与文本词</td><td>查询向量与文本向量</td></tr><tr><td>擅长</td><td>名称、代码、原词命中</td><td>同义表达、语义相近</td></tr><tr><td>额外能力</td><td>分词和打分</td><td>embedding 模型、向量索引</td></tr><tr><td>当前 demo</td><td>采用，零新增服务</td><td>暂不采用</td></tr></tbody></table>
+<p>BM25 的名称来自 Okapi BM25。公式不用背，先理解三条规则：</p>
+<ul>
+<li>查询词在一块里出现得越多，分数越高；</li>
+<li>到处都有的常见词，作用越小；</li>
+<li>内容越长，不能只靠篇幅占便宜。</li>
+</ul>
+<p>自动检索接收的是一句中文提问。中文没有空格，我们把连续中文切成相邻的两个字。例如「历史压缩」会变成「历史」「史压」「压缩」。英文和数字保留完整单词。这种方法叫 bigram，不需要额外的分词库。</p>
+<p>专业中文搜索通常会使用分词器，把句子拆成真正的词；bigram 可能产生「史压」这类没有实际含义的片段。这里选择 bigram，是因为实现短、无需词典，又能比整句匹配覆盖更多说法。它仍是字面检索，不能解决同义词问题。</p>
+<h3 id="33-在对话前自动唤起">3.3 在对话前自动唤起</h3>
+<p>每次收到用户输入，<code>index.ts</code> 先调用 <code>recallMemory</code>。它把问题拆成 token，给所有记忆块打分，再把前几名交给 <code>Chat</code>。<code>Chat</code> 把这些内容追加到本轮 system prompt。</p>
+<p>原来的 <code>memory_search</code> 继续保留。自动唤起负责每轮先找一次，模型需要更明确的关键词时，仍可主动调用工具搜索。</p>
+<h2 id="4-实现先效果后实现">4. 实现：先效果，后实现</h2>
+<h3 id="41-先看效果">4.1 先看效果</h3>
+<p>启动后，先是启动横幅，然后让模型把一段选型过程写进长期记忆：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#808080">GeekAgent Day 13 —— 主动记忆（BM25 分块 + 自动唤起）</span>
+<span style="color:#808080">每轮提问前自动检索长期记忆：相关段落先进入上下文，长记忆只返回命中的块。</span>
+<span style="color:#00cdcd">You › 把上月的技术选型记进长期记忆：历史压缩决定放第五天做，因为上下文长度第一次成为瓶颈；触发阈值 MAX_HISTORY_CHARS 默认 4000 字符，压缩保留最近 6 条，KEEP_RECENT 常量之后一直没改过。多写点背景以便验证分块——这里放一段超过三百二十字的技术背景填充，用来保证这条记忆真的会被切成两块。背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充背景填充。分块按 320 字窗口、80 字重叠走。</span>
+<span style="color:#cdcd00">[调用工具 memory_write → 已记住：把上月的技术选型记进长期记忆：历史压缩决定放第五天做，因为上下文长度第一次成为瓶颈；触发阈值 MAX_HISTORY_CHARS 默认 4000 字符，压缩保留最近 6 条，KEEP_RECENT 常量之后一直没改过。多写点背景以便验证分块——这里放一段超过三百二十字的技术背景填充……]</span>
+<span style="color:#00cdcd">You › 记完啦。咱们当初把历史压缩搁在第五天做，到底是图什么？</span>
+<span style="color:#00cd00">当时把历史压缩放在第五天，是因为上下文长度第一次成为瓶颈。触发阈值是 MAX_HISTORY_CHARS 默认 4000 字符，压缩时保留最近 6 条。</span>
+</pre>
+<p>第二次提问后没有出现 <code>[调用工具 memory_search]</code>。因为用户输入刚到达程序时，相关记忆已经被放进本轮 system prompt，模型不需要再调用工具。</p>
+<p>长记录被切成两块后，面板也会显示块数：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#808080">──── 上下文 ────</span>
+<span style="color:#d4d4d4">…</span>
+<span style="color:#808080">记忆  1 条 / 2 块</span>
+</pre>
+<p>下面从检索主体开始实现。</p>
+<h3 id="42-memoryts切块打分与唤起完整-202-行">4.2 memory.ts：切块、打分与唤起（完整 202 行）</h3>
+<p><code>day13/memory.ts</code> 包含完整的记忆读写与检索代码：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day13/memory.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { mkdir, readFile, writeFile } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:fs/promises'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { dirname, resolve } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:path'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { registerTool, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> Tool } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './tools.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> MEMORY_FILE</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> resolve</span><span style="color:#24292E">(</span><span style="color:#032F62">'.geekagent/memory.json'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6A737D">/** 记忆条目按这个字符窗口切块；检索、返回都以块为单位，长条目也能精确定位到段。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> CHUNK_SIZE</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 320</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">/** 相邻块的字符重叠，避免一句结论恰好被切在块边界上。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> CHUNK_OVERLAP</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 80</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">/** 一次检索最多返回的命中块数，够用又不至于撑爆上下文。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> MAX_RESULTS</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 5</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">/** BM25 平滑参数：k1 越小对词频越敏感，b 越大对长度归一越弱。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> BM25_K1</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 1.2</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> BM25_B</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 0.75</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">/** 查询里的虚词 / 常用字：命中再多也没有区分度，直接忽略。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> const</span><span style="color:#005CC5"> STOPWORDS</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Set</span><span style="color:#24292E">([</span><span style="color:#032F62">'的'</span><span style="color:#24292E">, </span><span style="color:#032F62">'了'</span><span style="color:#24292E">, </span><span style="color:#032F62">'在'</span><span style="color:#24292E">, </span><span style="color:#032F62">'是'</span><span style="color:#24292E">, </span><span style="color:#032F62">'和'</span><span style="color:#24292E">, </span><span style="color:#032F62">'一'</span><span style="color:#24292E">, </span><span style="color:#032F62">'个'</span><span style="color:#24292E">, </span><span style="color:#032F62">'也'</span><span style="color:#24292E">, </span><span style="color:#032F62">'就'</span><span style="color:#24292E">, </span><span style="color:#032F62">'都'</span><span style="color:#24292E">, </span><span style="color:#032F62">'把'</span><span style="color:#24292E">, </span><span style="color:#032F62">'被'</span><span style="color:#24292E">, </span><span style="color:#032F62">'从'</span><span style="color:#24292E">, </span><span style="color:#032F62">'到'</span><span style="color:#24292E">, </span><span style="color:#032F62">'给'</span><span style="color:#24292E">, </span><span style="color:#032F62">'与'</span><span style="color:#24292E">, </span><span style="color:#032F62">'及'</span><span style="color:#24292E">, </span><span style="color:#032F62">'这'</span><span style="color:#24292E">, </span><span style="color:#032F62">'那'</span><span style="color:#24292E">, </span><span style="color:#032F62">'并'</span><span style="color:#24292E">, </span><span style="color:#032F62">'而'</span><span style="color:#24292E">, </span><span style="color:#032F62">'等'</span><span style="color:#24292E">, </span><span style="color:#032F62">'有'</span><span style="color:#24292E">, </span><span style="color:#032F62">'没'</span><span style="color:#24292E">, </span><span style="color:#032F62">'不'</span><span style="color:#24292E">, </span><span style="color:#032F62">'我们'</span><span style="color:#24292E">, </span><span style="color:#032F62">'一个'</span><span style="color:#24292E">, </span><span style="color:#032F62">'可以'</span><span style="color:#24292E">]);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> items</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 一条记忆的一块：记录它属于哪条、条内第几段、原文偏移。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> Chunk</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    entry</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    index</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    start</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 按固定窗口 + 重叠把条目切成块；短条目（不超过窗口）就是一块。</span></span>
+<span class="line"><span style="color:#6A737D"> * size 参数供 Day 14 的知识库按更大窗口切文档，省略时沿用记忆的默认窗口。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> chunkEntry</span><span style="color:#24292E">(</span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">entry</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">, </span><span style="color:#E36209">size</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> CHUNK_SIZE</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Chunk</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (text.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> &#x3C;=</span><span style="color:#24292E"> size) </span><span style="color:#D73A49">return</span><span style="color:#24292E"> [{ entry, index: </span><span style="color:#005CC5">0</span><span style="color:#24292E">, start: </span><span style="color:#005CC5">0</span><span style="color:#24292E">, text }];</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> chunks</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Chunk</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> step</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> size </span><span style="color:#D73A49">-</span><span style="color:#005CC5"> CHUNK_OVERLAP</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">let</span><span style="color:#24292E"> start </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; ; start </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> step) {</span></span>
+<span class="line"><span style="color:#24292E">        chunks.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ entry, index: chunks.</span><span style="color:#005CC5">length</span><span style="color:#24292E">, start, text: text.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(start, start </span><span style="color:#D73A49">+</span><span style="color:#24292E"> size) });</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (start </span><span style="color:#D73A49">+</span><span style="color:#24292E"> size </span><span style="color:#D73A49">>=</span><span style="color:#24292E"> text.</span><span style="color:#005CC5">length</span><span style="color:#24292E">) </span><span style="color:#D73A49">break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> chunks;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 归一化：转小写、空白压成一个空格。查询词直接按子串匹配，省掉分词。 */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> norm</span><span style="color:#24292E">(</span><span style="color:#E36209">s</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> s.</span><span style="color:#6F42C1">toLowerCase</span><span style="color:#24292E">().</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/</span><span style="color:#005CC5">\s</span><span style="color:#D73A49">+</span><span style="color:#032F62">/</span><span style="color:#D73A49">g</span><span style="color:#24292E">, </span><span style="color:#032F62">' '</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 零依赖分词：中文连续段切成字符二元组（bigram），英文 / 数字保留整词。</span></span>
+<span class="line"><span style="color:#6A737D"> * 自然语言提问没有词边界，bigram 是换掉「必须空格分隔关键词」的最小代价。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> tokenize</span><span style="color:#24292E">(</span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> tokens</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> runs</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> norm</span><span style="color:#24292E">(text).</span><span style="color:#6F42C1">match</span><span style="color:#24292E">(</span><span style="color:#032F62">/</span><span style="color:#005CC5">[\u4e00-\u9fa5]</span><span style="color:#D73A49">+|</span><span style="color:#005CC5">[a-z0-9]</span><span style="color:#D73A49">+</span><span style="color:#032F62">/</span><span style="color:#D73A49">g</span><span style="color:#24292E">) </span><span style="color:#D73A49">??</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> run</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> runs) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#032F62">/</span><span style="color:#005CC5">[a-z0-9]</span><span style="color:#032F62">/</span><span style="color:#24292E">.</span><span style="color:#6F42C1">test</span><span style="color:#24292E">(run[</span><span style="color:#005CC5">0</span><span style="color:#24292E">]) </span><span style="color:#D73A49">||</span><span style="color:#24292E"> run.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">            tokens.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(run);</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">let</span><span style="color:#24292E"> i </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; i </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 2</span><span style="color:#D73A49"> &#x3C;=</span><span style="color:#24292E"> run.</span><span style="color:#005CC5">length</span><span style="color:#24292E">; i</span><span style="color:#D73A49">++</span><span style="color:#24292E">) tokens.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(run.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(i, i </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> tokens;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 统计 term 在 text 中连续出现的次数（不重叠计数）。 */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> termCount</span><span style="color:#24292E">(</span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">term</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> n </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">, i </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    while</span><span style="color:#24292E"> ((i </span><span style="color:#D73A49">=</span><span style="color:#24292E"> text.</span><span style="color:#6F42C1">indexOf</span><span style="color:#24292E">(term, i)) </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">        n</span><span style="color:#D73A49">++</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        i </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> term.</span><span style="color:#005CC5">length</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> n;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * BM25-lite：每个查询词按「tf × 平滑 idf」贡献分数，再用文档长度做归一。</span></span>
+<span class="line"><span style="color:#6A737D"> * df 越大（出现越广的词）idf 越小，长块因为词频被摊薄也不会白白占优。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> bm25</span><span style="color:#24292E">(</span><span style="color:#E36209">chunk</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">query</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[], </span><span style="color:#E36209">all</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Chunk</span><span style="color:#24292E">[])</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> n</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> all.</span><span style="color:#005CC5">length</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> avgdl</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> all.</span><span style="color:#6F42C1">reduce</span><span style="color:#24292E">((</span><span style="color:#E36209">s</span><span style="color:#24292E">, </span><span style="color:#E36209">c</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> s </span><span style="color:#D73A49">+</span><span style="color:#6F42C1"> norm</span><span style="color:#24292E">(c.text).</span><span style="color:#005CC5">length</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">) </span><span style="color:#D73A49">/</span><span style="color:#24292E"> n;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> doc</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> norm</span><span style="color:#24292E">(chunk);</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> dl</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> doc.</span><span style="color:#005CC5">length</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> score </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> t</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> query) {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> df</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> all.</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">c</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> norm</span><span style="color:#24292E">(c.text).</span><span style="color:#6F42C1">includes</span><span style="color:#24292E">(t)).</span><span style="color:#005CC5">length</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> idf</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> Math.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> (n </span><span style="color:#D73A49">-</span><span style="color:#24292E"> df </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 0.5</span><span style="color:#24292E">) </span><span style="color:#D73A49">/</span><span style="color:#24292E"> (df </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 0.5</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> tf</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> termCount</span><span style="color:#24292E">(doc, t);</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> normed</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> (tf </span><span style="color:#D73A49">*</span><span style="color:#24292E"> (</span><span style="color:#005CC5">BM25_K1</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">)) </span><span style="color:#D73A49">/</span><span style="color:#24292E"> (tf </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> BM25_K1</span><span style="color:#D73A49"> *</span><span style="color:#24292E"> (</span><span style="color:#005CC5">1</span><span style="color:#D73A49"> -</span><span style="color:#005CC5"> BM25_B</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> BM25_B</span><span style="color:#D73A49"> *</span><span style="color:#24292E"> (dl </span><span style="color:#D73A49">/</span><span style="color:#24292E"> avgdl)));</span></span>
+<span class="line"><span style="color:#24292E">        score </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> idf </span><span style="color:#D73A49">*</span><span style="color:#24292E"> normed;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> score;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 对 query tokens 做 BM25 检索，返回命中的 top-k 块；一个都没有就返回空串。 */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> topHits</span><span style="color:#24292E">(</span><span style="color:#E36209">query</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[], </span><span style="color:#E36209">chunks</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Chunk</span><span style="color:#24292E">[])</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Chunk</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> chunks</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">chunk</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> ({ chunk, score: </span><span style="color:#6F42C1">bm25</span><span style="color:#24292E">(chunk.text, query, chunks) }))</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">hit</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> hit.score </span><span style="color:#D73A49">></span><span style="color:#005CC5"> 0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">sort</span><span style="color:#24292E">((</span><span style="color:#E36209">a</span><span style="color:#24292E">, </span><span style="color:#E36209">b</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> b.score </span><span style="color:#D73A49">-</span><span style="color:#24292E"> a.score)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">MAX_RESULTS</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">hit</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> hit.chunk);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 把命中块排成「条目 #N，第 M 段：内容」的可读列表，模型和用户看同一份。 */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> formatHits</span><span style="color:#24292E">(</span><span style="color:#E36209">hits</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Chunk</span><span style="color:#24292E">[])</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> hits.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">c</span><span style="color:#24292E">, </span><span style="color:#E36209">i</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#032F62"> `${</span><span style="color:#24292E">i</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 1</span><span style="color:#032F62">}. （条目 #${</span><span style="color:#24292E">c</span><span style="color:#032F62">.</span><span style="color:#24292E">entry</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 1</span><span style="color:#032F62">}，第 ${</span><span style="color:#24292E">c</span><span style="color:#032F62">.</span><span style="color:#24292E">index</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 1</span><span style="color:#032F62">} 段）${</span><span style="color:#24292E">c</span><span style="color:#032F62">.</span><span style="color:#24292E">text</span><span style="color:#032F62">.</span><span style="color:#6F42C1">trim</span><span style="color:#032F62">()</span><span style="color:#032F62">}`</span><span style="color:#24292E">).</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 按 BM25 打分检索记忆块（手动调用）：query 是空格分隔的关键词。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> searchMemory</span><span style="color:#24292E">(</span><span style="color:#E36209">query</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> keywords</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> query.</span><span style="color:#6F42C1">toLowerCase</span><span style="color:#24292E">().</span><span style="color:#6F42C1">split</span><span style="color:#24292E">(</span><span style="color:#032F62">/</span><span style="color:#005CC5">\s</span><span style="color:#D73A49">+</span><span style="color:#032F62">/</span><span style="color:#24292E">).</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">w</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> w </span><span style="color:#D73A49">&#x26;&#x26;</span><span style="color:#D73A49"> !</span><span style="color:#005CC5">STOPWORDS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">has</span><span style="color:#24292E">(w));</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (keywords.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '没有找到相关记忆'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> chunks</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> items.</span><span style="color:#6F42C1">flatMap</span><span style="color:#24292E">((</span><span style="color:#E36209">item</span><span style="color:#24292E">, </span><span style="color:#E36209">entry</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> chunkEntry</span><span style="color:#24292E">(item, entry));</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (chunks.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '没有找到相关记忆'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> hits</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> topHits</span><span style="color:#24292E">(keywords, chunks);</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> hits.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> `找到 ${</span><span style="color:#24292E">hits</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 条相关记忆：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#6F42C1">formatHits</span><span style="color:#032F62">(</span><span style="color:#24292E">hits</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> '没有找到相关记忆'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 每轮对话前的自动唤起：把用户原话直接切成 bigram token 再检索，命中就以「自动唤起记忆」</span></span>
+<span class="line"><span style="color:#6A737D"> * 的形式拼进 system prompt——模型不用记得自己去查，提问的同时相关记忆已在案头。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> recallMemory</span><span style="color:#24292E">(</span><span style="color:#E36209">rawText</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> keywords</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> tokenize</span><span style="color:#24292E">(rawText).</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">t</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> !</span><span style="color:#005CC5">STOPWORDS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">has</span><span style="color:#24292E">(t));</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (keywords.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> chunks</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> items.</span><span style="color:#6F42C1">flatMap</span><span style="color:#24292E">((</span><span style="color:#E36209">item</span><span style="color:#24292E">, </span><span style="color:#E36209">entry</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> chunkEntry</span><span style="color:#24292E">(item, entry));</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (chunks.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> hits</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> topHits</span><span style="color:#24292E">(keywords, chunks);</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> hits.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> `自动唤起 ${</span><span style="color:#24292E">hits</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 条相关记忆（供参考）：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#6F42C1">formatHits</span><span style="color:#032F62">(</span><span style="color:#24292E">hits</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 磁盘格式保持 string[] 不变，读、写、内存态三处一致。 */</span></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> saveToDisk</span><span style="color:#24292E">(</span><span style="color:#E36209">next</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[])</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#6F42C1"> mkdir</span><span style="color:#24292E">(</span><span style="color:#6F42C1">dirname</span><span style="color:#24292E">(</span><span style="color:#005CC5">MEMORY_FILE</span><span style="color:#24292E">), { recursive: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#6F42C1"> writeFile</span><span style="color:#24292E">(</span><span style="color:#005CC5">MEMORY_FILE</span><span style="color:#24292E">, </span><span style="color:#032F62">`${</span><span style="color:#005CC5">JSON</span><span style="color:#032F62">.</span><span style="color:#6F42C1">stringify</span><span style="color:#032F62">(</span><span style="color:#24292E">next</span><span style="color:#032F62">, </span><span style="color:#005CC5">null</span><span style="color:#032F62">, </span><span style="color:#005CC5">2</span><span style="color:#032F62">)</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n</span><span style="color:#032F62">`</span><span style="color:#24292E">, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    items </span><span style="color:#D73A49">=</span><span style="color:#24292E"> next;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 启动时从磁盘恢复长期记忆；文件不存在等同于还没有记忆。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> loadMemory</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> value</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">parse</span><span style="color:#24292E">(</span><span style="color:#D73A49">await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(</span><span style="color:#005CC5">MEMORY_FILE</span><span style="color:#24292E">, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">)) </span><span style="color:#D73A49">as</span><span style="color:#005CC5"> unknown</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">Array.</span><span style="color:#6F42C1">isArray</span><span style="color:#24292E">(value) </span><span style="color:#D73A49">||</span><span style="color:#24292E"> value.</span><span style="color:#6F42C1">some</span><span style="color:#24292E">((</span><span style="color:#E36209">item</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> typeof</span><span style="color:#24292E"> item </span><span style="color:#D73A49">!==</span><span style="color:#032F62"> 'string'</span><span style="color:#24292E">)) {</span></span>
+<span class="line"><span style="color:#D73A49">            throw</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(</span><span style="color:#032F62">'memory.json 必须是字符串数组'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">        items </span><span style="color:#D73A49">=</span><span style="color:#24292E"> value.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">item</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> item.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">()).</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">(Boolean);</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> ((err </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> NodeJS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ErrnoException</span><span style="color:#24292E">).code </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'ENOENT'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">            items </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">            return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#D73A49">        throw</span><span style="color:#24292E"> err;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 注册写记忆 / 检索记忆工具。写入仍是整条落盘，chunks 在检索时按需切出。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> setupMemory</span><span style="color:#24292E">(</span><span style="color:#6F42C1">changed</span><span style="color:#D73A49">:</span><span style="color:#24292E"> () </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> tools</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [</span></span>
+<span class="line"><span style="color:#24292E">        {</span></span>
+<span class="line"><span style="color:#24292E">            name: </span><span style="color:#032F62">'memory_write'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            description: </span><span style="color:#032F62">'把值得跨会话保留的用户偏好、项目事实或重要决定写入长期记忆。支持存多段长文，检索时会按块命中、返回相关段落。不要记录临时任务进度或可随时从文件读到的内容。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            parameters: {</span></span>
+<span class="line"><span style="color:#24292E">                type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                properties: { content: { type: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, description: </span><span style="color:#032F62">'一条脱离当前对话也能独立理解的事实，可以是一段长文'</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#24292E">                required: [</span><span style="color:#032F62">'content'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">                additionalProperties: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> content</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.content </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">content) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '缺少参数 content'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> entry</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> content.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, </span><span style="color:#005CC5">4000</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (items.</span><span style="color:#6F42C1">includes</span><span style="color:#24292E">(entry)) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '这条记忆已经存在'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                await</span><span style="color:#6F42C1"> saveToDisk</span><span style="color:#24292E">([</span><span style="color:#D73A49">...</span><span style="color:#24292E">items, entry]);</span></span>
+<span class="line"><span style="color:#6F42C1">                changed</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#24292E"> entry.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> &#x3C;</span><span style="color:#24292E"> content.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> `已记住（过长已截短）：${</span><span style="color:#24292E">entry</span><span style="color:#032F62">}`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> `已记住：${</span><span style="color:#24292E">entry</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">        {</span></span>
+<span class="line"><span style="color:#24292E">            name: </span><span style="color:#032F62">'memory_search'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            description: </span><span style="color:#032F62">'按 BM25 打分检索长期记忆，返回命中的记忆块（精确到段）。需要回忆用户偏好、项目事实或以前的决定时调用；query 使用一个或多个空格分隔的关键词，如“博客 人称”。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            parameters: {</span></span>
+<span class="line"><span style="color:#24292E">                type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                properties: { query: { type: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, description: </span><span style="color:#032F62">'搜索关键词，多个词用空格分隔，关键词越聚焦命中越准'</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#24292E">                required: [</span><span style="color:#032F62">'query'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">                additionalProperties: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            run</span><span style="color:#24292E">: (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> searchMemory</span><span style="color:#24292E">(</span><span style="color:#6F42C1">String</span><span style="color:#24292E">(args.query </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">)),</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    ];</span></span>
+<span class="line"><span style="color:#24292E">    tools.</span><span style="color:#6F42C1">forEach</span><span style="color:#24292E">(registerTool);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 记忆块总数，供面板展示「N 条 / M 块」，让人一眼看到分块生效了。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> memoryBlocks</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> items.</span><span style="color:#6F42C1">reduce</span><span style="color:#24292E">((</span><span style="color:#E36209">n</span><span style="color:#24292E">, </span><span style="color:#E36209">item</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> n </span><span style="color:#D73A49">+</span><span style="color:#6F42C1"> chunkEntry</span><span style="color:#24292E">(item, </span><span style="color:#005CC5">0</span><span style="color:#24292E">).</span><span style="color:#005CC5">length</span><span style="color:#24292E">, </span><span style="color:#005CC5">0</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> listMemories</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> readonly</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> items;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>代码按一条直线工作：</p>
+<ol>
+<li><code>chunkEntry</code> 把长记忆切成有重叠的小块；</li>
+<li><code>tokenize</code> 把问题拆成可匹配的 token；</li>
+<li><code>bm25</code> 给每个块打分，<code>topHits</code> 取前五名；</li>
+<li><code>recallMemory</code> 把命中块排成一段文字，准备放入 system prompt。</li>
+</ol>
+<p>写入时仍保存完整记忆，只有搜索时才切块。因此 <code>.geekagent/memory.json</code> 的格式没有变化。</p>
+<h3 id="43-chatts接收本轮记忆9-行">4.3 chat.ts：接收本轮记忆（+9 行）</h3>
+<p><code>Chat</code> 新增一个字段保存本轮命中的记忆，并通过 <code>setRecall</code> 接收内容：</p>
+<p>字段与 setter：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day13/chat.ts</span></span>
+<span class="line"><span style="color:#24292E">  private skillInstructions </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">  /** Day 13：每轮用户输入触发的自动唤起记忆，拼进本轮 system prompt；空串表示无唤起。 */</span></span>
+<span class="line"><span style="color:#24292E">  private recalled </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day13/chat.ts</span></span>
+<span class="line"><span style="color:#6A737D">  /** Day 13：挂上本轮自动唤起的记忆文本；主程序在每次用户提问前调用，空串表示无唤起。 */</span></span>
+<span class="line"><span style="color:#6F42C1">  setRecall</span><span style="color:#24292E">(text: string): </span><span style="color:#D73A49">void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">    this</span><span style="color:#24292E">.recalled </span><span style="color:#D73A49">=</span><span style="color:#24292E"> text;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<p><code>systemPrompt()</code> 是每轮请求必走的，把唤起文本按需拼到最末：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day13/chat.ts</span></span>
+<span class="line"><span style="color:#6A737D">  /** 组装 system prompt：任务基石 + 项目指令 + 技能指令 + 自动唤起记忆。 */</span></span>
+<span class="line"><span style="color:#24292E">  private </span><span style="color:#6F42C1">systemPrompt</span><span style="color:#24292E">(): string {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> skill</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.skillInstructions.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> recall</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.recalled.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">      `${</span><span style="color:#005CC5">AGENT_SYSTEM</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n\n</span><span style="color:#032F62">项目指令（AGENTS.md）：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#005CC5">this</span><span style="color:#032F62">.</span><span style="color:#24292E">instructions</span><span style="color:#D73A49"> ||</span><span style="color:#032F62"> '暂无'}`</span><span style="color:#D73A49"> +</span></span>
+<span class="line"><span style="color:#24292E">      (skill </span><span style="color:#D73A49">?</span><span style="color:#032F62"> `</span><span style="color:#005CC5">\n\n</span><span style="color:#032F62">技能指令：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">skill</span><span style="color:#032F62">}`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''</span><span style="color:#24292E">) </span><span style="color:#D73A49">+</span></span>
+<span class="line"><span style="color:#24292E">      (recall </span><span style="color:#D73A49">?</span><span style="color:#032F62"> `</span><span style="color:#005CC5">\n\n</span><span style="color:#032F62">自动唤起长期记忆（仅供本轮参考，可能有噪声，涉及重要事实请与用户确认）：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">recall</span><span style="color:#032F62">}`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    );</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<p><code>systemPrompt()</code> 在每次请求前重新组装，因此这些记忆会在本轮对话中一直可见。</p>
+<h3 id="44-indexts在回复前检索">4.4 index.ts：在回复前检索</h3>
+<p>先引入 <code>recallMemory</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day13/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { listMemories, loadMemory, memoryBlocks, recallMemory, setupMemory } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './memory.js'</span><span style="color:#24292E">;</span></span></code></pre>
+<p>面板同时显示记忆条数和切块数：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day13/index.ts</span></span>
+<span class="line"><span style="color:#032F62">        `记忆  ${</span><span style="color:#6F42C1">listMemories</span><span style="color:#032F62">().</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 条 / ${</span><span style="color:#6F42C1">memoryBlocks</span><span style="color:#032F62">()</span><span style="color:#032F62">} 块`</span><span style="color:#24292E">,</span></span></code></pre>
+<p>最后在 <code>reply()</code> 开头检索，并把结果交给 <code>Chat</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day13/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> reply</span><span style="color:#24292E">(</span><span style="color:#E36209">line</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#24292E">    usage.round </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    chat.</span><span style="color:#6F42C1">setRecall</span><span style="color:#24292E">(</span><span style="color:#6F42C1">recallMemory</span><span style="color:#24292E">(line)); </span><span style="color:#6A737D">// 自动唤起：用户一开口，相关记忆先进 system prompt</span></span></code></pre>
+<p>至此流程连起来了：用户提问 → 检索记忆 → 写入 system prompt → 模型回答。</p>
+<h2 id="5-验证">5. 验证</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> typecheck</span></span>
+<span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day13/index.ts</span></span></code></pre>
+<ol>
+<li>让模型保存一段超过 320 字、包含「压缩阈值 4000」的记忆；</li>
+<li>确认面板显示 1 条记忆和至少 2 个块；</li>
+<li>重启程序，换一种说法询问压缩阈值；</li>
+<li>确认回答包含 4000，且没有调用 <code>memory_search</code>；</li>
+<li>用 <code>/memory</code> 查看，确认磁盘中保存的仍是一条完整记忆。</li>
+</ol>
+<h2 id="6-没做什么">6. 没做什么</h2>
+<ul>
+<li>不做向量检索，只按文字是否相近来搜索；</li>
+<li>不支持修改、删除和合并记忆；</li>
+<li>不记录记忆的时间，也不会判断内容是否过期；</li>
+<li>bigram 不理解同义词，换一种完全不同的说法可能搜不到。</li>
+</ul>
+<h2 id="7-下一步">7. 下一步</h2>
+<p>现在，Agent 会自动想起保存过的信息。下一步，我们把同样的切块和搜索方法用到教程、接口说明等外部文档中，让 Agent 能从一批资料里找到答案。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geekagent-day12.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day12 代码搜索与网页抓取</span></a><a href="/post/geekagent-day14.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day14 轻 RAG 知识库</span></a></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day13";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day13.html";
+const title = "从零实现 GeekAgent —— Day13 主动记忆";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

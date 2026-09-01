@@ -1,0 +1,535 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程，用 TypeScript 动手写一个最简单的 Agent/Harness。Day 11 把任务指令和工具打包成技能，支持按需加载、卸载，并控制模型当前能看到哪些工具。"><title>从零实现 GeekAgent —— Day11 技能系统（Skills） · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.gdZOuXSV.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 项目指令与长期记忆</a></li><li><a href="/post/geekagent-day11.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day11 技能系统（Skills）</a></li><li><a href="/post/geekagent-day12.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day12 代码搜索与网页抓取</a></li><li><a href="/post/geekagent-day13.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day13 主动记忆</a></li><li><a href="/post/geekagent-day14.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day14 轻 RAG 知识库</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day11 技能系统（Skills）</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-08-30">2026-08-30</time><span aria-hidden="true">·</span><span>约 12 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-skills-是加强版的-prompt-吗" class="toc-link block text-muted" data-toc-depth="2">0. skills 是加强版的 prompt 吗？</a></li><li style="padding-left:0rem"><a href="#1-为什么不同任务需要不同的工具" class="toc-link block text-muted" data-toc-depth="2">1. 为什么：不同任务需要不同的工具</a></li><li style="padding-left:0rem"><a href="#2-目标" class="toc-link block text-muted" data-toc-depth="2">2. 目标</a></li><li style="padding-left:0rem"><a href="#3-设计技能的目录工具与状态" class="toc-link block text-muted" data-toc-depth="2">3. 设计：技能的目录、工具与状态</a></li><li style="padding-left:0.9rem"><a href="#31-一个技能就是一个目录" class="toc-link block text-muted" data-toc-depth="3">3.1 一个技能就是一个目录</a></li><li style="padding-left:0.9rem"><a href="#32-工具有两个来源" class="toc-link block text-muted" data-toc-depth="3">3.2 工具有两个来源</a></li><li style="padding-left:0.9rem"><a href="#33-同一时间只加载一个技能" class="toc-link block text-muted" data-toc-depth="3">3.3 同一时间只加载一个技能</a></li><li style="padding-left:0rem"><a href="#4-实现先效果后实现" class="toc-link block text-muted" data-toc-depth="2">4. 实现：先效果，后实现</a></li><li style="padding-left:0.9rem"><a href="#41-先看效果" class="toc-link block text-muted" data-toc-depth="3">4.1 先看效果</a></li><li style="padding-left:0.9rem"><a href="#42-skillsts加载与卸载技能" class="toc-link block text-muted" data-toc-depth="3">4.2 skills.ts：加载与卸载技能</a></li><li style="padding-left:0.9rem"><a href="#43-两个内置技能" class="toc-link block text-muted" data-toc-depth="3">4.3 两个内置技能</a></li><li style="padding-left:0.9rem"><a href="#44-toolsts控制工具是否可见" class="toc-link block text-muted" data-toc-depth="3">4.4 tools.ts：控制工具是否可见</a></li><li style="padding-left:0.9rem"><a href="#45-permissionsts补充工具权限" class="toc-link block text-muted" data-toc-depth="3">4.5 permissions.ts：补充工具权限</a></li><li style="padding-left:0.9rem"><a href="#46-chatts加入技能指令" class="toc-link block text-muted" data-toc-depth="3">4.6 chat.ts：加入技能指令</a></li><li style="padding-left:0.9rem"><a href="#47-indexts接入命令与面板" class="toc-link block text-muted" data-toc-depth="3">4.7 index.ts：接入命令与面板</a></li><li style="padding-left:0rem"><a href="#5-验证" class="toc-link block text-muted" data-toc-depth="2">5. 验证</a></li><li style="padding-left:0rem"><a href="#6-没做什么" class="toc-link block text-muted" data-toc-depth="2">6. 没做什么</a></li><li style="padding-left:0rem"><a href="#7-下一步" class="toc-link block text-muted" data-toc-depth="2">7. 下一步</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><h1 id="day-11按任务切换指令和工具技能系统skills">Day 11：按任务切换指令和工具——技能系统（Skills）</h1>
+<blockquote>
+<p>Day 10 已经能加载项目指令。今天把一段任务指令和一组工具放在同一个目录里，做成可以随时加载和卸载的技能。</p>
+</blockquote>
+<h2 id="0-skills-是加强版的-prompt-吗">0. skills 是加强版的 prompt 吗？</h2>
+<p>刚听到「技能」这个词，我们很容易产生一个疑问：这不就是一段更长的 prompt 吗？项目里已经有 <code>AGENTS.md</code>，为什么还要再做 skills？</p>
+<p>两者都能给模型指令，但解决的问题不同：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th><code>AGENTS.md</code></th><th>skills</th></tr></thead><tbody><tr><td>作用范围</td><td>整个项目</td><td>当前任务</td></tr><tr><td>生效时间</td><td>每轮请求都加载</td><td>用 <code>/use</code> 加载，<code>/unuse</code> 卸载</td></tr><tr><td>包含内容</td><td>项目指令</td><td>任务指令和工具</td></tr><tr><td>工具控制</td><td>不改变工具列表</td><td>可以增加或筛选工具</td></tr></tbody></table>
+<p>例如，在 <code>AGENTS.md</code> 中写“只读代码，不要修改”，模型仍然能看到 <code>write</code> 和 <code>patch</code>。这是一条行为要求。</p>
+<p>如果加载 <code>explore</code> 技能，程序只把 <code>ls</code>、<code>glob</code> 和 <code>read</code> 发给模型。此时模型看不到修改工具。另一边，<code>code-review</code> 技能还能带上原本不存在的 <code>git_diff</code>。</p>
+<p>所以，<code>AGENTS.md</code> 负责项目长期规则，skills 负责当前任务的指令和能力。理解这个区别后，我们再看为什么需要技能。</p>
+<h2 id="1-为什么不同任务需要不同的工具">1. 为什么：不同任务需要不同的工具</h2>
+<p>具体任务会有不同的做法。代码审查需要先看 diff，只读浏览只需要查看目录和文件。如果把这些要求都写进 <code>AGENTS.md</code>，项目指令会越来越长，模型每轮都要读取与当前任务无关的内容。</p>
+<p>更合适的做法是按任务拆开：加载代码审查技能时增加 <code>git_diff</code>，加载只读技能时只向模型提供三个只读工具。</p>
+<p>因此，一个技能解决两件事：告诉模型怎么完成当前任务，并决定模型完成任务时能用哪些工具。</p>
+<h2 id="2-目标">2. 目标</h2>
+<ol>
+<li><code>skills/</code> 下每个子目录代表一个技能，<code>SKILL.md</code> 保存描述、内置工具名单和任务指令，可选的 <code>tools.ts</code> 导出技能自带工具；</li>
+<li><code>/use code-review</code> 后，技能指令进入 system prompt，<code>git_diff</code> 加入工具清单；切到 <code>explore</code> 后，模型只看到 <code>ls</code> / <code>glob</code> / <code>read</code>；</li>
+<li><code>/skills</code> 能查看可用技能和当前状态，<code>/unuse</code> 会移除技能工具、清空技能指令并恢复默认工具清单。</li>
+</ol>
+<p><strong>当天代码行数</strong>：相对 Day 10，源码新增 254 行、删除 15 行，净增 239 行。</p>
+<h2 id="3-设计技能的目录工具与状态">3. 设计：技能的目录、工具与状态</h2>
+<h3 id="31-一个技能就是一个目录">3.1 一个技能就是一个目录</h3>
+<p>每个子目录代表一个技能：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="plaintext"><code><span class="line"><span>day11/skills/</span></span>
+<span class="line"><span>├── code-review/</span></span>
+<span class="line"><span>│   ├── SKILL.md        # 描述 + 工具白名单 + 系统提示</span></span>
+<span class="line"><span>│   └── tools.ts        # 该技能自带的工具（可选）</span></span>
+<span class="line"><span>└── explore/</span></span>
+<span class="line"><span>    └── SKILL.md        # 纯指令技能，不带自带工具</span></span></code></pre>
+<p><code>SKILL.md</code> 分成两部分：上半部分记录描述和内置工具名单，下半部分写给模型的任务指令：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="md"><code><span class="line"><span style="color:#6A737D">&#x3C;!-- day11/skills/example/SKILL.md --></span></span>
+<span class="line"><span style="color:#005CC5;font-weight:bold">---</span></span>
+<span class="line"><span style="color:#24292E">description: 以资深工程师视角审查代码改动</span></span>
+<span class="line"><span style="color:#24292E">tools:</span></span>
+<span class="line"><span style="color:#E36209">-</span><span style="color:#24292E"> read</span></span>
+<span class="line"><span style="color:#E36209">-</span><span style="color:#24292E"> glob</span></span>
+<span class="line"><span style="color:#005CC5;font-weight:bold">---</span></span>
+<span class="line"><span style="color:#24292E">你是一名资深代码审查专家。……</span></span></code></pre>
+<p><code>description</code> 显示在 <code>/skills</code> 列表中，<code>tools</code> 表示加载技能后仍可使用的内置工具。</p>
+<p>成熟的技能系统通常还会采用<strong>渐进式加载</strong>：先让模型看到技能名称和简介，选中后再加载完整指令，需要时继续读取脚本、模板或参考资料。这样技能很多时，也不会一次占满上下文。</p>
+<p>这一版先实现最小流程：启动时扫描本地目录，由用户用 <code>/use</code> 选择技能，加载一份 <code>SKILL.md</code> 和可选的 <code>tools.ts</code>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>常见技能系统</th><th>当前 demo</th></tr></thead><tbody><tr><td>选择方式</td><td>模型按描述自动选择</td><td>用户执行 <code>/use</code></td></tr><tr><td>加载方式</td><td>按需逐层加载</td><td>一次加载指令和工具</td></tr><tr><td>可带内容</td><td>指令、工具、脚本、参考资料</td><td>指令和工具</td></tr><tr><td>适用规模</td><td>大量技能长期扩展</td><td>少量本地技能，先讲清原理</td></tr></tbody></table>
+<p>两者的核心相同：把某类任务需要的上下文和能力放在一起。demo 省略自动选择与多层资源，先把加载、限制工具和卸载跑通。</p>
+<h3 id="32-工具有两个来源">3.2 工具有两个来源</h3>
+<p>技能可以同时使用两类工具：</p>
+<ul>
+<li><code>tools.ts</code> 导出技能自带的工具，例如 <code>code-review</code> 的 <code>git_diff</code>；</li>
+<li><code>SKILL.md</code> 的 <code>tools</code> 从内置工具中挑选当前可见的工具。</li>
+</ul>
+<p><code>setVisibleTools</code> 保存当前名单，<code>toOpenAITools()</code> 在把工具发送给模型前进行过滤。没有加载技能时，所有内置工具照常可见。</p>
+<h3 id="33-同一时间只加载一个技能">3.3 同一时间只加载一个技能</h3>
+<p>为了避免两份指令和工具名单互相冲突，同一时间只保留一个技能：</p>
+<ul>
+<li><code>useSkill</code> 先卸载旧技能，再注册新工具、设置可见名单；</li>
+<li><code>unuseSkill</code> 移除技能工具，恢复全部内置工具。</li>
+</ul>
+<p>技能自带工具也经过 Day 8 的权限层，默认使用 <code>ask</code>。</p>
+<h2 id="4-实现先效果后实现">4. 实现：先效果，后实现</h2>
+<h3 id="41-先看效果">4.1 先看效果</h3>
+<p>启动后在 TUI 里看到的流程（颜色用 HTML 还原）：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#808080">GeekAgent Day 11 —— 技能系统</span>
+<span style="color:#808080">可在 day11/skills/ 下看到code-review、explore。想看技能长什么样，/skills 列出来、/use &#x3C;名字> 加载、/unuse 卸载。</span>
+<span style="color:#00cdcd">You › /skills</span>
+<span style="color:#808080">可用技能（skills/ 目录，/use 加载）：</span>
+<span style="color:#808080">  code-review — 以资深工程师视角审查代码改动，先看改动再逐条给意见</span>
+<span style="color:#808080">  explore — 只读助手：只浏览代码与目录，不改动任何文件、不执行命令</span>
+<span style="color:#00cdcd">You › /use code-review</span>
+<span style="color:#cdcd00">已加载技能 code-review（自带工具：git_diff；内置工具：read、glob）</span>
+<span style="color:#00cdcd">You › 我今天的改动还没提交，帮我看看哪里最值得改</span>
+<span style="color:#cdcd00">工具 git_diff 请求执行 [y/N] → y</span>
+<span style="color:#cdcd00">[调用工具 git_diff → 改动了 1 个文件：day11/skills.ts</span>
+<span style="color:#cdcd00">diff --git a/day11/skills.ts b/day11/skills.ts</span>
+<span style="color:#cdcd00">new file mode 100644</span>
+<span style="color:#cdcd00">+import { readdir, readFile } from 'node:fs/promises';</span>
+<span style="color:#cdcd00">…]</span>
+<span style="color:#00cd00">这次改动把技能加载集中在 skills.ts。建议重点检查 useSkill：它先卸载旧技能，再注册新工具并设置可见名单，顺序清楚。当前没有发现阻断性问题。</span>
+<span style="color:#00cdcd">You › /use explore</span>
+<span style="color:#cdcd00">已加载技能 explore（内置工具：ls、glob、read）</span>
+<span style="color:#00cdcd">You › 这个项目有多少行代码？跑几条命令统计下</span>
+<span style="color:#00cd00">我当前只带 ls / glob / read 三个只读工具，没法执行 shell 命令；但可以用 glob 先把代码文件都找出来，再用 read 读几个大文件，给个估算。</span>
+<span style="color:#00cdcd">You › /unuse</span>
+<span style="color:#cdcd00">（已卸载技能，恢复默认行为）</span>
+</pre>
+<p><code>code-review</code> 加载后，模型多了 <code>git_diff</code>。切换到 <code>explore</code> 后，模型只能看到 <code>ls</code>、<code>glob</code> 和 <code>read</code>。这正是技能对工具清单的两种操作：增加和筛选。</p>
+<h3 id="42-skillsts加载与卸载技能">4.2 skills.ts：加载与卸载技能</h3>
+<p>技能系统的主体是 <code>day11/skills.ts</code>，完整代码如下：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day11/skills.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { readdir, readFile } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:fs/promises'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { dirname, join, resolve } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:path'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { fileURLToPath, pathToFileURL } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:url'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { registerTool, setVisibleTools, unregisterTool, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> Tool } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './tools.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { ensureToolPolicy } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './permissions.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> SKILLS_DIR</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> resolve</span><span style="color:#24292E">(</span><span style="color:#6F42C1">dirname</span><span style="color:#24292E">(</span><span style="color:#6F42C1">fileURLToPath</span><span style="color:#24292E">(</span><span style="color:#D73A49">import</span><span style="color:#24292E">.</span><span style="color:#005CC5">meta</span><span style="color:#24292E">.url)), </span><span style="color:#032F62">'skills'</span><span style="color:#24292E">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> Skill</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    description</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    instructions</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">    /** 技能自带工具：加载时注册、卸载时移除，只在技能生效期间可调用。 */</span></span>
+<span class="line"><span style="color:#E36209">    tools</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">[];</span></span>
+<span class="line"><span style="color:#6A737D">    /** SKILL.md 头部声明的内置工具白名单；空数组 = 不收敛工具。 */</span></span>
+<span class="line"><span style="color:#E36209">    builtinTools</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[];</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> skills</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Skill</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> active</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Skill</span><span style="color:#D73A49"> |</span><span style="color:#005CC5"> null</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 解析 SKILL.md：头部 `---` 块里放 description / tools，两条 `---` 之间是指令正文。 */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> parseSkill</span><span style="color:#24292E">(</span><span style="color:#E36209">dir</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">raw</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Skill</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> lines</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> raw.</span><span style="color:#6F42C1">split</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> description </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> builtinTools</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (lines[</span><span style="color:#005CC5">0</span><span style="color:#24292E">]?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">===</span><span style="color:#032F62"> '---'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">        let</span><span style="color:#24292E"> end </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        while</span><span style="color:#24292E"> (end </span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E"> lines.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> lines[end]?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">!==</span><span style="color:#032F62"> '---'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> line</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> lines[end].</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (line.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'description:'</span><span style="color:#24292E">)) description </span><span style="color:#D73A49">=</span><span style="color:#24292E"> line.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#032F62">'description:'</span><span style="color:#24292E">.</span><span style="color:#005CC5">length</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            else</span><span style="color:#D73A49"> if</span><span style="color:#24292E"> (line.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'-'</span><span style="color:#24292E">)) builtinTools.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(line.</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/</span><span style="color:#D73A49">^</span><span style="color:#032F62">-</span><span style="color:#005CC5">\s</span><span style="color:#D73A49">*</span><span style="color:#032F62">/</span><span style="color:#24292E">, </span><span style="color:#032F62">''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#24292E">            end</span><span style="color:#D73A49">++</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">        lines.</span><span style="color:#6F42C1">splice</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, end </span><span style="color:#D73A49">+</span><span style="color:#24292E"> (lines[end]?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">===</span><span style="color:#032F62"> '---'</span><span style="color:#D73A49"> ?</span><span style="color:#005CC5"> 1</span><span style="color:#D73A49"> :</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> { name, description, instructions: lines.</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">(), tools: [], builtinTools };</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 技能目录里可选 tools.ts：导出 tools: Tool[]，作为该技能的自带工具。 */</span></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> loadSkillTools</span><span style="color:#24292E">(</span><span style="color:#E36209">dir</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#6F42C1">Tool</span><span style="color:#24292E">[]> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> file</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> pathToFileURL</span><span style="color:#24292E">(</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(dir, </span><span style="color:#032F62">'tools.ts'</span><span style="color:#24292E">)).href;</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> mod</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> import</span><span style="color:#24292E">(file);</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> (Array.</span><span style="color:#6F42C1">isArray</span><span style="color:#24292E">(mod.tools) </span><span style="color:#D73A49">&#x26;&#x26;</span><span style="color:#24292E"> mod.tools) </span><span style="color:#D73A49">??</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 扫描 skills/ 目录，每个子目录一个技能；解析 / 加载失败的技能直接跳过。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> loadSkills</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#6F42C1">Skill</span><span style="color:#24292E">[]> {</span></span>
+<span class="line"><span style="color:#24292E">    skills </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> entries;</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        entries </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readdir</span><span style="color:#24292E">(</span><span style="color:#005CC5">SKILLS_DIR</span><span style="color:#24292E">, { withFileTypes: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> ((err </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> NodeJS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ErrnoException</span><span style="color:#24292E">).code </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'ENOENT'</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#24292E"> skills;</span></span>
+<span class="line"><span style="color:#D73A49">        throw</span><span style="color:#24292E"> err;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> entry</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> entries) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">entry.</span><span style="color:#6F42C1">isDirectory</span><span style="color:#24292E">()) </span><span style="color:#D73A49">continue</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> dir</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> join</span><span style="color:#24292E">(</span><span style="color:#005CC5">SKILLS_DIR</span><span style="color:#24292E">, entry.name);</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> name</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> entry.name;</span></span>
+<span class="line"><span style="color:#D73A49">        try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> raw</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(dir, </span><span style="color:#032F62">'SKILL.md'</span><span style="color:#24292E">), </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> skill</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> parseSkill</span><span style="color:#24292E">(dir, name, raw);</span></span>
+<span class="line"><span style="color:#24292E">            skill.tools </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> loadSkillTools</span><span style="color:#24292E">(dir);</span></span>
+<span class="line"><span style="color:#24292E">            skills.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(skill);</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#24292E">            console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">`技能 ${</span><span style="color:#24292E">name</span><span style="color:#032F62">} 加载失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> skills;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> listSkills</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> readonly</span><span style="color:#6F42C1"> Skill</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> skills;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> activeSkill</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Skill</span><span style="color:#D73A49"> |</span><span style="color:#005CC5"> null</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> active;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 卸载当前技能自带工具并恢复默认工具可见性；active 置空。 */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> deactivateSkill</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">active) </span><span style="color:#D73A49">return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> tool</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> active.tools) </span><span style="color:#6F42C1">unregisterTool</span><span style="color:#24292E">(tool.name);</span></span>
+<span class="line"><span style="color:#24292E">    active </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6F42C1">    setVisibleTools</span><span style="color:#24292E">(</span><span style="color:#005CC5">null</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 激活技能：先卸掉上一个技能，再注册本技能自带工具，并按 SKILL.md 的白名单</span></span>
+<span class="line"><span style="color:#6A737D"> * 收敛模型可见工具（空名单 = 全部内置工具 + 技能自带工具）。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> useSkill</span><span style="color:#24292E">(</span><span style="color:#E36209">name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> skill</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> skills.</span><span style="color:#6F42C1">find</span><span style="color:#24292E">((</span><span style="color:#E36209">s</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> s.name </span><span style="color:#D73A49">===</span><span style="color:#24292E"> name);</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">skill) </span><span style="color:#D73A49">throw</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(</span><span style="color:#032F62">`未知技能：${</span><span style="color:#24292E">name</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#6F42C1">    deactivateSkill</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> tool</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> skill.tools) {</span></span>
+<span class="line"><span style="color:#6F42C1">        ensureToolPolicy</span><span style="color:#24292E">(tool.name, </span><span style="color:#032F62">'ask'</span><span style="color:#24292E">); </span><span style="color:#6A737D">// 技能工具默认 ask，用户可自行在配置里改 allow</span></span>
+<span class="line"><span style="color:#6F42C1">        registerTool</span><span style="color:#24292E">(tool);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#6F42C1">    setVisibleTools</span><span style="color:#24292E">(skill.builtinTools.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> ?</span><span style="color:#24292E"> [</span><span style="color:#D73A49">...</span><span style="color:#24292E">skill.builtinTools, </span><span style="color:#D73A49">...</span><span style="color:#24292E">skill.tools.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">t</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> t.name)] </span><span style="color:#D73A49">:</span><span style="color:#005CC5"> null</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    active </span><span style="color:#D73A49">=</span><span style="color:#24292E"> skill;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> unuseSkill</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">    deactivateSkill</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>代码可以按四步阅读：</p>
+<ol>
+<li><code>loadSkills</code> 扫描 <code>skills/</code> 下的子目录；</li>
+<li><code>parseSkill</code> 读取 <code>SKILL.md</code> 的描述、工具名单和正文；</li>
+<li><code>useSkill</code> 注册自带工具，并设置模型可见的工具；</li>
+<li><code>unuseSkill</code> 移除自带工具，恢复默认状态。</li>
+</ol>
+<h3 id="43-两个内置技能">4.3 两个内置技能</h3>
+<p>仓库内置两个技能。<code>code-review</code> 展示如何携带自己的工具：</p>
+<p>路径 <code>day11/skills/code-review/SKILL.md</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="md"><code><span class="line"><span style="color:#6A737D">&#x3C;!-- day11/skills/code-review/SKILL.md --></span></span>
+<span class="line"><span style="color:#005CC5;font-weight:bold">---</span></span>
+<span class="line"><span style="color:#24292E">description: 以资深工程师视角审查代码改动，先看改动再逐条给意见</span></span>
+<span class="line"><span style="color:#24292E">tools:</span></span>
+<span class="line"><span style="color:#E36209">-</span><span style="color:#24292E"> read</span></span>
+<span class="line"><span style="color:#E36209">-</span><span style="color:#24292E"> glob</span></span>
+<span class="line"><span style="color:#005CC5;font-weight:bold">---</span></span>
+<span class="line"><span style="color:#24292E">你是资深代码审查专家。审查流程：</span></span>
+<span class="line"><span style="color:#E36209">1.</span><span style="color:#24292E"> 先用 git_diff 拿到当前未提交的改动（技能自带工具，可直接调用），逐文件读 diff，需要上下文时用 read / glob 补看文件，不要凭空猜测。</span></span>
+<span class="line"><span style="color:#E36209">2.</span><span style="color:#24292E"> 按严重程度输出意见：阻断性问题（bug/安全/性能）→ 建议（可读性/边界）→ 可选（风格）。每条给文件:行号和修改建议。</span></span>
+<span class="line"><span style="color:#E36209">3.</span><span style="color:#24292E"> 只审查、不动手修改文件；最后给一句总体结论。</span></span></code></pre>
+<p>它的自带工具在 <code>day11/skills/code-review/tools.ts</code>，完整 27 行，就是一个标准的注册表工具：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day11/skills/code-review/tools.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { exec } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:child_process'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { promisify } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:util'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#D73A49"> type</span><span style="color:#24292E"> { Tool } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> '../../tools.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> execAsync</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> promisify</span><span style="color:#24292E">(exec);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** code-review 技能自带工具：拿到当前未提交的改动，供审查时逐 diff 阅读。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> const</span><span style="color:#005CC5"> tools</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#24292E">        name: </span><span style="color:#032F62">'git_diff'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        description: </span><span style="color:#032F62">'获取当前未提交的代码改动（git diff HEAD），输出文件级摘要与逐行 diff。审查代码时必须先用它看改动。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        parameters: { type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">, properties: {}, additionalProperties: </span><span style="color:#005CC5">false</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> () </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#24292E"> { </span><span style="color:#005CC5">stdout</span><span style="color:#24292E"> } </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> execAsync</span><span style="color:#24292E">(</span><span style="color:#032F62">'git diff HEAD'</span><span style="color:#24292E">, { timeout: </span><span style="color:#005CC5">10_000</span><span style="color:#24292E">, maxBuffer: </span><span style="color:#005CC5">1024</span><span style="color:#D73A49"> *</span><span style="color:#005CC5"> 1024</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">stdout.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">()) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '（当前没有未提交的改动）'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> lines</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> stdout.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">().</span><span style="color:#6F42C1">split</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> files</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> lines.</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">l</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> l.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'diff --git'</span><span style="color:#24292E">)).</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">l</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> l.</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">'diff --git a/'</span><span style="color:#24292E">, </span><span style="color:#032F62">''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/ b</span><span style="color:#22863A;font-weight:bold">\/</span><span style="color:#005CC5">.</span><span style="color:#D73A49">+$</span><span style="color:#032F62">/</span><span style="color:#24292E">, </span><span style="color:#032F62">''</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> head</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> `改动了 ${</span><span style="color:#24292E">files</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 个文件：${</span><span style="color:#24292E">files</span><span style="color:#032F62">.</span><span style="color:#6F42C1">join</span><span style="color:#032F62">(</span><span style="color:#032F62">'、'</span><span style="color:#032F62">)</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n</span><span style="color:#032F62">`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> diff</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> stdout.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 4000</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> `${</span><span style="color:#24292E">stdout</span><span style="color:#032F62">.</span><span style="color:#6F42C1">slice</span><span style="color:#032F62">(</span><span style="color:#005CC5">0</span><span style="color:#032F62">, </span><span style="color:#005CC5">4000</span><span style="color:#032F62">)</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n</span><span style="color:#032F62">...(diff 过长已截断，原 ${</span><span style="color:#24292E">stdout</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 字符)`</span><span style="color:#D73A49"> :</span><span style="color:#24292E"> stdout;</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#24292E"> head </span><span style="color:#D73A49">+</span><span style="color:#24292E"> diff;</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `git diff 失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> NodeJS</span><span style="color:#032F62">.</span><span style="color:#6F42C1">ErrnoException</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span>
+<span class="line"><span style="color:#24292E">];</span></span></code></pre>
+<p>技能工具统一导出为 <code>tools: Tool[]</code>。<code>skills.ts</code> 加载这个数组，再把工具注册到 Day 4 的工具表中。</p>
+<p><code>explore</code> 没有自带工具，只从内置工具中保留三项：</p>
+<p>路径 <code>day11/skills/explore/SKILL.md</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="md"><code><span class="line"><span style="color:#6A737D">&#x3C;!-- day11/skills/explore/SKILL.md --></span></span>
+<span class="line"><span style="color:#005CC5;font-weight:bold">---</span></span>
+<span class="line"><span style="color:#24292E">description: 只读助手：只浏览代码与目录，不改动任何文件、不执行命令</span></span>
+<span class="line"><span style="color:#24292E">tools:</span></span>
+<span class="line"><span style="color:#E36209">-</span><span style="color:#24292E"> ls</span></span>
+<span class="line"><span style="color:#E36209">-</span><span style="color:#24292E"> glob</span></span>
+<span class="line"><span style="color:#E36209">-</span><span style="color:#24292E"> read</span></span>
+<span class="line"><span style="color:#005CC5;font-weight:bold">---</span></span>
+<span class="line"><span style="color:#24292E">你是只读代码浏览助手。访问任何代码前，先用 ls 看目录结构、glob 找文件，再用 read 读内容。</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">硬性界限：</span></span>
+<span class="line"><span style="color:#E36209">-</span><span style="color:#24292E"> 只用 ls / glob / read 三个工具；</span></span>
+<span class="line"><span style="color:#E36209">-</span><span style="color:#24292E"> 绝不调用 run_shell、write、patch，也不修改任何文件；</span></span>
+<span class="line"><span style="color:#E36209">-</span><span style="color:#24292E"> 回答要给出具体文件相对路径，方便用户自己打开确认。</span></span></code></pre>
+<p>加载后，模型收到的工具列表中只有 <code>ls</code>、<code>glob</code> 和 <code>read</code>，因此无法调用修改文件或执行命令的工具。</p>
+<h3 id="44-toolsts控制工具是否可见">4.4 tools.ts：控制工具是否可见</h3>
+<p>工具注册表新增两个操作：删除技能工具，以及设置可见名单。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day11/tools.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 技能卸载时移除它自带的工具，让注册表回到加载前的样子。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> unregisterTool</span><span style="color:#24292E">(</span><span style="color:#E36209">name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> index</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> registry.</span><span style="color:#6F42C1">findIndex</span><span style="color:#24292E">((</span><span style="color:#E36209">t</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> t.name </span><span style="color:#D73A49">===</span><span style="color:#24292E"> name);</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (index </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) registry.</span><span style="color:#6F42C1">splice</span><span style="color:#24292E">(index, </span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 当前可见工具的名单；null 表示全部可见（没有技能激活时）。 */</span></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> visibleTools</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">|</span><span style="color:#005CC5"> null</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 技能激活时把可见工具收敛到技能声明的集合；卸载时传 null 恢复全部工具。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> setVisibleTools</span><span style="color:#24292E">(</span><span style="color:#E36209">names</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">|</span><span style="color:#005CC5"> null</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    visibleTools </span><span style="color:#D73A49">=</span><span style="color:#24292E"> names;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>toOpenAITools</code> 根据名单过滤工具：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day11/tools.ts</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> toOpenAITools</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> ChatCompletionTool</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> registry</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">tool</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> !</span><span style="color:#24292E">visibleTools </span><span style="color:#D73A49">||</span><span style="color:#24292E"> visibleTools.</span><span style="color:#6F42C1">includes</span><span style="color:#24292E">(tool.name))</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">tool</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> ({</span></span>
+<span class="line"><span style="color:#24292E">            type: </span><span style="color:#032F62">'function'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            function: {</span></span>
+<span class="line"><span style="color:#24292E">                name: tool.name,</span></span>
+<span class="line"><span style="color:#24292E">                description: tool.description,</span></span>
+<span class="line"><span style="color:#24292E">                parameters: tool.parameters,</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#24292E">        }));</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>visibleTools</code> 为 <code>null</code> 时返回全部工具，否则只返回名单中的工具。</p>
+<h3 id="45-permissionsts补充工具权限">4.5 permissions.ts：补充工具权限</h3>
+<p>技能工具不在默认配置表中，加载时用 <code>ensureToolPolicy</code> 补上 <code>ask</code>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day11/permissions.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 技能自带的工具不在默认配置里，加载时补一条默认策略（默认 ask），避免被一律 deny 卡死。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> ensureToolPolicy</span><span style="color:#24292E">(</span><span style="color:#E36209">tool</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">policy</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Policy</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (config.tools[tool] </span><span style="color:#D73A49">===</span><span style="color:#005CC5"> undefined</span><span style="color:#24292E">) config.tools[tool] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> policy;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>因此，<code>git_diff</code> 第一次执行前会询问。也可以在 <code>.geekagent/GeekAgent.json</code> 中把它设为 <code>allow</code>。</p>
+<h3 id="46-chatts加入技能指令">4.6 chat.ts：加入技能指令</h3>
+<p><code>Chat</code> 保存当前技能指令，并在组装 system prompt 时追加进去：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day11/chat.ts</span></span>
+<span class="line"><span style="color:#24292E">  private skillInstructions </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  /** Day 11：挂上当前技能的指令，拼接进每次请求的 system prompt；传空串表示无技能。 */</span></span>
+<span class="line"><span style="color:#6F42C1">  setSkillInstructions</span><span style="color:#24292E">(text: string): </span><span style="color:#D73A49">void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">    this</span><span style="color:#24292E">.skillInstructions </span><span style="color:#D73A49">=</span><span style="color:#24292E"> text;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  /** 组装 system prompt：任务基石 + 项目指令 + 技能指令。 */</span></span>
+<span class="line"><span style="color:#24292E">  private </span><span style="color:#6F42C1">systemPrompt</span><span style="color:#24292E">(): string {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> skill</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.skillInstructions.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">      `${</span><span style="color:#005CC5">AGENT_SYSTEM</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n\n</span><span style="color:#032F62">项目指令（AGENTS.md）：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#005CC5">this</span><span style="color:#032F62">.</span><span style="color:#24292E">instructions</span><span style="color:#D73A49"> ||</span><span style="color:#032F62"> '暂无'}`</span><span style="color:#D73A49"> +</span></span>
+<span class="line"><span style="color:#24292E">      (skill </span><span style="color:#D73A49">?</span><span style="color:#032F62"> `</span><span style="color:#005CC5">\n\n</span><span style="color:#032F62">技能指令：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">skill</span><span style="color:#032F62">}`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    );</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span></code></pre>
+<p>最终的 system prompt 依次包含基础指令、项目指令和当前技能指令。</p>
+<h3 id="47-indexts接入命令与面板">4.7 index.ts：接入命令与面板</h3>
+<p>启动时先扫描技能目录：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day11/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> skills</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> loadSkills</span><span style="color:#24292E">();</span></span></code></pre>
+<p>面板显示当前技能，<code>describeActiveSkill</code> 负责列出它携带和保留的工具：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day11/index.ts</span></span>
+<span class="line"><span style="color:#032F62">        `技能  ${</span><span style="color:#6F42C1">activeSkill</span><span style="color:#032F62">()?.</span><span style="color:#24292E">name</span><span style="color:#D73A49"> ??</span><span style="color:#032F62"> '无'}`</span><span style="color:#24292E">,   </span><span style="color:#6A737D">// buildPanel 里的一行</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 描述当前技能带什么工具：自带工具 + 内置工具收敛的白名单，都展示出来。 */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> describeActiveSkill</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> skill</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> activeSkill</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">skill) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '无'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> parts</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (skill.tools.</span><span style="color:#005CC5">length</span><span style="color:#24292E">) parts.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(</span><span style="color:#032F62">`自带工具：${</span><span style="color:#24292E">skill</span><span style="color:#032F62">.</span><span style="color:#24292E">tools</span><span style="color:#032F62">.</span><span style="color:#6F42C1">map</span><span style="color:#032F62">((</span><span style="color:#005CC5">t</span><span style="color:#032F62">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> t</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">).</span><span style="color:#6F42C1">join</span><span style="color:#032F62">(</span><span style="color:#032F62">'、'</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (skill.builtinTools.</span><span style="color:#005CC5">length</span><span style="color:#24292E">) parts.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(</span><span style="color:#032F62">`内置工具：${</span><span style="color:#24292E">skill</span><span style="color:#032F62">.</span><span style="color:#24292E">builtinTools</span><span style="color:#032F62">.</span><span style="color:#6F42C1">join</span><span style="color:#032F62">(</span><span style="color:#032F62">'、'</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> parts.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> `${</span><span style="color:#24292E">skill</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">}（${</span><span style="color:#24292E">parts</span><span style="color:#032F62">.</span><span style="color:#6F42C1">join</span><span style="color:#032F62">(</span><span style="color:#032F62">'；'</span><span style="color:#032F62">)</span><span style="color:#032F62">}）`</span><span style="color:#D73A49"> :</span><span style="color:#24292E"> skill.name;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>三条命令负责查看、加载和卸载。加载时把技能指令交给 <code>Chat</code>，卸载时清空：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day11/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">        case</span><span style="color:#032F62"> '/skills'</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#24292E">            const lines </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> listSkills</span><span style="color:#24292E">().</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">s</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> s.name).</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">s</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#032F62"> `${</span><span style="color:#6F42C1">activeSkill</span><span style="color:#032F62">()?.</span><span style="color:#24292E">name</span><span style="color:#D73A49"> ===</span><span style="color:#24292E"> s</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> '*'</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ' '} ${</span><span style="color:#24292E">s</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">} — ${</span><span style="color:#24292E">s</span><span style="color:#032F62">.</span><span style="color:#24292E">description</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            tui.append(lines.length > </span><span style="color:#005CC5">0</span><span style="color:#24292E"> ? `可用技能（skills/ 目录，/use 加载）：\n${lines.join(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">)}</span><span style="color:#032F62">` : '（skills/ 目录下暂无技能）', 'sys');</span></span>
+<span class="line"><span style="color:#032F62">            break;</span></span>
+<span class="line"><span style="color:#032F62">        }</span></span>
+<span class="line"><span style="color:#032F62">        case '/use':</span></span>
+<span class="line"><span style="color:#032F62">            if (!id) {</span></span>
+<span class="line"><span style="color:#032F62">                tui.append('用法：/use &#x3C;技能名>（/skills 查看可用技能）', 'sys');</span></span>
+<span class="line"><span style="color:#032F62">                break;</span></span>
+<span class="line"><span style="color:#032F62">            }</span></span>
+<span class="line"><span style="color:#032F62">            try {</span></span>
+<span class="line"><span style="color:#032F62">                useSkill(id);</span></span>
+<span class="line"><span style="color:#032F62">                chat.setSkillInstructions(activeSkill()?.instructions ?? '');</span></span>
+<span class="line"><span style="color:#032F62">                tui.append(`</span><span style="color:#24292E">已加载技能 ${describeActiveSkill()}</span><span style="color:#032F62">`, 'tool');</span></span>
+<span class="line"><span style="color:#032F62">            } catch (e) {</span></span>
+<span class="line"><span style="color:#032F62">                tui.append(`</span><span style="color:#24292E">加载失败：${(e as Error).message}</span><span style="color:#032F62">`, 'sys');</span></span>
+<span class="line"><span style="color:#032F62">            }</span></span>
+<span class="line"><span style="color:#032F62">            break;</span></span>
+<span class="line"><span style="color:#032F62">        case '/unuse':</span></span>
+<span class="line"><span style="color:#032F62">            unuseSkill();</span></span>
+<span class="line"><span style="color:#032F62">            chat.setSkillInstructions('');</span></span>
+<span class="line"><span style="color:#032F62">            tui.append('（已卸载技能，恢复默认行为）', 'tool');</span></span>
+<span class="line"><span style="color:#032F62">            break;</span></span></code></pre>
+<p>最后更新启动提示：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day11/index.ts</span></span>
+<span class="line"><span style="color:#24292E">tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">'GeekAgent Day 11 —— 技能系统'</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> skillNames</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> skills.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">s</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> s.name).</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(</span><span style="color:#032F62">'、'</span><span style="color:#24292E">) </span><span style="color:#D73A49">||</span><span style="color:#032F62"> '（暂无）'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">`可在 day11/skills/ 下看到${</span><span style="color:#24292E">skillNames</span><span style="color:#032F62">}。想看技能长什么样，/skills 列出来、/use &#x3C;名字> 加载、/unuse 卸载。`</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span></code></pre>
+<p>完整流程是：启动扫描目录 → <code>/use</code> 加载指令和工具 → 模型执行任务 → <code>/unuse</code> 恢复默认状态。</p>
+<h2 id="5-验证">5. 验证</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> typecheck</span></span>
+<span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day11/index.ts</span></span></code></pre>
+<ol>
+<li>输入 <code>/skills</code>，确认能看到 <code>code-review</code> 和 <code>explore</code>；</li>
+<li>输入 <code>/use code-review</code>，让模型审查未提交改动，确认它能调用 <code>git_diff</code>；</li>
+<li>输入 <code>/use explore</code>，让模型执行 shell，确认它只能使用三个只读工具；</li>
+<li>输入 <code>/unuse</code>，确认面板恢复为“技能 无”。</li>
+</ol>
+<h2 id="6-没做什么">6. 没做什么</h2>
+<ul>
+<li>一次只能加载一个技能；</li>
+<li>当前技能不会随会话保存；</li>
+<li>技能没有独立的权限配置。</li>
+</ul>
+<h2 id="7-下一步">7. 下一步</h2>
+<p>现在，Agent 能根据任务切换指令和工具。下一步补上按内容搜索代码和读取网页的能力，让模型更快找到需要的信息。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geekagent-day10.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day10 项目指令与长期记忆</span></a><a href="/post/geekagent-day12.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day12 代码搜索与网页抓取</span></a></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day11";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day11.html";
+const title = "从零实现 GeekAgent —— Day11 技能系统（Skills）";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>

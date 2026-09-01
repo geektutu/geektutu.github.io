@@ -1,0 +1,407 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程，用 TypeScript 动手写一个最简单的 Agent/Harness。Day 12 新增 `search` 和 `fetch`：一个按内容搜索仓库，一个读取网页并转成纯文本。"><title>从零实现 GeekAgent —— Day12 代码搜索与网页抓取 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.gdZOuXSV.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 项目指令与长期记忆</a></li><li><a href="/post/geekagent-day11.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day11 技能系统（Skills）</a></li><li><a href="/post/geekagent-day12.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day12 代码搜索与网页抓取</a></li><li><a href="/post/geekagent-day13.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day13 主动记忆</a></li><li><a href="/post/geekagent-day14.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day14 轻 RAG 知识库</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day12 代码搜索与网页抓取</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-08-31">2026-08-31</time><span aria-hidden="true">·</span><span>约 9 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#1-为什么知道内容却不知道在哪个文件" class="toc-link block text-muted" data-toc-depth="2">1. 为什么：知道内容，却不知道在哪个文件</a></li><li style="padding-left:0rem"><a href="#2-目标" class="toc-link block text-muted" data-toc-depth="2">2. 目标</a></li><li style="padding-left:0rem"><a href="#3-设计搜索本地读取网页" class="toc-link block text-muted" data-toc-depth="2">3. 设计：搜索本地，读取网页</a></li><li style="padding-left:0.9rem"><a href="#31-search为什么不直接调用-ripgrep" class="toc-link block text-muted" data-toc-depth="3">3.1 search：为什么不直接调用 ripgrep</a></li><li style="padding-left:0.9rem"><a href="#32-fetch为什么不用-html-解析库" class="toc-link block text-muted" data-toc-depth="3">3.2 fetch：为什么不用 HTML 解析库</a></li><li style="padding-left:0.9rem"><a href="#33-沿用工具注册与权限" class="toc-link block text-muted" data-toc-depth="3">3.3 沿用工具注册与权限</a></li><li style="padding-left:0rem"><a href="#4-实现先效果后实现" class="toc-link block text-muted" data-toc-depth="2">4. 实现：先效果，后实现</a></li><li style="padding-left:0.9rem"><a href="#41-先看效果" class="toc-link block text-muted" data-toc-depth="3">4.1 先看效果</a></li><li style="padding-left:0.9rem"><a href="#42-search-工具接收关键词" class="toc-link block text-muted" data-toc-depth="3">4.2 search 工具：接收关键词</a></li><li style="padding-left:0.9rem"><a href="#43-searchtree逐行寻找内容" class="toc-link block text-muted" data-toc-depth="3">4.3 searchTree：逐行寻找内容</a></li><li style="padding-left:0.9rem"><a href="#44-fetch-工具读取并转换网页" class="toc-link block text-muted" data-toc-depth="3">4.4 fetch 工具：读取并转换网页</a></li><li style="padding-left:0.9rem"><a href="#45-permissionsts-与-indexts完成接线" class="toc-link block text-muted" data-toc-depth="3">4.5 permissions.ts 与 index.ts：完成接线</a></li><li style="padding-left:0rem"><a href="#5-验证" class="toc-link block text-muted" data-toc-depth="2">5. 验证</a></li><li style="padding-left:0rem"><a href="#6-没做什么" class="toc-link block text-muted" data-toc-depth="2">6. 没做什么</a></li><li style="padding-left:0rem"><a href="#7-下一步" class="toc-link block text-muted" data-toc-depth="2">7. 下一步</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><h1 id="day-12向内搜索代码向外读取网页代码搜索与-web-抓取">Day 12：向内搜索代码，向外读取网页——代码搜索与 Web 抓取</h1>
+<blockquote>
+<p>Day 11 能按任务切换工具，但模型仍然只能按文件名找文件，也不能直接读取网页。今天新增 <code>search</code> 和 <code>fetch</code>，分别解决这两个问题。</p>
+</blockquote>
+<h2 id="1-为什么知道内容却不知道在哪个文件">1. 为什么：知道内容，却不知道在哪个文件</h2>
+<p><code>glob</code> 只能按文件名匹配。如果我们想找 <code>safePath</code> 在哪里定义、在哪里调用，就要先猜文件，再逐个 <code>read</code>。代码一多，这种方法很慢。</p>
+<p>所以需要 <code>search</code>：输入一段文字，返回所有命中的 <code>文件:行号: 内容</code>。模型先定位，再用 <code>read</code> 查看上下文。</p>
+<p>另一个缺口在仓库外。依赖文档、技术博客和报错页面都在网页中，模型目前没有直接读取它们的工具。因此还需要 <code>fetch</code>：访问网页，把 HTML 转成模型容易阅读的纯文本。</p>
+<p>一个工具向内搜索仓库，一个工具向外读取网页。</p>
+<h2 id="2-目标">2. 目标</h2>
+<ol>
+<li><code>search</code> 在权限根目录内逐行匹配内容，返回 <code>相对路径:行号: 原文</code>；模型可以把命中路径继续交给 <code>read</code> 查看上下文；</li>
+<li><code>fetch</code> 读取 http/https 页面，删除脚本、样式和 HTML 标签，再把正文作为纯文本交给模型；</li>
+<li>本地搜索默认直接执行；访问外部网页前显示完整 URL 并询问，确认后才发起请求。</li>
+</ol>
+<p><strong>当天代码行数</strong>：相对 Day 11，源码新增 135 行、删除 5 行，净增 130 行。</p>
+<h2 id="3-设计搜索本地读取网页">3. 设计：搜索本地，读取网页</h2>
+<h3 id="31-search为什么不直接调用-ripgrep">3.1 search：为什么不直接调用 ripgrep</h3>
+<p>按内容搜索代码，常见做法是调用 ripgrep。它速度快、支持正则，也会读取 <code>.gitignore</code>。如果要做一个成熟的代码搜索工具，ripgrep 是更合适的选择。</p>
+<p>两种方案的差异可以放在一起看：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>ripgrep</th><th>Node <code>glob</code> + <code>readFile</code></th></tr></thead><tbody><tr><td>搜索速度</td><td>快，适合大型仓库</td><td>较慢，适合小型仓库</td></tr><tr><td>搜索能力</td><td>正则、文件过滤、<code>.gitignore</code></td><td>忽略大小写的包含匹配</td></tr><tr><td>运行条件</td><td>系统需要安装 <code>rg</code></td><td>只依赖当前 Node 运行时</td></tr><tr><td>权限接入</td><td>需要另外约束进程路径</td><td>直接复用 <code>safePath</code></td></tr></tbody></table>
+<p>因此，这一版选择 Node 自带的 <code>glob</code> 枚举文件，再用 <code>readFile</code> 逐行匹配。代码更直接，也不增加运行条件。代价是速度和搜索能力都不如 ripgrep。</p>
+<p>搜索会跳过 <code>node_modules</code>、隐藏目录、大文件和二进制文件，最多返回 50 行。这个实现适合当前的小型仓库。</p>
+<p>结果使用 <code>路径:行号: 内容</code> 格式。模型拿到路径后，可以继续调用 <code>read</code> 查看附近代码。</p>
+<h3 id="32-fetch为什么不用-html-解析库">3.2 fetch：为什么不用 HTML 解析库</h3>
+<p>网页转文本通常会使用 <code>cheerio</code> 解析 DOM，或用 <code>turndown</code> 转成 Markdown。它们能更准确地保留标题、列表、链接和代码块。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th><code>cheerio</code></th><th><code>turndown</code></th><th>当前 <code>htmlToText</code></th></tr></thead><tbody><tr><td>主要用途</td><td>查询和清洗 DOM</td><td>HTML 转 Markdown</td><td>HTML 转纯文本</td></tr><tr><td>保留结构</td><td>由我们控制</td><td>标题、列表、链接较完整</td><td>只保留段落换行</td></tr><tr><td>依赖</td><td>需要安装</td><td>需要安装</td><td>无新增依赖</td></tr><tr><td>适用场景</td><td>精细抽取网页内容</td><td>保留文章结构</td><td>快速让模型读到正文</td></tr></tbody></table>
+<p>当前目标只是让模型读到文档和博客的正文。Node 已经提供全局 <code>fetch</code>，再用一个短小的 <code>htmlToText</code> 删除脚本、样式和标签，就能跑通完整流程，也不用增加依赖。</p>
+<p>这个取舍会丢失页面结构，复杂网页的清理效果也不如解析库。对于当前 demo，我们先保留正文；更完整的网页解析留到真正需要时再加入。</p>
+<p><code>fetch</code> 会访问外部地址，因此默认先显示目标 URL 并询问：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="plaintext"><code><span class="line"><span>即将访问网页：</span></span>
+<span class="line"><span>http://127.0.0.1:8934/note.html</span></span>
+<span class="line"><span>确认抓取？</span></span></code></pre>
+<p>只有 http/https 地址可以访问。HTML 会转成纯文本，其他文本内容直接返回。</p>
+<h3 id="33-沿用工具注册与权限">3.3 沿用工具注册与权限</h3>
+<p>两个工具都注册到 <code>BUILTIN_TOOLS</code>。<code>search</code> 通过 <code>safePath</code> 使用 Day 8 的目录边界，<code>fetch</code> 通过 <code>authorize</code> 请求确认。Day 11 的技能也能像筛选其他工具一样筛选它们。</p>
+<h2 id="4-实现先效果后实现">4. 实现：先效果，后实现</h2>
+<h3 id="41-先看效果">4.1 先看效果</h3>
+<p>启动后，先让模型自己搜代码——提问是”搜 day12 里 <code>ensureToolPolicy</code> 的定义和用法”：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#808080">GeekAgent Day 12 —— 代码搜索 + Web 抓取</span>
+<span style="color:#808080">想看某段代码出现在哪，直接让模型去 search；想读仓库外的文档、博文，让模型 fetch 回来转成文本。检索结果会显示 路径:行号，方便顺着找。</span>
+<span style="color:#00cdcd">You › 我忘了昨天技能的 ensureToolPolicy 是干什么的，帮我在 day12 里搜一下定义和用法</span>
+<span style="color:#cdcd00">[调用工具 search → 匹配 "ensureToolPolicy" 3 行：</span>
+<span style="color:#cdcd00">day12/permissions.ts:72: export function ensureToolPolicy(tool: string, policy: Policy): void {</span>
+<span style="color:#cdcd00">day12/skills.ts:6: import { ensureToolPolicy } from './permissions.js';</span>
+<span style="color:#cdcd00">day12/skills.ts:103:         ensureToolPolicy(tool.name, 'ask'); // 技能工具默认 ask，用户可自行在配置里改 allow</span>
+<span style="color:#cdcd00">]</span>
+<span style="color:#00cd00">定义在 day12/permissions.ts:72，作用：给配置表里没写过的工具补一条默认策略。skills.ts 在装载技能时（103 行）给自带工具补 ask，所以昨天 git_diff 第一次调用也会先弹确认，而不是被默认 deny 拦死。需要细节的话我可以用 read 补看这两个文件。</span>
+</pre>
+<p><code>search</code> 一次返回三处命中。模型可以根据路径和行号继续阅读代码，不必先猜文件名。</p>
+<p>再启动一个本地网页，让模型读取：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#00cdcd">You › 本地起了个页面 http://127.0.0.1:8934/note.html ，抓下来看看写了什么</span>
+<span style="color:#cdcd00">即将访问网页：</span>
+<span style="color:#cdcd00">http://127.0.0.1:8934/note.html</span>
+<span style="color:#cdcd00">确认抓取？[y/N] → y</span>
+<span style="color:#cdcd00">[调用工具 fetch → GeekAgent 学习笔记第 12 天</span>
+<span style="color:#cdcd00">从零实现 GeekAgent</span>
+<span style="color:#cdcd00">今天新增两个工具：search 按内容检索仓库，fetch 把网页转成纯文本。</span>
+<span style="color:#cdcd00">search 返回 文件:行号: 内容，跳过 node_modules 和二进制文件</span>
+<span style="color:#cdcd00">fetch 用内置 fetch + 正则剥标签，先确认再访问</span>
+<span style="color:#cdcd00">下一步方向：工具调用失败后让模型读错误自愈、多个独立工具并行</span>
+<span style="color:#cdcd00">]</span>
+<span style="color:#00cd00">这是一页 GeekAgent 学习笔记。页面介绍了两个工具：search 按内容搜索仓库，fetch 读取网页并转成纯文本。</span>
+</pre>
+<p><code>fetch</code> 先询问，确认后返回纯文本。页面中的标题、列表和粗体标签不会出现在结果中。</p>
+<h3 id="42-search-工具接收关键词">4.2 search 工具：接收关键词</h3>
+<p>先定义搜索结果、文件大小和网页等待时间的上限：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day12/tools.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** search 最多返回的命中行数，命中太多说明关键词不够聚焦。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> MAX_SEARCH_RESULTS</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 50</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">/** search 只扫不超过这个字节数的文本文件，跳过体积可疑的大文件。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> MAX_SEARCH_FILE_SIZE</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 1024</span><span style="color:#D73A49"> *</span><span style="color:#005CC5"> 1024</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">/** fetch 最长的等待时间，超时按失败处理。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> FETCH_TIMEOUT_MS</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 15_000</span><span style="color:#24292E">;</span></span></code></pre>
+<p><code>search</code> 接收两个参数：<code>pattern</code> 是关键词，<code>path</code> 是可选的搜索目录。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day12/tools.ts</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#6F42C1">        name</span><span style="color:#24292E">: </span><span style="color:#032F62">'search'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        description</span><span style="color:#24292E">: </span><span style="color:#032F62">'在仓库内按内容检索代码（忽略大小写）。返回 相对路径:行号: 内容，适合找「哪个文件里出现了某段文字/某个调用」。默认跳过 node_modules、隐藏路径、二进制与大于 1MB 的文件。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        parameters</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">            type</span><span style="color:#24292E">: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">            properties</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">                pattern</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'要检索的关键词，如 "safePath"、一个函数名或一行报错文案。'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#6F42C1">                path</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'要检索的相对目录，默认整个仓库根目录；传子目录可加快速度。'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">            },</span></span>
+<span class="line"><span style="color:#6F42C1">            required</span><span style="color:#24292E">: [</span><span style="color:#032F62">'pattern'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#6F42C1">            additionalProperties</span><span style="color:#24292E">: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> pattern</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.pattern </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">pattern) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '缺少参数 pattern'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> sub</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.path </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> dir</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> sub </span><span style="color:#D73A49">?</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> safePath</span><span style="color:#24292E">(sub) </span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> permissionRoot</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> hits</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> searchTree</span><span style="color:#24292E">(dir, pattern.</span><span style="color:#6F42C1">toLowerCase</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (hits.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> `没有匹配 "${</span><span style="color:#24292E">pattern</span><span style="color:#032F62">}"${</span><span style="color:#24292E">sub</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> `（在 ${</span><span style="color:#24292E">sub</span><span style="color:#032F62">} 下）`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> hint</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> hits.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> >=</span><span style="color:#005CC5"> MAX_SEARCH_RESULTS</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> `</span><span style="color:#005CC5">\n</span><span style="color:#032F62">...(已达上限 ${</span><span style="color:#005CC5">MAX_SEARCH_RESULTS</span><span style="color:#032F62">} 行，换更聚焦的关键词再搜)`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `匹配 "${</span><span style="color:#24292E">pattern</span><span style="color:#032F62">}" ${</span><span style="color:#24292E">hits</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 行：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">hits</span><span style="color:#032F62">.</span><span style="color:#6F42C1">join</span><span style="color:#032F62">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#032F62">)</span><span style="color:#032F62">}${</span><span style="color:#24292E">hint</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `search 失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span></code></pre>
+<p><code>run</code> 先确定搜索目录，再调用 <code>searchTree</code>。搜索忽略大小写；达到 50 行时停止，并提示模型换一个更具体的关键词。</p>
+<h3 id="43-searchtree逐行寻找内容">4.3 searchTree：逐行寻找内容</h3>
+<p><code>searchTree</code> 用 <code>glob('**/*')</code> 枚举文件，跳过 <code>node_modules</code> 和隐藏路径，然后读取文本并逐行匹配：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day12/tools.ts</span></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 在 dir 目录内按内容检索：用 Node 内置 glob 枚举文件（默认跳过隐藏路径与 node_modules），</span></span>
+<span class="line"><span style="color:#6A737D"> * 跳过二进制（含空字节）与过大的文件，逐行做忽略大小写的包含匹配，凑满上限即停。</span></span>
+<span class="line"><span style="color:#6A737D"> * 返回「相对 root 的路径:行号: 内容」列表，格式照搬 ripgrep。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> searchTree</span><span style="color:#24292E">(</span><span style="color:#E36209">dir</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">pattern</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">[]> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> root</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> permissionRoot</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> prefix</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> relative</span><span style="color:#24292E">(root, dir);</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> hits</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> p</span><span style="color:#D73A49"> of</span><span style="color:#6F42C1"> glob</span><span style="color:#24292E">(</span><span style="color:#032F62">'**/*'</span><span style="color:#24292E">, {</span></span>
+<span class="line"><span style="color:#24292E">        cwd: dir,</span></span>
+<span class="line"><span style="color:#6F42C1">        exclude</span><span style="color:#24292E">: (</span><span style="color:#E36209">d</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> d.</span><span style="color:#6F42C1">split</span><span style="color:#24292E">(</span><span style="color:#032F62">'/'</span><span style="color:#24292E">).</span><span style="color:#6F42C1">some</span><span style="color:#24292E">((</span><span style="color:#E36209">seg</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> seg </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'node_modules'</span><span style="color:#D73A49"> ||</span><span style="color:#24292E"> seg.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'.'</span><span style="color:#24292E">)),</span></span>
+<span class="line"><span style="color:#24292E">    })) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (hits.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> >=</span><span style="color:#005CC5"> MAX_SEARCH_RESULTS</span><span style="color:#24292E">) </span><span style="color:#D73A49">break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> rel</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> (prefix </span><span style="color:#D73A49">?</span><span style="color:#032F62"> `${</span><span style="color:#24292E">prefix</span><span style="color:#032F62">.</span><span style="color:#6F42C1">replaceAll</span><span style="color:#032F62">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\\</span><span style="color:#032F62">'</span><span style="color:#032F62">, </span><span style="color:#032F62">'/'</span><span style="color:#032F62">)</span><span style="color:#032F62">}/`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''</span><span style="color:#24292E">) </span><span style="color:#D73A49">+</span><span style="color:#24292E"> p.</span><span style="color:#6F42C1">replaceAll</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\\</span><span style="color:#032F62">'</span><span style="color:#24292E">, </span><span style="color:#032F62">'/'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> file</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> join</span><span style="color:#24292E">(dir, p);</span></span>
+<span class="line"><span style="color:#D73A49">        let</span><span style="color:#24292E"> st;</span></span>
+<span class="line"><span style="color:#D73A49">        try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">            st </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> stat</span><span style="color:#24292E">(file);</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            continue</span><span style="color:#24292E">; </span><span style="color:#6A737D">// 文件可能在被遍历时被删除</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">st.</span><span style="color:#6F42C1">isFile</span><span style="color:#24292E">() </span><span style="color:#D73A49">||</span><span style="color:#24292E"> st.size </span><span style="color:#D73A49">></span><span style="color:#005CC5"> MAX_SEARCH_FILE_SIZE</span><span style="color:#24292E">) </span><span style="color:#D73A49">continue</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        let</span><span style="color:#24292E"> text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">            text </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(file, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            continue</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (text.</span><span style="color:#6F42C1">includes</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\0</span><span style="color:#032F62">'</span><span style="color:#24292E">)) </span><span style="color:#D73A49">continue</span><span style="color:#24292E">; </span><span style="color:#6A737D">// 含空字节基本是二进制，跳过</span></span>
+<span class="line"><span style="color:#24292E">        text.</span><span style="color:#6F42C1">split</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">).</span><span style="color:#6F42C1">forEach</span><span style="color:#24292E">((</span><span style="color:#E36209">line</span><span style="color:#24292E">, </span><span style="color:#E36209">i</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (hits.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> >=</span><span style="color:#005CC5"> MAX_SEARCH_RESULTS</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (line.</span><span style="color:#6F42C1">toLowerCase</span><span style="color:#24292E">().</span><span style="color:#6F42C1">includes</span><span style="color:#24292E">(pattern)) hits.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(</span><span style="color:#032F62">`${</span><span style="color:#24292E">rel</span><span style="color:#032F62">}:${</span><span style="color:#24292E">i</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 1</span><span style="color:#032F62">}: ${</span><span style="color:#24292E">line</span><span style="color:#032F62">.</span><span style="color:#6F42C1">trimEnd</span><span style="color:#032F62">()</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> hits;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>每条结果都从权限根开始计算相对路径。模型可以把这个路径直接传给 <code>read</code>。文件中的每一行匹配成功后，连同行号一起加入结果。</p>
+<h3 id="44-fetch-工具读取并转换网页">4.4 fetch 工具：读取并转换网页</h3>
+<p><code>fetch</code> 接收一个完整 URL，确认后访问页面：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day12/tools.ts</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#6F42C1">        name</span><span style="color:#24292E">: </span><span style="color:#032F62">'fetch'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        description</span><span style="color:#24292E">: </span><span style="color:#032F62">'抓取一个网页并转成纯文本，让模型看到仓库之外的信息（文档、博文、报错页等）。默认 ask 策略，执行前需要确认；只支持 http/https。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">        parameters</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">            type</span><span style="color:#24292E">: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">            properties</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">url</span><span style="color:#24292E">: { </span><span style="color:#6F42C1">type</span><span style="color:#24292E">: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">description</span><span style="color:#24292E">: </span><span style="color:#032F62">'要访问的完整网址，以 http:// 或 https:// 开头。'</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#6F42C1">            required</span><span style="color:#24292E">: [</span><span style="color:#032F62">'url'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#6F42C1">            additionalProperties</span><span style="color:#24292E">: </span><span style="color:#005CC5">false</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> input</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> String</span><span style="color:#24292E">(args.url </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">input) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '缺少参数 url'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            let</span><span style="color:#24292E"> target</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> URL</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">                target </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> URL</span><span style="color:#24292E">(input);</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> `URL 不合法：${</span><span style="color:#24292E">input</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (target.protocol </span><span style="color:#D73A49">!==</span><span style="color:#032F62"> 'http:'</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> target.protocol </span><span style="color:#D73A49">!==</span><span style="color:#032F62"> 'https:'</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '只支持 http/https 链接'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">(</span><span style="color:#D73A49">await</span><span style="color:#6F42C1"> authorize</span><span style="color:#24292E">(</span><span style="color:#032F62">'fetch'</span><span style="color:#24292E">, </span><span style="color:#032F62">`</span><span style="color:#005CC5">\n</span><span style="color:#032F62">即将访问网页：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">input</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n</span><span style="color:#032F62">确认抓取？`</span><span style="color:#24292E">))) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '已取消抓取'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> res</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> fetch</span><span style="color:#24292E">(target, { signal: AbortSignal.</span><span style="color:#6F42C1">timeout</span><span style="color:#24292E">(</span><span style="color:#005CC5">FETCH_TIMEOUT_MS</span><span style="color:#24292E">), redirect: </span><span style="color:#032F62">'follow'</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">res.ok) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> `请求失败：HTTP ${</span><span style="color:#24292E">res</span><span style="color:#032F62">.</span><span style="color:#24292E">status</span><span style="color:#032F62">} ${</span><span style="color:#24292E">res</span><span style="color:#032F62">.</span><span style="color:#24292E">statusText</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> text</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> res.</span><span style="color:#6F42C1">text</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> contentType</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> res.headers.</span><span style="color:#6F42C1">get</span><span style="color:#24292E">(</span><span style="color:#032F62">'content-type'</span><span style="color:#24292E">) </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> body</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> /</span><span style="color:#D73A49">\b</span><span style="color:#032F62">html</span><span style="color:#D73A49">\b</span><span style="color:#032F62">/</span><span style="color:#24292E">.</span><span style="color:#6F42C1">test</span><span style="color:#24292E">(contentType) </span><span style="color:#D73A49">?</span><span style="color:#6F42C1"> htmlToText</span><span style="color:#24292E">(text) </span><span style="color:#D73A49">:</span><span style="color:#24292E"> text;</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#6F42C1"> truncate</span><span style="color:#24292E">(body);</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> e</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> err </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#24292E"> e.name </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'TimeoutError'</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> `抓取超时（${</span><span style="color:#005CC5">FETCH_TIMEOUT_MS</span><span style="color:#D73A49"> /</span><span style="color:#005CC5"> 1000</span><span style="color:#032F62">}s），可稍后重试`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> `抓取失败：${</span><span style="color:#24292E">e</span><span style="color:#032F62">.</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#6F42C1">        authorizes</span><span style="color:#24292E">: </span><span style="color:#005CC5">true</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span></code></pre>
+<p><code>authorizes: true</code> 表示确认过程由工具处理，因此提示中可以显示即将访问的 URL。响应是 HTML 时调用 <code>htmlToText</code>，否则直接返回文本。</p>
+<p><code>htmlToText</code> 按顺序删除脚本、样式、注释和标签：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day12/tools.ts</span></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 极简 HTML → 纯文本：剥掉脚本/样式/注释，块级标签换行，解码常见实体。</span></span>
+<span class="line"><span style="color:#6A737D"> * 不追求完整解析，够把文档、博文读成模型能用的文本。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> htmlToText</span><span style="color:#24292E">(</span><span style="color:#E36209">html</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> html</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x3C;script</span><span style="color:#005CC5">[\s\S]</span><span style="color:#D73A49">*?</span><span style="color:#032F62">&#x3C;</span><span style="color:#22863A;font-weight:bold">\/</span><span style="color:#032F62">script>/</span><span style="color:#D73A49">gi</span><span style="color:#24292E">, </span><span style="color:#032F62">''</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x3C;style</span><span style="color:#005CC5">[\s\S]</span><span style="color:#D73A49">*?</span><span style="color:#032F62">&#x3C;</span><span style="color:#22863A;font-weight:bold">\/</span><span style="color:#032F62">style>/</span><span style="color:#D73A49">gi</span><span style="color:#24292E">, </span><span style="color:#032F62">''</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x3C;!--</span><span style="color:#005CC5">[\s\S]</span><span style="color:#D73A49">*?</span><span style="color:#032F62">-->/</span><span style="color:#D73A49">g</span><span style="color:#24292E">, </span><span style="color:#032F62">''</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x3C;</span><span style="color:#22863A;font-weight:bold">\/</span><span style="color:#032F62">(?:p</span><span style="color:#D73A49">|</span><span style="color:#032F62">div</span><span style="color:#D73A49">|</span><span style="color:#032F62">h</span><span style="color:#005CC5">[1-6]</span><span style="color:#D73A49">|</span><span style="color:#032F62">li</span><span style="color:#D73A49">|</span><span style="color:#032F62">ul</span><span style="color:#D73A49">|</span><span style="color:#032F62">ol</span><span style="color:#D73A49">|</span><span style="color:#032F62">tr</span><span style="color:#D73A49">|</span><span style="color:#032F62">td</span><span style="color:#D73A49">|</span><span style="color:#032F62">th</span><span style="color:#D73A49">|</span><span style="color:#032F62">table</span><span style="color:#D73A49">|</span><span style="color:#032F62">pre</span><span style="color:#D73A49">|</span><span style="color:#032F62">blockquote</span><span style="color:#D73A49">|</span><span style="color:#032F62">section</span><span style="color:#D73A49">|</span><span style="color:#032F62">article</span><span style="color:#D73A49">|</span><span style="color:#032F62">header</span><span style="color:#D73A49">|</span><span style="color:#032F62">footer)>/</span><span style="color:#D73A49">gi</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x3C;(?:br</span><span style="color:#D73A49">|</span><span style="color:#032F62">hr)</span><span style="color:#005CC5">[\s\S]</span><span style="color:#D73A49">*?</span><span style="color:#032F62">>/</span><span style="color:#D73A49">gi</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x3C;</span><span style="color:#005CC5">[</span><span style="color:#D73A49">^</span><span style="color:#005CC5">>]</span><span style="color:#D73A49">+</span><span style="color:#032F62">>/</span><span style="color:#D73A49">g</span><span style="color:#24292E">, </span><span style="color:#032F62">''</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x26;amp;/</span><span style="color:#D73A49">gi</span><span style="color:#24292E">, </span><span style="color:#032F62">'&#x26;'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x26;lt;/</span><span style="color:#D73A49">gi</span><span style="color:#24292E">, </span><span style="color:#032F62">'&#x3C;'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x26;gt;/</span><span style="color:#D73A49">gi</span><span style="color:#24292E">, </span><span style="color:#032F62">'>'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x26;quot;/</span><span style="color:#D73A49">gi</span><span style="color:#24292E">, </span><span style="color:#032F62">'"'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x26;#39;/</span><span style="color:#D73A49">gi</span><span style="color:#24292E">, </span><span style="color:#032F62">"'"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">replace</span><span style="color:#24292E">(</span><span style="color:#032F62">/&#x26;nbsp;/</span><span style="color:#D73A49">gi</span><span style="color:#24292E">, </span><span style="color:#032F62">' '</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">split</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">line</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> line.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">(Boolean)</span></span>
+<span class="line"><span style="color:#24292E">        .</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>块级标签先变成换行，其余标签再删除，最后解码常见 HTML 实体并清理空行。这样能保留正文的基本段落。</p>
+<h3 id="45-permissionsts-与-indexts完成接线">4.5 permissions.ts 与 index.ts：完成接线</h3>
+<p>权限表加入两个工具：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day12/permissions.ts</span></span>
+<span class="line"><span style="color:#6F42C1">    ls</span><span style="color:#24292E">: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">    read</span><span style="color:#24292E">: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">    glob</span><span style="color:#24292E">: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">    search</span><span style="color:#24292E">: </span><span style="color:#032F62">'allow'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">    fetch</span><span style="color:#24292E">: </span><span style="color:#032F62">'ask'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">    write</span><span style="color:#24292E">: </span><span style="color:#032F62">'ask'</span><span style="color:#24292E">,</span></span></code></pre>
+<p>入口文件更新启动提示：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day12/index.ts</span></span>
+<span class="line"><span style="color:#24292E">tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">'GeekAgent Day 12 —— 代码搜索 + Web 抓取'</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">'想看某段代码出现在哪，直接让模型去 search；想读仓库外的文档、博文，让模型 fetch 回来转成文本。检索结果会显示 路径:行号，方便顺着找。'</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span></code></pre>
+<p>完整流程是：<code>search</code> 定位代码，再用 <code>read</code> 查看上下文；或者用 <code>fetch</code> 读取网页，直接根据纯文本回答。</p>
+<h2 id="5-验证">5. 验证</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> typecheck</span></span>
+<span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day12/index.ts</span></span></code></pre>
+<ol>
+<li>询问“在 day12 里搜索 <code>ensureToolPolicy</code> 的定义和用法”，确认结果包含路径和行号；</li>
+<li>新建 <code>note.html</code>，并在文件所在目录运行 <code>python3 -m http.server 8934</code>：</li>
+</ol>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="html"><code><span class="line"><span style="color:#6A737D">&#x3C;!-- note.html --></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;!</span><span style="color:#22863A">DOCTYPE</span><span style="color:#6F42C1"> html</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">html</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">head</span><span style="color:#24292E">>&#x3C;</span><span style="color:#22863A">title</span><span style="color:#24292E">>GeekAgent 学习笔记第 12 天&#x3C;/</span><span style="color:#22863A">title</span><span style="color:#24292E">>&#x3C;/</span><span style="color:#22863A">head</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">body</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">h1</span><span style="color:#24292E">>从零实现 GeekAgent&#x3C;/</span><span style="color:#22863A">h1</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">p</span><span style="color:#24292E">>今天新增两个工具：&#x3C;</span><span style="color:#22863A">b</span><span style="color:#24292E">>search&#x3C;/</span><span style="color:#22863A">b</span><span style="color:#24292E">> 按内容检索仓库，&#x3C;</span><span style="color:#22863A">b</span><span style="color:#24292E">>fetch&#x3C;/</span><span style="color:#22863A">b</span><span style="color:#24292E">> 把网页转成纯文本。&#x3C;/</span><span style="color:#22863A">p</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">ul</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">  &#x3C;</span><span style="color:#22863A">li</span><span style="color:#24292E">>search 返回 文件:行号: 内容，跳过 node_modules 和二进制文件&#x3C;/</span><span style="color:#22863A">li</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">  &#x3C;</span><span style="color:#22863A">li</span><span style="color:#24292E">>fetch 用内置 fetch + 正则剥标签，先确认再访问&#x3C;/</span><span style="color:#22863A">li</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">  &#x3C;</span><span style="color:#22863A">li</span><span style="color:#24292E">>下一步方向：工具调用失败后让模型读错误自愈、多个独立工具并行&#x3C;/</span><span style="color:#22863A">li</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;/</span><span style="color:#22863A">ul</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;/</span><span style="color:#22863A">body</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;/</span><span style="color:#22863A">html</span><span style="color:#24292E">></span></span></code></pre>
+<ol start="3">
+<li>让模型读取 <code>http://127.0.0.1:8934/note.html</code>；</li>
+<li>确认程序先显示 URL 并询问，输入 <code>y</code> 后返回不含 HTML 标签的正文。</li>
+</ol>
+<h2 id="6-没做什么">6. 没做什么</h2>
+<ul>
+<li><code>search</code> 不支持正则、文件类型过滤和结果排序；</li>
+<li><code>search</code> 不读取 <code>.gitignore</code>；</li>
+<li><code>fetch</code> 只返回纯文本，不保留标题层级、链接和代码块结构；</li>
+<li><code>fetch</code> 不支持需要登录或 JavaScript 渲染的页面；</li>
+<li>两个工具都没有缓存。</li>
+</ul>
+<h2 id="7-下一步">7. 下一步</h2>
+<p>现在，Agent 能搜索仓库，也能读取网页。下一步可以继续扩展它对长期信息的使用方式，让保存过的内容在需要时主动出现。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geekagent-day11.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day11 技能系统（Skills）</span></a><a href="/post/geekagent-day13.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">下一章 →</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day13 主动记忆</span></a></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day12";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day12.html";
+const title = "从零实现 GeekAgent —— Day12 代码搜索与网页抓取";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>
