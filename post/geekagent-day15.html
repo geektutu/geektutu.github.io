@@ -1,0 +1,649 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程，用 TypeScript 动手写一个最简单的 Agent/Harness。Day 15 接入 MCP：配置文件里声明 server，启动时在 stdio 上跑 JSON-RPC，外部进程提供的工具直接进入模型的工具清单。"><title>从零实现 GeekAgent —— Day15 MCP 工具接入 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.BOA2kYdy.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});</script><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><script type="module">var e=document.getElementById(`reading-bar`);function t(){let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e&&(e.style.width=n+`%`)}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();</script><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 项目指令与长期记忆</a></li><li><a href="/post/geekagent-day11.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day11 技能系统（Skills）</a></li><li><a href="/post/geekagent-day12.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day12 代码搜索与网页抓取</a></li><li><a href="/post/geekagent-day13.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day13 主动记忆</a></li><li><a href="/post/geekagent-day14.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day14 轻 RAG 知识库</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">扩展 - 工具互联</span></div><ul><li><a href="/post/geekagent-day15.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day15 MCP 工具接入</a></li></ul></section></nav><script type="module">var e=document.querySelector(`.book-toc-scroll`),t=document.querySelector(`.book-toc [aria-current="page"]`);if(e&&t instanceof HTMLElement){let n=t.offsetTop-e.clientHeight/2+t.offsetHeight/2;e.scrollTop=Math.max(0,n)}</script></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day15 MCP 工具接入</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-09-02">2026-09-02</time><span aria-hidden="true">·</span><span>约 16 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-mcp-和-skills-都在增加工具有什么区别" class="toc-link block text-muted" data-toc-depth="2">0. MCP 和 Skills 都在增加工具，有什么区别？</a></li><li style="padding-left:0rem"><a href="#1-为什么工具和-agent-绑在了一起" class="toc-link block text-muted" data-toc-depth="2">1. 为什么：工具和 Agent 绑在了一起</a></li><li style="padding-left:0rem"><a href="#2-目标" class="toc-link block text-muted" data-toc-depth="2">2. 目标</a></li><li style="padding-left:0rem"><a href="#3-设计把-mcp-工具接进现有注册表" class="toc-link block text-muted" data-toc-depth="2">3. 设计：把 MCP 工具接进现有注册表</a></li><li style="padding-left:0.9rem"><a href="#31-mcp-能传什么" class="toc-link block text-muted" data-toc-depth="3">3.1 MCP 能传什么</a></li><li style="padding-left:0.9rem"><a href="#32-消息的形状带-id-的-json-rpc" class="toc-link block text-muted" data-toc-depth="3">3.2 消息的形状：带 id 的 JSON-RPC</a></li><li style="padding-left:0.9rem"><a href="#33-内置工具与-mcp-工具" class="toc-link block text-muted" data-toc-depth="3">3.3 内置工具与 MCP 工具</a></li><li style="padding-left:0.9rem"><a href="#34-连接生命周期与权限" class="toc-link block text-muted" data-toc-depth="3">3.4 连接生命周期与权限</a></li><li style="padding-left:0rem"><a href="#4-实现先效果后实现" class="toc-link block text-muted" data-toc-depth="2">4. 实现：先效果，后实现</a></li><li style="padding-left:0.9rem"><a href="#41-先看效果" class="toc-link block text-muted" data-toc-depth="3">4.1 先看效果</a></li><li style="padding-left:0.9rem"><a href="#42-demo-servermjs提供两个外部工具完整-52-行" class="toc-link block text-muted" data-toc-depth="3">4.2 demo-server.mjs：提供两个外部工具（完整 52 行）</a></li><li style="padding-left:0.9rem"><a href="#43-配置文件" class="toc-link block text-muted" data-toc-depth="3">4.3 配置文件</a></li><li style="padding-left:0.9rem"><a href="#44-mcpts客户端本体完整-227-行" class="toc-link block text-muted" data-toc-depth="3">4.4 mcp.ts：客户端本体（完整 227 行）</a></li><li style="padding-left:0.9rem"><a href="#45-indexts启动展示与退出" class="toc-link block text-muted" data-toc-depth="3">4.5 index.ts：启动、展示与退出</a></li><li style="padding-left:0rem"><a href="#5-验证" class="toc-link block text-muted" data-toc-depth="2">5. 验证</a></li><li style="padding-left:0rem"><a href="#6-没做什么" class="toc-link block text-muted" data-toc-depth="2">6. 没做什么</a></li><li style="padding-left:0rem"><a href="#7-下一步" class="toc-link block text-muted" data-toc-depth="2">7. 下一步</a></li></ul></nav><script type="module">var e=Array.from(document.querySelectorAll(`#section-toc a`)),t=e.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(Boolean);function n(){let n=null;for(let e of t)e.getBoundingClientRect().top<=120&&(n=e);e.forEach(e=>e.classList.remove(`active`)),n&&e.find(e=>e.getAttribute(`href`)===`#`+n.id)?.classList.add(`active`)}window.addEventListener(`scroll`,n,{passive:!0}),n();</script><div class="mt-6 markdown"><h1 id="day-15接入外部工具mcp-客户端">Day 15：接入外部工具——MCP 客户端</h1>
+<blockquote>
+<p>Day 4 已经能把 TypeScript 函数注册成工具，但每接一种外部服务，我们仍要自己写适配代码。今天实现一个 MCP 客户端：在配置文件中声明 server，Agent 启动时自动连接，并把对方提供的工具放进现有注册表。</p>
+</blockquote>
+<h2 id="0-mcp-和-skills-都在增加工具有什么区别">0. MCP 和 Skills 都在增加工具，有什么区别？</h2>
+<p>Day 11 的 Skills 已经能为 Agent 增加工具。现在又引入 MCP（Model Context Protocol），看起来像是在重复解决同一个问题。</p>
+<p>两者确实都会改变模型看到的工具清单，但它们处理的不是同一层问题。Skill 负责按任务组织能力：进入代码审查任务时，加载目录中已经写明的指令、内置工具白名单和本地工具。MCP 负责发现并连接能力：配置里只写 server 的启动方式，Agent 连接后再用 <code>tools/list</code> 询问“你有哪些工具”，不需要提前知道工具名、说明和参数。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>对比项</th><th>Skills</th><th>MCP</th></tr></thead><tbody><tr><td>解决什么问题</td><td>按任务组合指令和工具</td><td>用统一协议连接外部能力</td></tr><tr><td>工具怎样发现</td><td>扫描 Skill 目录，读取本地声明</td><td>连接 server 后调用 <code>tools/list</code></td></tr><tr><td>谁负责维护</td><td>Agent 项目</td><td>server 提供方</td></tr><tr><td>怎样演进</td><td>修改 Skill 后随 Agent 项目一起更新</td><td>server 独立更新，Agent 启动时重新发现</td></tr><tr><td>何时进入清单</td><td><code>/use</code> 加载 Skill 时</td><td>Agent 启动并连接 server 后</td></tr><tr><td>本次怎样使用</td><td><code>SKILL.md</code> 提供任务指令</td><td>只接 tools，不承载任务指令</td></tr></tbody></table>
+<p>工具发现是这里最关键的差别。新增一个 Skill 时，我们已经在目录里写好了它带哪些工具；接入一个 MCP server 时，GeekAgent 事先只知道怎么启动它。具体有哪些工具、每个工具接收什么参数，要等握手后由 server 自己报告。</p>
+<p>这也让工具可以独立演进。server 可以单独增加工具、调整描述或扩展参数，不必同时修改 GeekAgent；Agent 下次启动时再次调用 <code>tools/list</code>，就能拿到新的清单。当前实现只在启动阶段发现一次，还不能在 server 运行期间热更新工具。</p>
+<p>两者不是替代关系。MCP server 负责把数据库、浏览器等能力接进 Agent，Skill 再决定某类任务需要哪些指令和工具。当前 demo 先让发现到的 MCP 工具全局可见，还没有把两套机制组合起来。</p>
+<p>MCP 也不是模型的新能力。模型仍然通过 function calling，从 <code>tools</code> 数组中选择函数并生成参数。MCP 工作在模型外面，规定 Agent（client）怎样发现和调用工具服务（server）。一次调用经过三段：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="text"><code><span class="line"><span>模型 ──function calling──> GeekAgent（MCP 客户端）──JSON-RPC──> MCP server ──> 真正的能力</span></span></code></pre>
+<p>模型看见的仍是一份普通工具清单。发现和调用外部工具，是 GeekAgent 在模型之外完成的工作。</p>
+<h2 id="1-为什么工具和-agent-绑在了一起">1. 为什么：工具和 Agent 绑在了一起</h2>
+<p>Day 4 的注册表把工具统一成 <code>Tool</code> 接口。新增本地工具已经很直接：写一个对象，再调用 <code>registerTool</code>。但接入数据库、浏览器或协作平台时，我们仍要安装各自的 SDK、处理鉴权，并把适配代码放进 Agent 仓库。</p>
+<p>当 M 个 Agent 分别适配 N 种工具时，最坏要维护 M×N 份适配。共同协议把它拆成两边：Agent 实现 MCP client，工具实现 MCP server，只需要维护 M+N 份协议实现。</p>
+<p>今天先打通最短链路：从配置启动一个本地 server，读取它的工具清单，再通过现有工具循环完成调用。工具由 server 提供和维护，GeekAgent 只负责协议与接入，不再为每个工具编写适配代码。</p>
+<h2 id="2-目标">2. 目标</h2>
+<ol>
+<li><code>.geekagent/mcp.json</code> 声明本地 server 后，Agent 启动子进程并完成 MCP 握手；<code>/mcp</code> 和右侧面板显示连接结果；</li>
+<li>server 返回的工具以 <code>mcp_&#x3C;服务名>_&#x3C;工具名></code> 注册，模型通过原有 function calling 调用，执行结果来自 server；</li>
+<li>外部工具沿用 Day 8 的权限策略，默认每次询问，也可以按工具名配置为 <code>allow</code> 或 <code>deny</code>。</li>
+</ol>
+<p><strong>当天代码行数</strong>：相对 Day 14，源码新增 314 行、删除 3 行，净增 311 行；其中 <code>demo-server.mjs</code>（52 行）是用于验证协议的教学 server。</p>
+<h2 id="3-设计把-mcp-工具接进现有注册表">3. 设计：把 MCP 工具接进现有注册表</h2>
+<h3 id="31-mcp-能传什么">3.1 MCP 能传什么</h3>
+<p>先看 server 可以提供的三类能力：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>能力</th><th>提供什么</th><th>谁决定何时使用</th></tr></thead><tbody><tr><td>tools</td><td>可执行的函数</td><td>模型</td></tr><tr><td>resources</td><td>文件、数据库记录等上下文数据</td><td>应用程序</td></tr><tr><td>prompts</td><td>可复用的提示词模板</td><td>用户</td></tr></tbody></table>
+<p>MCP client 还可以向 server 提供 sampling 等能力，让 server 请求客户端调用模型。这属于相反方向的能力协商，不是 server 提供的第四类内容。</p>
+<p>今天只接 tools。它与 Day 4 的工具注册表形状最接近：都有名称、描述、参数结构和执行结果。resources 与 prompts 需要新的交互入口，留在边界之外。</p>
+<p>消息还需要一种传输方式。当前 MCP 常用两种：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>对比项</th><th>stdio</th><th>Streamable HTTP</th></tr></thead><tbody><tr><td>server 位置</td><td>本地子进程</td><td>远程 HTTP 服务</td></tr><tr><td>鉴权</td><td>无需（信任本机进程）</td><td>OAuth / Bearer Token</td></tr><tr><td>适合场景</td><td>个人本地工具</td><td>托管给多人用的公共工具</td></tr><tr><td>本次实现</td><td>是</td><td>未做</td></tr></tbody></table>
+<p>stdio 不需要 HTTP 服务和远程鉴权，Node.js 的 <code>spawn</code> 就能启动，适合用较少代码看清协议。代价是只能连接本机命令，而且 server 与 Agent 共享当前用户权限。</p>
+<h3 id="32-消息的形状带-id-的-json-rpc">3.2 消息的形状：带 id 的 JSON-RPC</h3>
+<p>MCP 的消息就是 JSON-RPC 2.0：每条请求带自增的 id、方法名和参数，server 的回应带同一个 id——靠 id 把一问一答配对，不用关心消息到达的顺序。stdio 传输下约定一行一条消息。下面是我们 demo server 实际收发的完整一轮：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#24292E">{</span><span style="color:#005CC5">"jsonrpc"</span><span style="color:#24292E">:</span><span style="color:#032F62">"2.0"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"id"</span><span style="color:#24292E">:</span><span style="color:#005CC5">1</span><span style="color:#24292E">,</span><span style="color:#005CC5">"method"</span><span style="color:#24292E">:</span><span style="color:#032F62">"initialize"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"params"</span><span style="color:#24292E">:{</span><span style="color:#005CC5">"protocolVersion"</span><span style="color:#24292E">:</span><span style="color:#032F62">"2025-06-18"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"capabilities"</span><span style="color:#24292E">:{},</span><span style="color:#005CC5">"clientInfo"</span><span style="color:#24292E">:{</span><span style="color:#005CC5">"name"</span><span style="color:#24292E">:</span><span style="color:#032F62">"geekagent"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"version"</span><span style="color:#24292E">:</span><span style="color:#032F62">"0.1.0"</span><span style="color:#24292E">}}}</span></span>
+<span class="line"><span style="color:#24292E">{</span><span style="color:#005CC5">"jsonrpc"</span><span style="color:#24292E">:</span><span style="color:#032F62">"2.0"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"id"</span><span style="color:#24292E">:</span><span style="color:#005CC5">1</span><span style="color:#24292E">,</span><span style="color:#005CC5">"result"</span><span style="color:#24292E">:{</span><span style="color:#005CC5">"protocolVersion"</span><span style="color:#24292E">:</span><span style="color:#032F62">"2025-06-18"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"capabilities"</span><span style="color:#24292E">:{},</span><span style="color:#005CC5">"serverInfo"</span><span style="color:#24292E">:{</span><span style="color:#005CC5">"name"</span><span style="color:#24292E">:</span><span style="color:#032F62">"geekagent-demo"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"version"</span><span style="color:#24292E">:</span><span style="color:#032F62">"1.0.0"</span><span style="color:#24292E">}}}</span></span>
+<span class="line"><span style="color:#24292E">{</span><span style="color:#005CC5">"jsonrpc"</span><span style="color:#24292E">:</span><span style="color:#032F62">"2.0"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"method"</span><span style="color:#24292E">:</span><span style="color:#032F62">"notifications/initialized"</span><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#24292E">{</span><span style="color:#005CC5">"jsonrpc"</span><span style="color:#24292E">:</span><span style="color:#032F62">"2.0"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"id"</span><span style="color:#24292E">:</span><span style="color:#005CC5">2</span><span style="color:#24292E">,</span><span style="color:#005CC5">"method"</span><span style="color:#24292E">:</span><span style="color:#032F62">"tools/list"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"params"</span><span style="color:#24292E">:{}}</span></span>
+<span class="line"><span style="color:#24292E">{</span><span style="color:#005CC5">"jsonrpc"</span><span style="color:#24292E">:</span><span style="color:#032F62">"2.0"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"id"</span><span style="color:#24292E">:</span><span style="color:#005CC5">2</span><span style="color:#24292E">,</span><span style="color:#005CC5">"result"</span><span style="color:#24292E">:{</span><span style="color:#005CC5">"tools"</span><span style="color:#24292E">:[{</span><span style="color:#005CC5">"name"</span><span style="color:#24292E">:</span><span style="color:#032F62">"word_count"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"description"</span><span style="color:#24292E">:</span><span style="color:#032F62">"统计一段文字的字符数与词数（词数按空白切分计算）。"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"inputSchema"</span><span style="color:#24292E">:{</span><span style="color:#005CC5">"type"</span><span style="color:#24292E">:</span><span style="color:#032F62">"object"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"properties"</span><span style="color:#24292E">:{</span><span style="color:#005CC5">"text"</span><span style="color:#24292E">:{</span><span style="color:#005CC5">"type"</span><span style="color:#24292E">:</span><span style="color:#032F62">"string"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"description"</span><span style="color:#24292E">:</span><span style="color:#032F62">"要统计的文字"</span><span style="color:#24292E">}},</span><span style="color:#005CC5">"required"</span><span style="color:#24292E">:[</span><span style="color:#032F62">"text"</span><span style="color:#24292E">]}},{</span><span style="color:#005CC5">"name"</span><span style="color:#24292E">:</span><span style="color:#032F62">"dice"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"description"</span><span style="color:#24292E">:</span><span style="color:#032F62">"掷一个六面骰子，返回随机点数。"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"inputSchema"</span><span style="color:#24292E">:{</span><span style="color:#005CC5">"type"</span><span style="color:#24292E">:</span><span style="color:#032F62">"object"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"properties"</span><span style="color:#24292E">:{}}}]}}</span></span></code></pre>
+<p><code>initialize</code> 交换协议版本、能力和双方信息；server 回应后，client 用 <code>notifications/initialized</code> 表示初始化完成。这条通知没有 <code>id</code>，不需要回应。接着，<code>tools/list</code> 返回工具清单。参数描述 <code>inputSchema</code> 使用 JSON Schema，正好可以传给 OpenAI function calling 的 <code>parameters</code>。之后每次调用仍是一问一答：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#24292E">{</span><span style="color:#005CC5">"jsonrpc"</span><span style="color:#24292E">:</span><span style="color:#032F62">"2.0"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"id"</span><span style="color:#24292E">:</span><span style="color:#005CC5">3</span><span style="color:#24292E">,</span><span style="color:#005CC5">"method"</span><span style="color:#24292E">:</span><span style="color:#032F62">"tools/call"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"params"</span><span style="color:#24292E">:{</span><span style="color:#005CC5">"name"</span><span style="color:#24292E">:</span><span style="color:#032F62">"dice"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"arguments"</span><span style="color:#24292E">:{}}}</span></span>
+<span class="line"><span style="color:#24292E">{</span><span style="color:#005CC5">"jsonrpc"</span><span style="color:#24292E">:</span><span style="color:#032F62">"2.0"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"id"</span><span style="color:#24292E">:</span><span style="color:#005CC5">3</span><span style="color:#24292E">,</span><span style="color:#005CC5">"result"</span><span style="color:#24292E">:{</span><span style="color:#005CC5">"content"</span><span style="color:#24292E">:[{</span><span style="color:#005CC5">"type"</span><span style="color:#24292E">:</span><span style="color:#032F62">"text"</span><span style="color:#24292E">,</span><span style="color:#005CC5">"text"</span><span style="color:#24292E">:</span><span style="color:#032F62">"点数：2"</span><span style="color:#24292E">}]}}</span></span></code></pre>
+<p>工具结果放在 <code>content</code> 数组中，每项都有内容类型。当前 demo 只拼接最常见的 <code>text</code> 内容。</p>
+<h3 id="33-内置工具与-mcp-工具">3.3 内置工具与 MCP 工具</h3>
+<p>两条路线放在一起看：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>内置工具（Day 4 路线）</th><th>MCP 工具（今天）</th></tr></thead><tbody><tr><td>代码位置</td><td>Agent 仓库里的 TypeScript 函数</td><td>任意外部进程</td></tr><tr><td>新增工具的成本</td><td>写代码、注册、随 Agent 发布</td><td>安装 server，再添加配置</td></tr><tr><td>进程隔离</td><td>与 Agent 同进程</td><td>独立子进程，崩溃互不影响</td></tr><tr><td>信任边界</td><td>随 Agent 一起审查</td><td>外部代码，默认逐次确认</td></tr><tr><td>适合</td><td>紧贴本项目的核心能力</td><td>通用能力与第三方集成</td></tr></tbody></table>
+<p>两条路线不冲突。读写文件这类核心能力继续放在 Agent 内部，调用路径短，也容易统一限制工作目录；第三方集成更适合通过 MCP 复用。不同 server 可能提供同名工具，所以我们注册时统一加上 <code>mcp_&#x3C;服务名>_</code> 前缀，例如 <code>mcp_demo_dice</code>。</p>
+<h3 id="34-连接生命周期与权限">3.4 连接生命周期与权限</h3>
+<p>每个 server 随 Agent 启动，依次完成 <code>initialize → initialized → tools/list</code>。Agent 退出时关闭所有子进程。单次请求等待 10 秒；server 启动失败或中途退出时，客户端拒绝挂起的请求，并把错误留在连接状态中。</p>
+<p>MCP 统一了调用方式，没有替我们判断一次操作是否安全。外部工具默认使用 <code>ask</code>，每次执行前仍由 Day 8 的权限层确认；确认信任后，才在 <code>.geekagent/GeekAgent.json</code> 中按完整工具名改成 <code>allow</code>。</p>
+<h2 id="4-实现先效果后实现">4. 实现：先效果，后实现</h2>
+<h3 id="41-先看效果">4.1 先看效果</h3>
+<p>先按 4.3 在本地创建 <code>.geekagent/mcp.json</code>，其中只声明 demo server 的启动命令，没有填写 <code>word_count</code> 和 <code>dice</code>。启动后输入 <code>/mcp</code>，两个工具已经出现在清单中；它们来自握手后的 <code>tools/list</code> 响应：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#808080">GeekAgent Day 15 —— MCP 工具接入</span>
+<span style="color:#808080">.geekagent/mcp.json 里声明的 server 已自动接入：它们的工具以 mcp_ 前缀出现在工具清单里，/mcp 查看详情。</span>
+<span style="color:#00cdcd">You › /mcp</span>
+<span style="color:#808080">demo（2 个工具）</span>
+<span style="color:#808080">  mcp_demo_word_count</span>
+<span style="color:#808080">  mcp_demo_dice</span>
+<span style="color:#00cdcd">You › 掷一次骰子，再统计「Model Context Protocol」这个词组的字符数和词数</span>
+<span style="color:#cdcd00">即将调用 MCP 工具：mcp_demo_word_count（来自 server demo）</span>
+<span style="color:#cdcd00">确认执行？[y/N] → y</span>
+<span style="color:#cdcd00">[调用工具 mcp_demo_word_count → 字符数 22，词数 3]</span>
+<span style="color:#cdcd00">即将调用 MCP 工具：mcp_demo_dice（来自 server demo）</span>
+<span style="color:#cdcd00">确认执行？[y/N] → y</span>
+<span style="color:#cdcd00">[调用工具 mcp_demo_dice → 点数：5]</span>
+<span style="color:#00cd00">骰子点数是 5。「Model Context Protocol」共有 22 个字符、3 个词。</span>
+</pre>
+<p>配置文件只告诉 GeekAgent 怎样启动 <code>demo</code>，<code>mcp_demo_word_count</code> 和 <code>mcp_demo_dice</code> 都不是手工注册的。客户端从 <code>tools/list</code> 读取名称、描述和 <code>inputSchema</code>，加上 server 前缀后放进 Day 4 的注册表，所以面板会自动显示 <code>MCP  demo(2)</code>，模型也能立即调用。执行前的确认仍沿用 Day 8 的权限模型。</p>
+<h3 id="42-demo-servermjs提供两个外部工具完整-52-行">4.2 demo-server.mjs：提供两个外部工具（完整 52 行）</h3>
+<p>先看 server 侧。它从 stdin 读取 JSON-RPC 消息，再把响应写到 stdout：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#6A737D">// day15/demo-server.mjs</span></span>
+<span class="line"><span style="color:#6A737D">// 最简 MCP server：stdin/stdout 上讲 JSON-RPC，一行一个消息，对外提供两个演示工具。</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { createInterface } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:readline'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> TOOLS</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> [</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#24292E">        name: </span><span style="color:#032F62">'word_count'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        description: </span><span style="color:#032F62">'统计一段文字的字符数与词数（词数按空白切分计算）。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        inputSchema: {</span></span>
+<span class="line"><span style="color:#24292E">            type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            properties: { text: { type: </span><span style="color:#032F62">'string'</span><span style="color:#24292E">, description: </span><span style="color:#032F62">'要统计的文字'</span><span style="color:#24292E"> } },</span></span>
+<span class="line"><span style="color:#24292E">            required: [</span><span style="color:#032F62">'text'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: ({ </span><span style="color:#E36209">text</span><span style="color:#24292E"> }) </span><span style="color:#D73A49">=></span><span style="color:#032F62"> `字符数 ${</span><span style="color:#24292E">text</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">}，词数 ${</span><span style="color:#6F42C1">String</span><span style="color:#032F62">(</span><span style="color:#24292E">text</span><span style="color:#032F62">).</span><span style="color:#6F42C1">split</span><span style="color:#032F62">(</span><span style="color:#032F62">/</span><span style="color:#005CC5">\s</span><span style="color:#D73A49">+</span><span style="color:#032F62">/</span><span style="color:#032F62">).</span><span style="color:#6F42C1">filter</span><span style="color:#032F62">(</span><span style="color:#24292E">Boolean</span><span style="color:#032F62">).</span><span style="color:#005CC5">length</span><span style="color:#032F62">}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#24292E">        name: </span><span style="color:#032F62">'dice'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        description: </span><span style="color:#032F62">'掷一个六面骰子，返回随机点数。'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        inputSchema: { type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">, properties: {} },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: () </span><span style="color:#D73A49">=></span><span style="color:#032F62"> `点数：${</span><span style="color:#005CC5">1</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> Math</span><span style="color:#032F62">.</span><span style="color:#6F42C1">floor</span><span style="color:#032F62">(</span><span style="color:#24292E">Math</span><span style="color:#032F62">.</span><span style="color:#6F42C1">random</span><span style="color:#032F62">() </span><span style="color:#D73A49">*</span><span style="color:#005CC5"> 6</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span>
+<span class="line"><span style="color:#24292E">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> handle</span><span style="color:#24292E">(</span><span style="color:#E36209">method</span><span style="color:#24292E">, </span><span style="color:#E36209">params</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (method </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'initialize'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> { protocolVersion: params.protocolVersion, capabilities: {}, serverInfo: { name: </span><span style="color:#032F62">'geekagent-demo'</span><span style="color:#24292E">, version: </span><span style="color:#032F62">'1.0.0'</span><span style="color:#24292E"> } };</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (method </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'tools/list'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> { tools: </span><span style="color:#005CC5">TOOLS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">(({ </span><span style="color:#E36209">name</span><span style="color:#24292E">, </span><span style="color:#E36209">description</span><span style="color:#24292E">, </span><span style="color:#E36209">inputSchema</span><span style="color:#24292E"> }) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> ({ name, description, inputSchema })) };</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (method </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'tools/call'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> tool</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> TOOLS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">find</span><span style="color:#24292E">((</span><span style="color:#E36209">t</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> t.name </span><span style="color:#D73A49">===</span><span style="color:#24292E"> params.name);</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">tool) </span><span style="color:#D73A49">return</span><span style="color:#24292E"> { content: [{ type: </span><span style="color:#032F62">'text'</span><span style="color:#24292E">, text: </span><span style="color:#032F62">`未知工具：${</span><span style="color:#24292E">params</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">}`</span><span style="color:#24292E"> }], isError: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> };</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> { content: [{ type: </span><span style="color:#032F62">'text'</span><span style="color:#24292E">, text: tool.</span><span style="color:#6F42C1">run</span><span style="color:#24292E">(params.arguments </span><span style="color:#D73A49">??</span><span style="color:#24292E"> {}) }] };</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#005CC5"> undefined</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> rl</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> createInterface</span><span style="color:#24292E">({ input: process.stdin });</span></span>
+<span class="line"><span style="color:#24292E">rl.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'line'</span><span style="color:#24292E">, (</span><span style="color:#E36209">line</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> msg;</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        msg </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">parse</span><span style="color:#24292E">(line);</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (msg.id </span><span style="color:#D73A49">===</span><span style="color:#005CC5"> undefined</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#24292E">; </span><span style="color:#6A737D">// 通知（如 initialized）：不需要回应</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> handle</span><span style="color:#24292E">(msg.method, msg.params </span><span style="color:#D73A49">??</span><span style="color:#24292E"> {});</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (result </span><span style="color:#D73A49">!==</span><span style="color:#005CC5"> undefined</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">        process.stdout.</span><span style="color:#6F42C1">write</span><span style="color:#24292E">(</span><span style="color:#005CC5">JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">stringify</span><span style="color:#24292E">({ jsonrpc: </span><span style="color:#032F62">'2.0'</span><span style="color:#24292E">, id: msg.id, result }) </span><span style="color:#D73A49">+</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">});</span></span></code></pre>
+<p>这个 server 处理三个请求：<code>initialize</code> 返回协议版本与自身信息；<code>tools/list</code> 返回名称、说明和 JSON Schema；<code>tools/call</code> 找到普通 JavaScript 函数并执行，再把结果包装成 <code>content</code> 数组。<code>notifications/initialized</code> 没有 <code>id</code>，所以直接跳过。</p>
+<h3 id="43-配置文件">4.3 配置文件</h3>
+<p>在仓库根目录创建 <code>.geekagent/mcp.json</code>，内容如下：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#005CC5">  "mcpServers"</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#005CC5">    "demo"</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#005CC5">      "command"</span><span style="color:#24292E">: </span><span style="color:#032F62">"node"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">      "args"</span><span style="color:#24292E">: [</span><span style="color:#032F62">"day15/demo-server.mjs"</span><span style="color:#24292E">]</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>mcpServers</code> 的每个键是 server 名称，这里的 <code>demo</code> 最终会进入工具名前缀。<code>command</code> 是可执行命令，<code>args</code> 是启动参数，代码还支持用 <code>env</code> 补充环境变量。因为我们从仓库根目录运行 GeekAgent，所以 <code>day15/demo-server.mjs</code> 能直接找到；换到其他目录启动时，需要相应调整为绝对路径或正确的相对路径。</p>
+<p>配置只描述怎样启动 server，没有列出它提供的工具。保存文件并重启 GeekAgent 后，客户端才会连接 server，通过 <code>tools/list</code> 动态取得工具清单。</p>
+<h3 id="44-mcpts客户端本体完整-227-行">4.4 mcp.ts：客户端本体（完整 227 行）</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day15/mcp.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { spawn, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> ChildProcess } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:child_process'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { readFile } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:fs/promises'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { authorize, ensureToolPolicy } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './permissions.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { registerTool, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> Tool } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './tools.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** .geekagent/mcp.json 里一个 server 的启动配置：stdio 模式下，它就是一个本地子进程。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> McpServerConfig</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    command</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    args</span><span style="color:#D73A49">?:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[];</span></span>
+<span class="line"><span style="color:#E36209">    env</span><span style="color:#D73A49">?:</span><span style="color:#6F42C1"> Record</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#005CC5">string</span><span style="color:#24292E">>;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** server 在 tools/list 里返回的工具描述：名字、说明与参数 JSON Schema。 */</span></span>
+<span class="line"><span style="color:#D73A49">interface</span><span style="color:#6F42C1"> McpToolInfo</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    description</span><span style="color:#D73A49">?:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    inputSchema</span><span style="color:#D73A49">?:</span><span style="color:#6F42C1"> Record</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#005CC5">unknown</span><span style="color:#24292E">>;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** MCP 协议版本：握手时报出我们支持的版本，实际以 server 回应的版本继续。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> PROTOCOL_VERSION</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> '2025-06-18'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">/** 单个请求的等待上限：外部进程不回应时按失败处理，不让 Agent 一直挂着。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> REQUEST_TIMEOUT_MS</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 10_000</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 等待回应中的一个请求：id → resolve / reject。 */</span></span>
+<span class="line"><span style="color:#D73A49">interface</span><span style="color:#6F42C1"> Pending</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">    resolve</span><span style="color:#D73A49">:</span><span style="color:#24292E"> (</span><span style="color:#E36209">result</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> any</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6F42C1">    reject</span><span style="color:#D73A49">:</span><span style="color:#24292E"> (</span><span style="color:#E36209">err</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    timer</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> NodeJS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">Timeout</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 与一个 MCP server 的连接：子进程 + 按行收包的 JSON-RPC 客户端。</span></span>
+<span class="line"><span style="color:#6A737D"> * start 完成握手并拿到工具清单，之后每个工具调用对应一次 tools/call 请求。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">class</span><span style="color:#6F42C1"> McpClient</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> proc</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> ChildProcess</span><span style="color:#D73A49"> |</span><span style="color:#005CC5"> null</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> nextId</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> pending</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Map</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">number</span><span style="color:#24292E">, </span><span style="color:#6F42C1">Pending</span><span style="color:#24292E">>();</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> buffer</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">    /** server 无法启动或已退出后的失败说明；此后所有新请求直接失败，不再干等超时。 */</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#E36209"> dead</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#D73A49"> |</span><span style="color:#005CC5"> null</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    constructor</span><span style="color:#24292E">(</span></span>
+<span class="line"><span style="color:#D73A49">        readonly</span><span style="color:#E36209"> name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#D73A49">        private</span><span style="color:#E36209"> cfg</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> McpServerConfig</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    ) {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    /** 启动子进程并完成 initialize 握手，返回 server 声明的工具清单。 */</span></span>
+<span class="line"><span style="color:#D73A49">    async</span><span style="color:#6F42C1"> start</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#6F42C1">McpToolInfo</span><span style="color:#24292E">[]> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.proc </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> spawn</span><span style="color:#24292E">(</span><span style="color:#005CC5">this</span><span style="color:#24292E">.cfg.command, </span><span style="color:#005CC5">this</span><span style="color:#24292E">.cfg.args </span><span style="color:#D73A49">??</span><span style="color:#24292E"> [], {</span></span>
+<span class="line"><span style="color:#24292E">            env: { </span><span style="color:#D73A49">...</span><span style="color:#24292E">process.env, </span><span style="color:#D73A49">...</span><span style="color:#005CC5">this</span><span style="color:#24292E">.cfg.env },</span></span>
+<span class="line"><span style="color:#24292E">            stdio: [</span><span style="color:#032F62">'pipe'</span><span style="color:#24292E">, </span><span style="color:#032F62">'pipe'</span><span style="color:#24292E">, </span><span style="color:#032F62">'pipe'</span><span style="color:#24292E">],</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.proc.stdin</span><span style="color:#D73A49">!</span><span style="color:#24292E">.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'error'</span><span style="color:#24292E">, () </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {}); </span><span style="color:#6A737D">// server 已死时写入会触发 EPIPE，吞掉即可，失败由 markDead 记录</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.proc.stdout</span><span style="color:#D73A49">!</span><span style="color:#24292E">.</span><span style="color:#6F42C1">setEncoding</span><span style="color:#24292E">(</span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.proc.stdout</span><span style="color:#D73A49">!</span><span style="color:#24292E">.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'data'</span><span style="color:#24292E">, (</span><span style="color:#E36209">chunk</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">onData</span><span style="color:#24292E">(chunk));</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.proc.stderr</span><span style="color:#D73A49">!</span><span style="color:#24292E">.</span><span style="color:#6F42C1">setEncoding</span><span style="color:#24292E">(</span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.proc.stderr</span><span style="color:#D73A49">!</span><span style="color:#24292E">.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'data'</span><span style="color:#24292E">, (</span><span style="color:#E36209">chunk</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">`[mcp:${</span><span style="color:#005CC5">this</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">}] ${</span><span style="color:#24292E">chunk</span><span style="color:#032F62">.</span><span style="color:#6F42C1">trimEnd</span><span style="color:#032F62">()</span><span style="color:#032F62">}`</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.proc.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'error'</span><span style="color:#24292E">, (</span><span style="color:#E36209">err</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">markDead</span><span style="color:#24292E">(</span><span style="color:#032F62">`server 无法启动：${</span><span style="color:#24292E">err</span><span style="color:#032F62">.</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.proc.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'exit'</span><span style="color:#24292E">, (</span><span style="color:#E36209">code</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">markDead</span><span style="color:#24292E">(</span><span style="color:#032F62">`server 进程已退出（code ${</span><span style="color:#24292E">code</span><span style="color:#032F62">}）`</span><span style="color:#24292E">));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">        await</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">request</span><span style="color:#24292E">(</span><span style="color:#032F62">'initialize'</span><span style="color:#24292E">, {</span></span>
+<span class="line"><span style="color:#24292E">            protocolVersion: </span><span style="color:#005CC5">PROTOCOL_VERSION</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            capabilities: {},</span></span>
+<span class="line"><span style="color:#24292E">            clientInfo: { name: </span><span style="color:#032F62">'geekagent'</span><span style="color:#24292E">, version: </span><span style="color:#032F62">'0.1.0'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">notify</span><span style="color:#24292E">(</span><span style="color:#032F62">'notifications/initialized'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> list</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">request</span><span style="color:#24292E">(</span><span style="color:#032F62">'tools/list'</span><span style="color:#24292E">, {});</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> (list.tools </span><span style="color:#D73A49">??</span><span style="color:#24292E"> []) </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> McpToolInfo</span><span style="color:#24292E">[];</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    /** 调用 server 上的工具，把返回内容里的 text 片段拼成一段文本。 */</span></span>
+<span class="line"><span style="color:#D73A49">    async</span><span style="color:#6F42C1"> callTool</span><span style="color:#24292E">(</span><span style="color:#E36209">tool</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">args</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Record</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#005CC5">unknown</span><span style="color:#24292E">>)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">request</span><span style="color:#24292E">(</span><span style="color:#032F62">'tools/call'</span><span style="color:#24292E">, { name: tool, arguments: args });</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> text</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> (Array.</span><span style="color:#6F42C1">isArray</span><span style="color:#24292E">(result.content) </span><span style="color:#D73A49">?</span><span style="color:#24292E"> result.content </span><span style="color:#D73A49">:</span><span style="color:#24292E"> [])</span></span>
+<span class="line"><span style="color:#24292E">            .</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">item</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> any</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> item?.type </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'text'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">            .</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">item</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> any</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> item.text)</span></span>
+<span class="line"><span style="color:#24292E">            .</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (result.isError) </span><span style="color:#D73A49">throw</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(text </span><span style="color:#D73A49">||</span><span style="color:#032F62"> 'MCP 工具返回错误'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E"> text </span><span style="color:#D73A49">||</span><span style="color:#032F62"> '(无内容)'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    stop</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.proc?.</span><span style="color:#6F42C1">kill</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    /** 按行切包：stdio 传输约定一行一个 JSON。 */</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#6F42C1"> onData</span><span style="color:#24292E">(</span><span style="color:#E36209">chunk</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.buffer </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> chunk;</span></span>
+<span class="line"><span style="color:#D73A49">        let</span><span style="color:#24292E"> index</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> number</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        while</span><span style="color:#24292E"> ((index </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.buffer.</span><span style="color:#6F42C1">indexOf</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">)) </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> line</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.buffer.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, index).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#005CC5">            this</span><span style="color:#24292E">.buffer </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.buffer.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(index </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (line) </span><span style="color:#005CC5">this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">accept</span><span style="color:#24292E">(line);</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#6F42C1"> accept</span><span style="color:#24292E">(</span><span style="color:#E36209">line</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        let</span><span style="color:#24292E"> msg</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> any</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">            msg </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">parse</span><span style="color:#24292E">(line);</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            return</span><span style="color:#24292E">; </span><span style="color:#6A737D">// 不是合法 JSON 的行直接忽略</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> pending</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.pending.</span><span style="color:#6F42C1">get</span><span style="color:#24292E">(msg.id);</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">pending) </span><span style="color:#D73A49">return</span><span style="color:#24292E">; </span><span style="color:#6A737D">// 配不上请求的（id 不存在）是 server 发的通知，demo 不处理</span></span>
+<span class="line"><span style="color:#6F42C1">        clearTimeout</span><span style="color:#24292E">(pending.timer);</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.pending.</span><span style="color:#6F42C1">delete</span><span style="color:#24292E">(msg.id);</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (msg.error) pending.</span><span style="color:#6F42C1">reject</span><span style="color:#24292E">(</span><span style="color:#D73A49">new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(msg.error.message </span><span style="color:#D73A49">??</span><span style="color:#005CC5"> JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">stringify</span><span style="color:#24292E">(msg.error)));</span></span>
+<span class="line"><span style="color:#D73A49">        else</span><span style="color:#24292E"> pending.</span><span style="color:#6F42C1">resolve</span><span style="color:#24292E">(msg.result);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    /** 发出请求并等待同 id 的回应；超时按失败处理。 */</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#6F42C1"> request</span><span style="color:#24292E">(</span><span style="color:#E36209">method</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">params</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> unknown</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">any</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> id</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.nextId</span><span style="color:#D73A49">++</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#D73A49"> new</span><span style="color:#005CC5"> Promise</span><span style="color:#24292E">((</span><span style="color:#E36209">resolve</span><span style="color:#24292E">, </span><span style="color:#E36209">reject</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#005CC5">this</span><span style="color:#24292E">.dead) {</span></span>
+<span class="line"><span style="color:#6F42C1">                reject</span><span style="color:#24292E">(</span><span style="color:#D73A49">new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(</span><span style="color:#005CC5">this</span><span style="color:#24292E">.dead));</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> timer</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> setTimeout</span><span style="color:#24292E">(() </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">                this</span><span style="color:#24292E">.pending.</span><span style="color:#6F42C1">delete</span><span style="color:#24292E">(id);</span></span>
+<span class="line"><span style="color:#6F42C1">                reject</span><span style="color:#24292E">(</span><span style="color:#D73A49">new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(</span><span style="color:#032F62">`请求 ${</span><span style="color:#24292E">method</span><span style="color:#032F62">} 超时（${</span><span style="color:#005CC5">REQUEST_TIMEOUT_MS</span><span style="color:#D73A49"> /</span><span style="color:#005CC5"> 1000</span><span style="color:#032F62">}s 无回应）`</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#24292E">            }, </span><span style="color:#005CC5">REQUEST_TIMEOUT_MS</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#005CC5">            this</span><span style="color:#24292E">.pending.</span><span style="color:#6F42C1">set</span><span style="color:#24292E">(id, { resolve, reject, timer });</span></span>
+<span class="line"><span style="color:#005CC5">            this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">send</span><span style="color:#24292E">({ jsonrpc: </span><span style="color:#032F62">'2.0'</span><span style="color:#24292E">, id, method, params });</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    /** 通知没有 id，也不等待回应。 */</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#6F42C1"> notify</span><span style="color:#24292E">(</span><span style="color:#E36209">method</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.</span><span style="color:#6F42C1">send</span><span style="color:#24292E">({ jsonrpc: </span><span style="color:#032F62">'2.0'</span><span style="color:#24292E">, method });</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#6F42C1"> send</span><span style="color:#24292E">(</span><span style="color:#E36209">message</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> object</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">            this</span><span style="color:#24292E">.proc?.stdin?.</span><span style="color:#6F42C1">write</span><span style="color:#24292E">(</span><span style="color:#032F62">`${</span><span style="color:#005CC5">JSON</span><span style="color:#032F62">.</span><span style="color:#6F42C1">stringify</span><span style="color:#032F62">(</span><span style="color:#24292E">message</span><span style="color:#032F62">)</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n</span><span style="color:#032F62">`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">            // 进程不在了：挂起的请求由超时或 markDead 处理</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">    /** server 启动失败或崩溃时，记下原因并拒绝所有挂起的请求。 */</span></span>
+<span class="line"><span style="color:#D73A49">    private</span><span style="color:#6F42C1"> markDead</span><span style="color:#24292E">(</span><span style="color:#E36209">reason</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.dead </span><span style="color:#D73A49">=</span><span style="color:#24292E"> reason;</span></span>
+<span class="line"><span style="color:#D73A49">        for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#24292E"> [, </span><span style="color:#005CC5">pending</span><span style="color:#24292E">] </span><span style="color:#D73A49">of</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.pending) {</span></span>
+<span class="line"><span style="color:#6F42C1">            clearTimeout</span><span style="color:#24292E">(pending.timer);</span></span>
+<span class="line"><span style="color:#24292E">            pending.</span><span style="color:#6F42C1">reject</span><span style="color:#24292E">(</span><span style="color:#D73A49">new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(reason));</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.pending.</span><span style="color:#6F42C1">clear</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 把 server 上的一个工具包装成注册表 Tool：name 加 mcp 前缀，run 就是一次 JSON-RPC 调用。 */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> asRegistryTool</span><span style="color:#24292E">(</span><span style="color:#E36209">server</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">client</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> McpClient</span><span style="color:#24292E">, </span><span style="color:#E36209">info</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> McpToolInfo</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> name</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> `mcp_${</span><span style="color:#24292E">server</span><span style="color:#032F62">}_${</span><span style="color:#24292E">info</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">}`</span><span style="color:#24292E">.</span><span style="color:#6F42C1">replaceAll</span><span style="color:#24292E">(</span><span style="color:#032F62">/</span><span style="color:#005CC5">[</span><span style="color:#D73A49">^</span><span style="color:#005CC5">a-zA-Z0-9_-]</span><span style="color:#032F62">/</span><span style="color:#D73A49">g</span><span style="color:#24292E">, </span><span style="color:#032F62">'_'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        name,</span></span>
+<span class="line"><span style="color:#24292E">        description: </span><span style="color:#032F62">`[MCP:${</span><span style="color:#24292E">server</span><span style="color:#032F62">}] ${</span><span style="color:#24292E">info</span><span style="color:#032F62">.</span><span style="color:#24292E">description</span><span style="color:#D73A49"> ??</span><span style="color:#24292E"> info</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        parameters: info.inputSchema </span><span style="color:#D73A49">??</span><span style="color:#24292E"> { type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">, properties: {} },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">(</span><span style="color:#D73A49">await</span><span style="color:#6F42C1"> authorize</span><span style="color:#24292E">(name, </span><span style="color:#032F62">`</span><span style="color:#005CC5">\n</span><span style="color:#032F62">即将调用 MCP 工具：${</span><span style="color:#24292E">name</span><span style="color:#032F62">}（来自 server ${</span><span style="color:#24292E">server</span><span style="color:#032F62">}）</span><span style="color:#005CC5">\n</span><span style="color:#032F62">确认执行？`</span><span style="color:#24292E">))) {</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#032F62"> '已取消调用'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#D73A49">            return</span><span style="color:#24292E"> client.</span><span style="color:#6F42C1">callTool</span><span style="color:#24292E">(info.name, args);</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">        authorizes: </span><span style="color:#005CC5">true</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    };</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 一个 server 的接入状态，供面板与 /mcp 展示。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> McpStatus</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    server</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    tools</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[];</span></span>
+<span class="line"><span style="color:#E36209">    error</span><span style="color:#D73A49">?:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> statuses</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> McpStatus</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> clients</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> McpClient</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> mcpStatuses</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> readonly</span><span style="color:#6F42C1"> McpStatus</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> statuses;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 读取 .geekagent/mcp.json（mcpServers: { 名字: { command, args?, env? } }），</span></span>
+<span class="line"><span style="color:#6A737D"> * 逐个启动 server 并把它们的工具注册进注册表。文件不存在 = 没有 MCP server；</span></span>
+<span class="line"><span style="color:#6A737D"> * 某个 server 启动失败只记录状态，不影响其他 server 与 Agent 本体。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> connectMcpServers</span><span style="color:#24292E">(</span><span style="color:#E36209">file</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> '.geekagent/mcp.json'</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#24292E">    statuses </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#24292E">    clients </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> raw</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        raw </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(file, </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> ((err </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> NodeJS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ErrnoException</span><span style="color:#24292E">).code </span><span style="color:#D73A49">!==</span><span style="color:#032F62"> 'ENOENT'</span><span style="color:#24292E">) </span><span style="color:#D73A49">throw</span><span style="color:#24292E"> err;</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> config</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">parse</span><span style="color:#24292E">(raw) </span><span style="color:#D73A49">as</span><span style="color:#24292E"> { </span><span style="color:#E36209">mcpServers</span><span style="color:#D73A49">?:</span><span style="color:#6F42C1"> Record</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#6F42C1">McpServerConfig</span><span style="color:#24292E">> };</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#24292E"> [</span><span style="color:#005CC5">name</span><span style="color:#24292E">, </span><span style="color:#005CC5">cfg</span><span style="color:#24292E">] </span><span style="color:#D73A49">of</span><span style="color:#24292E"> Object.</span><span style="color:#6F42C1">entries</span><span style="color:#24292E">(config.mcpServers </span><span style="color:#D73A49">??</span><span style="color:#24292E"> {})) {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> client</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> McpClient</span><span style="color:#24292E">(name, cfg);</span></span>
+<span class="line"><span style="color:#D73A49">        try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> tools</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> client.</span><span style="color:#6F42C1">start</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> names</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">            for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> info</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> tools) {</span></span>
+<span class="line"><span style="color:#D73A49">                const</span><span style="color:#005CC5"> tool</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> asRegistryTool</span><span style="color:#24292E">(name, client, info);</span></span>
+<span class="line"><span style="color:#6F42C1">                ensureToolPolicy</span><span style="color:#24292E">(tool.name, </span><span style="color:#032F62">'ask'</span><span style="color:#24292E">); </span><span style="color:#6A737D">// 外部进程提供的工具默认 ask，GeekAgent.json 里可改 allow / deny</span></span>
+<span class="line"><span style="color:#6F42C1">                registerTool</span><span style="color:#24292E">(tool);</span></span>
+<span class="line"><span style="color:#24292E">                names.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(tool.name);</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">            clients.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(client);</span></span>
+<span class="line"><span style="color:#24292E">            statuses.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ server: name, tools: names });</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#24292E">            client.</span><span style="color:#6F42C1">stop</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">            statuses.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ server: name, tools: [], error: (err </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">).message });</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 退出前关掉所有 server 子进程，不留孤儿进程。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> stopMcpServers</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> client</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> clients) client.</span><span style="color:#6F42C1">stop</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    clients </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这份客户端按执行顺序分成三部分。</p>
+<p><strong><code>McpClient</code> 管理通信。</strong> <code>start</code> 用 <code>spawn</code> 拉起子进程，并在 stdout 上按行拆分 JSON。<code>request</code> 生成自增 <code>id</code>，把 Promise 与定时器放进 <code>pending</code>；<code>accept</code> 收到响应后，再用相同 <code>id</code> 找回等待中的请求。</p>
+<p><strong>失败有两条路径。</strong> 10 秒没有响应时，请求超时；进程启动失败或退出时，<code>markDead</code> 立即拒绝全部挂起请求。server 写到 stderr 的日志会加上 <code>[mcp:名字]</code> 前缀，方便定位来源。</p>
+<p><strong><code>asRegistryTool</code> 负责接入注册表。</strong> 工具名加 server 前缀，<code>inputSchema</code> 直接作为 <code>parameters</code>，<code>run</code> 转成一次 <code>tools/call</code>。<code>connectMcpServers</code> 逐个连接并注册工具，同时用 <code>ensureToolPolicy</code> 补上默认的 <code>ask</code> 策略。</p>
+<p><code>chat.ts</code> 和工具循环没有修改。MCP 工具进入注册表后，模型看到的结构与内置工具相同，差异只发生在 <code>run</code> 的执行路径上。</p>
+<h3 id="45-indexts启动展示与退出">4.5 index.ts：启动、展示与退出</h3>
+<p>启动阶段读取配置并连接 server。配置文件无法读取或解析时退出；单个 server 连接失败则由 <code>mcp.ts</code> 记录状态：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day15/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { connectMcpServers, mcpStatuses, stopMcpServers } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './mcp.js'</span><span style="color:#24292E">;</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day15/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#6F42C1"> connectMcpServers</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">} </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) {</span></span>
+<span class="line"><span style="color:#24292E">    console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">`MCP 配置读取失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">e</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>mcpLine</code> 把连接状态压缩成一行，供右侧面板展示：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day15/index.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** 描述当前 MCP 接入情况：每个 server 的工具数或失败原因。 */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> mcpLine</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> statuses</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> mcpStatuses</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (statuses.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ===</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> '无'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> statuses.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">s</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> (s.error </span><span style="color:#D73A49">?</span><span style="color:#032F62"> `${</span><span style="color:#24292E">s</span><span style="color:#032F62">.</span><span style="color:#24292E">server</span><span style="color:#032F62">}(启动失败)`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> `${</span><span style="color:#24292E">s</span><span style="color:#032F62">.</span><span style="color:#24292E">server</span><span style="color:#032F62">}(${</span><span style="color:#24292E">s</span><span style="color:#032F62">.</span><span style="color:#24292E">tools</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">})`</span><span style="color:#24292E">)).</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(</span><span style="color:#032F62">'、'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day15/index.ts</span></span>
+<span class="line"><span style="color:#032F62">        `技能  ${</span><span style="color:#6F42C1">activeSkill</span><span style="color:#032F62">()?.</span><span style="color:#24292E">name</span><span style="color:#D73A49"> ??</span><span style="color:#032F62"> '无'}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">        `MCP  ${</span><span style="color:#6F42C1">mcpLine</span><span style="color:#032F62">()</span><span style="color:#032F62">}`</span><span style="color:#24292E">,</span></span></code></pre>
+<p><code>/mcp</code> 展开每个 server 的完整工具名，也方便我们配置权限策略：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day15/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">        case</span><span style="color:#032F62"> '/mcp'</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#24292E">            const statuses </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> mcpStatuses</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#6F42C1">            if</span><span style="color:#24292E"> (statuses.length === 0) {</span></span>
+<span class="line"><span style="color:#24292E">                tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">'（未接入 MCP server；在 .geekagent/mcp.json 里声明后重启生效）'</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">            const lines </span><span style="color:#D73A49">=</span><span style="color:#24292E"> statuses.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">s</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span></span>
+<span class="line"><span style="color:#24292E">                s.error</span></span>
+<span class="line"><span style="color:#D73A49">                    ?</span><span style="color:#032F62"> `× ${</span><span style="color:#24292E">s</span><span style="color:#032F62">.</span><span style="color:#24292E">server</span><span style="color:#032F62">}：${</span><span style="color:#24292E">s</span><span style="color:#032F62">.</span><span style="color:#24292E">error</span><span style="color:#032F62">}`</span></span>
+<span class="line"><span style="color:#D73A49">                    :</span><span style="color:#032F62"> `${</span><span style="color:#24292E">s</span><span style="color:#032F62">.</span><span style="color:#24292E">server</span><span style="color:#032F62">}（${</span><span style="color:#24292E">s</span><span style="color:#032F62">.</span><span style="color:#24292E">tools</span><span style="color:#032F62">.</span><span style="color:#005CC5">length</span><span style="color:#032F62">} 个工具）</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">s</span><span style="color:#032F62">.</span><span style="color:#24292E">tools</span><span style="color:#032F62">.</span><span style="color:#6F42C1">map</span><span style="color:#032F62">((</span><span style="color:#005CC5">t</span><span style="color:#032F62">) </span><span style="color:#D73A49">=></span><span style="color:#032F62"> `  ${</span><span style="color:#24292E">t</span><span style="color:#032F62">}`</span><span style="color:#032F62">).</span><span style="color:#6F42C1">join</span><span style="color:#032F62">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            );</span></span>
+<span class="line"><span style="color:#24292E">            tui.append(lines.join(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">), </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            break;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span></code></pre>
+<p>退出时关闭 server 子进程。<code>/exit</code> 会进入 <code>onExit</code>，Ctrl+C 也直接调用同一个函数：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day15/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">        case</span><span style="color:#032F62"> '/exit'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">            stopMcpServers</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            await</span><span style="color:#6F42C1"> onExit</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">            break</span><span style="color:#24292E">;</span></span></code></pre>
+<p>至此，完整路径是：读取 <code>mcp.json</code>，启动并握手，拉取工具，注册到工具表，收到模型调用后发送 <code>tools/call</code>，最后把 server 的文本结果交回原有对话循环。</p>
+<h2 id="5-验证">5. 验证</h2>
+<p>先确认仓库根目录已有 4.3 的 <code>.geekagent/mcp.json</code>，再运行：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> typecheck</span></span>
+<span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day15/index.ts</span></span></code></pre>
+<ol>
+<li>启动后输入 <code>/mcp</code>：配置中没有工具名，但界面显示 <code>demo（2 个工具）</code>、两个动态发现的工具名，右侧面板出现 <code>MCP  demo(2)</code>；</li>
+<li>输入「掷一次骰子，再统计「Model Context Protocol」这个词组的字符数和词数」：模型调用两个 <code>mcp_</code> 工具，每次执行前询问，最终返回骰子点数以及 22 个字符、3 个词；</li>
+<li>在 <code>.geekagent/GeekAgent.json</code> 的 <code>tools</code> 中加入 <code>"mcp_demo_dice": "allow"</code> 并重启：再次掷骰子不再询问；改成 <code>"deny"</code> 并重启，则调用被权限层拒绝。</li>
+</ol>
+<h2 id="6-没做什么">6. 没做什么</h2>
+<ul>
+<li>只支持 stdio 传输，连不了远程的 Streamable HTTP server，也就没有 OAuth 鉴权那一层；</li>
+<li>server 提供的 resources、prompts，以及 client 提供的 sampling 都没有接；</li>
+<li>不处理 server 的动态变化（工具增删通知、分页拉取）与断线重连，server 崩溃后要重启 Agent；</li>
+<li>content 只取 text 块，图片、嵌入式资源等类型不处理；</li>
+<li>工具名截断、同名冲突等极端情况依赖注册表的报错，没有做更细的规范化。</li>
+</ul>
+<h2 id="7-下一步">7. 下一步</h2>
+<p>MCP 让工具可以在 Agent 之外独立演进，但当前连接仍局限在本机，能力也只有 tools。接下来可以沿着传输范围、协议能力和工具管理继续扩展，让外部能力在更多场景中保持可发现、可控制。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><canvas id="tip-alipay" data-qr="HTTPS://QR.ALIPAY.COM/FKX060337TUXBAX9LIFJE8" class="h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1"></canvas><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><canvas id="tip-wechat" data-qr="wxp://f2f0qgGBlfD1nZXjvBjievxB0z0fc0W2sBq5" class="h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1"></canvas><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><script type="module" src="/_astro/Tip.astro_astro_type_script_index_0_lang.Cy5UHo5P.js"></script><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geekagent-day14.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day14 轻 RAG 知识库</span></a><span></span></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day15";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day15.html";
+const title = "从零实现 GeekAgent —— Day15 MCP 工具接入";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html>
