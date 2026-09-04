@@ -15,6 +15,10 @@ export default defineConfig({
         plugins: [tailwindcss()],
     },
     integrations: [sitemap()],
+    image: {
+        // 响应式图片：为 Markdown 图片生成多宽度 srcset，移动端只下载合适尺寸
+        layout: 'constrained',
+    },
     markdown: {
         remarkPlugins: [remarkDirective, remarkCallout, remarkMath],
         rehypePlugins: [rehypeKatex],

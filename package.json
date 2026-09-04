@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "astro dev",
     "pull": "bash pull.sh && node scripts/import-repos.mjs",
-    "build": "npm run subset-font && astro build && node scripts/html-files.mjs && pagefind --site dist && node scripts/copy-pagefind.mjs && npm run validate",
+    "build": "npm run subset-font && astro build && node scripts/html-files.mjs && node scripts/prune-images.mjs && pagefind --site dist && node scripts/copy-pagefind.mjs && npm run validate",
     "preview": "astro preview",
     "pages": "bash gh-pages.sh",
     "check": "astro check",
