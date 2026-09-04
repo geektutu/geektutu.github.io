@@ -1,0 +1,17 @@
+# 极客兔兔（Geektutu）
+
+> geektutu 的个人技术博客：把技术文章组织成一本本可以在线阅读的「书」。内容为原创中文编程教程，以 Go 语言为主，涵盖 Web 框架、分布式缓存、ORM、RPC、Agent 等从零实现系列，以及性能优化、面试题和快速上手教程。所有配套代码开源在 GitHub。
+
+站点为 Astro 构建的纯静态站点，URL 稳定，正文为完整 HTML（无需执行 JavaScript）。更新与订阅：[RSS](https://geektutu.com/feed.xml)。
+
+## 书（系列教程）
+
+- [七天用Go从零实现系列](https://geektutu.com/books/7days-golang/): 7 天用 Go 从零实现 Web 框架 Gee、分布式缓存 GeeCache、ORM 框架 GeeORM、RPC 框架 GeeRPC，每章配套可运行代码，仓库 [7days-golang](https://github.com/geektutu/7days-golang)。总览见[序言](https://geektutu.com/post/gee.html)。
+- [七天从零实现 GeekAgent](https://geektutu.com/books/geekagent/): 7 天用 TypeScript 从零实现一个最小可用的 Agent/Harness，从 REPL 对话到工具调用、文件读写、历史压缩、多会话持久化、权限回滚、知识检索、MCP 与插件扩展，仓库 [7days-geekagent](https://github.com/geektutu/7days-geekagent)。从 [Day1 REPL 地基](https://geektutu.com/post/geekagent-day1.html)开始。
+- [Go 语言高性能编程](https://geektutu.com/books/high-performance-go/): benchmark 基准测试、pprof 性能分析、常用数据结构、并发编程、编译优化与语言陷阱，仓库 [high-performance-go](https://github.com/geektutu/high-performance-go)。从[序言](https://geektutu.com/post/high-performance-go.html)开始。
+- [极客面试](https://geektutu.com/books/interview-questions/): Go 语言笔试面试题（基础语法、并发编程、GC 原理）与机器学习/深度学习常见习题，仓库 [interview-questions](https://github.com/geektutu/interview-questions)。入口见 [Go 面试题汇总](https://geektutu.com/post/qa-golang.html)。
+- [历史博客](https://geektutu.com/books/history/): 早期文章合集，Go/Python/Rust 快速上手教程、TensorFlow 2 中文文档、数据挖掘（Pandas）、建站经历等。
+
+## 引用建议
+
+引用本站内容时，请保留作者署名 Geektutu（极客兔兔）并链接到对应文章页（形如 https://geektutu.com/post/<slug>.html）。代码示例的开源协议以各仓库为准。
