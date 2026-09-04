@@ -82,13 +82,3 @@ for (const c of chapters) {
     ))
   }
 </nav>
-
-<script>
-  // 侧边栏滚动到当前章节，保证激活项可见
-  const scroller = document.querySelector('.book-toc-scroll');
-  const active = document.querySelector('.book-toc [aria-current="page"]');
-  if (scroller && active instanceof HTMLElement) {
-    const target = active.offsetTop - scroller.clientHeight / 2 + active.offsetHeight / 2;
-    scroller.scrollTop = Math.max(0, target);
-  }
-</script>

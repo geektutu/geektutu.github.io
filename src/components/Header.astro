@@ -52,15 +52,3 @@ const nav = [
     </div>
   </div>
 </header>
-
-<script>
-  // 主题切换（按钮在 Header 内联渲染，此处仅监听）
-  const toggle = document.getElementById('theme-toggle');
-  toggle?.addEventListener('click', () => {
-    const root = document.documentElement;
-    const isDark = root.classList.toggle('dark');
-    try {
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    } catch (e) {}
-  });
-</script>

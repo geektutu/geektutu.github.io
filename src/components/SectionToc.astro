@@ -29,25 +29,3 @@ const items = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
     </ul>
   </nav>
 )}
-
-<script>
-  const links = Array.from(document.querySelectorAll('#section-toc a'));
-  const headings = links
-    .map((a) => document.getElementById(a.getAttribute('href')!.slice(1)))
-    .filter(Boolean);
-
-  function onScroll() {
-    const offset = 120;
-    let current: HTMLElement | null = null;
-    for (const h of headings) {
-      if ((h as HTMLElement).getBoundingClientRect().top <= offset) current = h as HTMLElement;
-    }
-    links.forEach((a) => a.classList.remove('active'));
-    if (current) {
-      const link = links.find((a) => a.getAttribute('href') === '#' + current.id);
-      link?.classList.add('active');
-    }
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-</script>

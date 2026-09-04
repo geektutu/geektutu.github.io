@@ -43,9 +43,9 @@
   --color-line: var(--line);
   --color-code: var(--code-bg);
 
-  --font-display: "Fraunces", "Songti SC", "Noto Serif SC", serif;
-  --font-body: "Newsreader", "Songti SC", "Noto Serif SC", serif;
-  --font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
+  --font-display: "Fraunces Variable", "Songti SC", "Noto Serif SC", serif;
+  --font-body: "Fraunces Variable", "Songti SC", "Noto Serif SC", serif;
+  --font-mono: "JetBrains Mono Variable", "SFMono-Regular", ui-monospace, monospace;
 
   --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-fade: fade 0.5s ease both;
