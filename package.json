@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "astro dev",
     "pull": "bash pull.sh && node scripts/import-repos.mjs",
-    "build": "astro build && node scripts/html-files.mjs && pagefind --site dist && node scripts/copy-pagefind.mjs && npm run validate",
+    "build": "npm run subset-font && astro build && node scripts/html-files.mjs && pagefind --site dist && node scripts/copy-pagefind.mjs && npm run validate",
     "preview": "astro preview",
     "pages": "bash gh-pages.sh",
     "check": "astro check",
@@ -16,15 +16,14 @@
     "html-files": "node scripts/html-files.mjs",
     "sync-pagefind": "node scripts/copy-pagefind.mjs",
     "validate": "node scripts/validate.mjs",
-    "astro": "astro"
+    "astro": "astro",
+    "subset-font": "node scripts/subset-font.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
     "@astrojs/markdown-remark": "^7.2.2",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
-    "@fontsource-variable/fraunces": "^5.3.0",
-    "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.2.0",
     "katex": "^0.18.4",
@@ -36,7 +35,9 @@
     "typescript": "^6.0.3"
   },
   "devDependencies": {
+    "@fontsource-variable/literata": "^5.3.0",
     "@types/qrcode": "^1.5.6",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "subset-font": "^2.7.0"
   }
 }

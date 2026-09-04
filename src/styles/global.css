@@ -3,6 +3,15 @@
 /* 类名驱动的深色模式（在 <html> 上切换 .dark） */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Literata latin 子集（scripts/subset-font.mjs 生成），汉字由 Songti SC 兜底 */
+@font-face {
+  font-family: "Literata Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url("/fonts/literata-latin-subset.woff2") format("woff2-variations");
+}
+
 :root {
   --paper: #faf6ef;
   --paper-soft: #f3ecdd;
@@ -43,9 +52,9 @@
   --color-line: var(--line);
   --color-code: var(--code-bg);
 
-  --font-display: "Fraunces Variable", "Songti SC", "Noto Serif SC", serif;
-  --font-body: "Fraunces Variable", "Songti SC", "Noto Serif SC", serif;
-  --font-mono: "JetBrains Mono Variable", "SFMono-Regular", ui-monospace, monospace;
+  --font-display: "Literata Variable", "Songti SC", "Noto Serif SC", serif;
+  --font-body: "Literata Variable", "Songti SC", "Noto Serif SC", serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Cascadia Mono", monospace;
 
   --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-fade: fade 0.5s ease both;
