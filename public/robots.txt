@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /pagefind/
+
+Sitemap: https://geektutu.com/sitemap-index.xml

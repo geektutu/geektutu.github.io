@@ -9,10 +9,61 @@ interface Props {
   description?: string;
   active?: 'home' | 'books' | 'tags' | 'search' | 'about';
   indexable?: boolean;
+  /** OG 类型：文章页传 article，其余默认 website */
+  ogType?: 'website' | 'article';
+  /** 社交分享图：站内路径或绝对 URL，缺省用全站默认图 */
+  ogImage?: string;
+  /** 文章发布/更新时间（ISO 8601），用于 article:* meta 与 JSON-LD */
+  publishedTime?: string;
+  modifiedTime?: string;
+  /** 文章标签 */
+  tags?: string[];
 }
 
-const { title = '极客兔兔', description = '把技术文章组织成书的静态博客', active, indexable = true } = Astro.props;
-const siteTitle = title === '极客兔兔' ? title : `${title} · 极客兔兔`;
+const {
+  title = '极客兔兔',
+  description = '把技术文章组织成书的个人技术博客',
+  active,
+  indexable = true,
+  ogType = 'website',
+  ogImage = '/og-default.png',
+  publishedTime,
+  modifiedTime,
+  tags = [],
+} = Astro.props;
+
+const siteName = '极客兔兔';
+const site = Astro.site ?? new URL('https://geektutu.com');
+const siteTitle = title === siteName ? title : `${title} · ${siteName}`;
+
+// canonical：构建时文件式路由带尾斜杠（/post/x.html/），还原为 /post/x.html；目录式路由保留尾斜杠
+const rawPath = Astro.url.pathname;
+const fileLike = /\.[a-z0-9]+$/i.test(rawPath.replace(/\/+$/, ''));
+const canonicalPath =
+  rawPath === '/' ? '/' : fileLike ? rawPath.replace(/\/+$/, '') : rawPath.endsWith('/') ? rawPath : `${rawPath}/`;
+const canonicalURL = new URL(canonicalPath, site);
+const imageURL = new URL(ogImage, site).href;
+
+// JSON-LD：WebSite + 站内搜索（配合 /search/?q= 预填）
+const websiteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: siteName,
+  alternateName: 'Geektutu',
+  url: site.href,
+  inLanguage: 'zh-CN',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${new URL('search/', site).href}?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
+};
+
+// JSON-LD 序列化：转义 <，防止正文被当作标签闭合
+const toLd = (ld: unknown) => JSON.stringify(ld).replace(/</g, '\\u003c');
 ---
 
 <!doctype html>
@@ -20,8 +71,38 @@ const siteTitle = title === '极客兔兔' ? title : `${title} · 极客兔兔`;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={description} />
     <title>{siteTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL.href} />
+    {!indexable && <meta name="robots" content="noindex, follow" />}
+    <link rel="alternate" type="application/rss+xml" title={siteName} href={new URL('feed.xml', site).href} />
+    <link rel="sitemap" type="application/xml" href={new URL('sitemap-index.xml', site).href} />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={siteTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL.href} />
+    <meta property="og:image" content={imageURL} />
+    <meta property="og:image:alt" content={siteTitle} />
+    {ogImage === '/og-default.png' && <meta property="og:image:width" content="1200" />}
+    {ogImage === '/og-default.png' && <meta property="og:image:height" content="630" />}
+    <meta property="og:locale" content="zh_CN" />
+    {ogType === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {ogType === 'article' && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    {ogType === 'article' && tags.map((t) => <meta property="article:tag" content={t} />)}
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={siteTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageURL} />
+
+    <!-- 结构化数据：全站 WebSite，子页面通过 head slot 追加 -->
+    <script type="application/ld+json" is:inline set:html={toLd(websiteLd)} />
+    <slot name="head" />
+
     <link rel="icon" type="image/png" href="/icon.png" />
     <link rel="preload" href="/fonts/literata-latin-subset.woff2" as="font" type="font/woff2" crossorigin />
     <!-- 内联防 FOUC：首帧前应用主题 -->

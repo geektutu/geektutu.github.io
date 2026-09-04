@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="搜索" description="站内全文搜索" active="search">
+<Layout title="搜索" description="站内全文搜索" active="search" indexable={false}>
   <section class="mx-auto max-w-3xl px-5 py-14">
     <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">Search</p>
     <h1 class="mb-8 font-display text-4xl font-semibold tracking-tight">全文搜索</h1>
@@ -124,6 +124,13 @@ import Layout from '../layouts/Layout.astro';
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') run();
   });
+
+  // 支持 /search/?q=xxx 预填（配合 WebSite SearchAction 结构化数据）
+  const q = new URLSearchParams(location.search).get('q')?.trim();
+  if (q) {
+    input.value = q;
+    run();
+  }
 
   function debounce(fn, ms) {
     let t;

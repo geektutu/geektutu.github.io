@@ -16,6 +16,7 @@
     "html-files": "node scripts/html-files.mjs",
     "sync-pagefind": "node scripts/copy-pagefind.mjs",
     "validate": "node scripts/validate.mjs",
+    "gen-og": "node scripts/gen-og.mjs",
     "astro": "astro",
     "subset-font": "node scripts/subset-font.mjs"
   },

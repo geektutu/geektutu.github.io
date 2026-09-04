@@ -20,7 +20,7 @@ const per = 6;
 const posts = allPosts.slice((page - 1) * per, page * per);
 ---
 
-<Layout title={`第 ${page} 页`} description="文章列表分页">
+<Layout title={`文章 第 ${page} 页`} description={`极客兔兔博客文章列表，第 ${page} 页。`}>
   <section class="mx-auto max-w-6xl px-5 py-14">
     <h1 class="mb-8 font-display text-3xl font-semibold tracking-tight">文章 · 第 {page} 页</h1>
     <div class="grid gap-5 md:grid-cols-2">

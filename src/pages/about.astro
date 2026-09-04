@@ -5,9 +5,21 @@ import { getBooks, getPublishedPosts } from '../lib/books';
 const books = await getBooks();
 const posts = await getPublishedPosts();
 const totalChapters = posts.length;
+
+// SEO/GEO：作者实体（E-E-A-T），与文章 JSON-LD 的 author 保持一致
+const personLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Geektutu',
+  alternateName: '极客兔兔',
+  url: 'https://github.com/geektutu',
+  sameAs: ['https://github.com/geektutu'],
+};
+const toLd = (ld: unknown) => JSON.stringify(ld).replace(/</g, '\\u003c');
 ---
 
 <Layout title="关于" description="关于本站与作者" active="about">
+  <script type="application/ld+json" is:inline set:html={toLd(personLd)} slot="head" />
   <section class="mx-auto max-w-3xl px-5 py-14">
     <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">About</p>
     <h1 class="mb-8 font-display text-4xl font-semibold tracking-tight">关于本站</h1>
@@ -36,6 +48,15 @@ const totalChapters = posts.length;
         <p class="font-display text-3xl font-semibold text-accent">{new Set(posts.flatMap((p) => p.data.tags)).size}</p>
         <p class="mt-1 text-sm text-faint">标签</p>
       </div>
+    </div>
+
+    <div class="mt-10">
+      <h2 class="mb-4 font-display text-xl font-semibold">作者</h2>
+      <p class="leading-relaxed text-muted">
+        本站作者 <strong class="text-ink">Geektutu</strong>（极客兔兔），常用 Go / TypeScript 写代码，
+        喜欢把系列教程整理成一本本可以在线阅读的书，所有配套代码开源在
+        <a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="text-accent underline underline-offset-2">GitHub</a>。
+      </p>
     </div>
 
     <div class="mt-10">

@@ -22,6 +22,31 @@ const date = post.data.date.toISOString().slice(0, 10);
 const updated = post.data.updated ? post.data.updated.toISOString().slice(0, 10) : undefined;
 const readingTime = Math.max(1, Math.round((post.body?.length ?? 0) / 1200));
 
+// SEO/GEO：OG 与结构化数据（BlogPosting + 面包屑）
+const site = Astro.site ?? new URL('https://geektutu.com');
+const canonical = new URL(`/post/${post.id}.html`, site).href;
+const publishedTime = post.data.date.toISOString();
+const modifiedTime = (post.data.updated ?? post.data.date).toISOString();
+const image = post.data.cover
+  ? new URL(post.data.cover.src, site).href
+  : new URL('/og-default.png', site).href;
+const authorLd = { '@type': 'Person', name: 'Geektutu', url: 'https://github.com/geektutu' };
+const postLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.data.title,
+  description: post.data.description || undefined,
+  image: [image],
+  datePublished: publishedTime,
+  dateModified: modifiedTime,
+  author: authorLd,
+  keywords: post.data.tags.length ? post.data.tags.join(', ') : undefined,
+  inLanguage: 'zh-CN',
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+  isPartOf: { '@type': 'Blog', '@id': `${site.href}#blog`, name: '极客兔兔', url: site.href },
+};
+const toLd = (ld: unknown) => JSON.stringify(ld).replace(/</g, '\\u003c');
+
 // 若属书，则加载书与章节目录、上下章
 let book: { id: string; title: string; repo?: string } | null = null;
 let chapters: Awaited<ReturnType<typeof getBookChapters>> = [];
@@ -37,6 +62,25 @@ if (post.data.book) {
   }
 }
 const isBook = Boolean(book);
+// 面包屑：首页 → 书 → 章节（独立文章为 首页 → 章节）
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '首页', item: site.href },
+    ...(isBook
+      ? [
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: book!.title,
+            item: new URL(`/books/${book!.id}/`, site).href,
+          },
+        ]
+      : []),
+    { '@type': 'ListItem', position: isBook ? 3 : 2, name: post.data.title },
+  ],
+};
 // 正文顶部的仓库提示：单篇文章 repo 优先于所属书的 repo
 const repo = post.data.repo ?? book?.repo;
 // Gitalk 用 id 拼 issue 标签（旧 hexo 站 id = window.location.pathname，形如 /post/<slug>.html），
@@ -44,7 +88,17 @@ const repo = post.data.repo ?? book?.repo;
 const gitalkId = `/post/${post.id}.html`;
 ---
 
-<Layout title={post.data.title} description={post.data.description}>
+<Layout
+  title={post.data.title}
+  description={post.data.description}
+  ogType="article"
+  ogImage={post.data.cover ? post.data.cover.src : undefined}
+  publishedTime={publishedTime}
+  modifiedTime={modifiedTime}
+  tags={post.data.tags}
+>
+  <script type="application/ld+json" is:inline set:html={toLd(postLd)} slot="head" />
+  <script type="application/ld+json" is:inline set:html={toLd(breadcrumbLd)} slot="head" />
   <ReadingProgress />
 
   <div class="mx-auto max-w-6xl px-5">
@@ -74,6 +128,12 @@ const gitalkId = `/post/${post.id}.html`;
               bookHref={`/books/${book!.id}`}
               repo={repo}
             />
+            {post.data.description && (
+              <div class="mt-6 rounded-2xl border border-line bg-paper-soft px-5 py-4">
+                <p class="text-[0.7rem] font-medium uppercase tracking-widest text-faint">本文要点</p>
+                <p class="mt-1.5 text-[0.95rem] leading-relaxed text-muted">{post.data.description}</p>
+              </div>
+            )}
             <div class="mt-8">
               <SectionToc headings={headings} />
             <div class="mt-6 markdown"><Content /></div>
@@ -88,6 +148,12 @@ const gitalkId = `/post/${post.id}.html`;
     ) : (
       <article class="mx-auto max-w-2xl py-14">
         <ChapterHeader post={post} date={date} updated={updated} readingTime={readingTime} repo={repo} />
+        {post.data.description && (
+          <div class="mt-6 rounded-2xl border border-line bg-paper-soft px-5 py-4">
+            <p class="text-[0.7rem] font-medium uppercase tracking-widest text-faint">本文要点</p>
+            <p class="mt-1.5 text-[0.95rem] leading-relaxed text-muted">{post.data.description}</p>
+          </div>
+        )}
           <div class="mt-8">
             <SectionToc headings={headings} />
             <div class="mt-6 markdown"><Content /></div>

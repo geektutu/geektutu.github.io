@@ -14,6 +14,43 @@ const chapters = await getBookChapters(book.data.id);
 const published = chapters.filter((c) => c.post);
 const repo = book.data.repo;
 
+// SEO/GEO：Book + ItemList（章节）+ 面包屑结构化数据
+const site = Astro.site ?? new URL('https://geektutu.com');
+const canonical = new URL(`/books/${book.data.id}/`, site).href;
+const bookLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Book',
+      name: book.data.title,
+      description: book.data.description || undefined,
+      url: canonical,
+      inLanguage: 'zh-CN',
+      author: { '@type': 'Person', name: 'Geektutu', url: 'https://github.com/geektutu' },
+      ...(repo ? { sameAs: [repo] } : {}),
+    },
+    {
+      '@type': 'ItemList',
+      name: `${book.data.title} 章节目录`,
+      numberOfItems: published.length,
+      itemListElement: published.map((c, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: c.post?.data.title ?? c.slug,
+        url: new URL(`/post/${c.slug}.html`, site).href,
+      })),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '首页', item: site.href },
+        { '@type': 'ListItem', position: 2, name: book.data.title },
+      ],
+    },
+  ],
+};
+const toLd = (ld: unknown) => JSON.stringify(ld).replace(/</g, '\\u003c');
+
 // 按 part 分组
 const groups: { part: string; items: typeof chapters }[] = [];
 for (const c of chapters) {
@@ -29,6 +66,7 @@ let counter = 0;
 ---
 
 <Layout title={book.data.title} description={book.data.description} active="books">
+  <script type="application/ld+json" is:inline set:html={toLd(bookLd)} slot="head" />
   <section class="mx-auto max-w-4xl px-5 py-14">
     <!-- 封面 + 简介 -->
     <div class="animate-rise grid gap-8 sm:grid-cols-[220px_1fr] sm:items-start">
