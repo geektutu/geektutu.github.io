@@ -1,0 +1,815 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="7天从零实现Agent教程，用 TypeScript 动手写一个最简单的 Agent/Harness。Day 16 把能力封装成独立插件：plugins/ 目录里放一个子目录加 plugin.ts，主程序启动时自动加载，命令、工具、HTTP 服务都能即插即用。"><title>从零实现 GeekAgent —— Day16 插件框架 · 极客兔兔</title><link rel="icon" type="image/png" href="/icon.png"><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.e8vZEDmM.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">极客兔兔</span></a><div class="flex items-center gap-2"><nav class="flex items-center gap-1 sm:gap-2" aria-label="主导航"><a href="/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">首页</a><a href="/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">书</a><a href="/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">标签</a><a href="/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">搜索</a><a href="/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">关于</a></nav><button id="theme-toggle" type="button" aria-label="切换深色模式" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录"><!-- 书名 --><a href="/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">七天从零实现 GeekAgent</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">基础 - 工具与会话</span></div><ul><li><a href="/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL 地基</a></li><li><a href="/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 工具调用循环</a></li><li><a href="/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash 工具</a></li><li><a href="/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 文件工具与注册表</a></li><li><a href="/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 历史压缩</a></li><li><a href="/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 多会话与持久化</a></li><li><a href="/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 轻量 TUI 与用量面板</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">进阶 - 安全与记忆</span></div><ul><li><a href="/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 权限与回滚</a></li><li><a href="/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 任务规划与子 Agent</a></li><li><a href="/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 项目指令与长期记忆</a></li><li><a href="/post/geekagent-day11.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day11 技能系统（Skills）</a></li><li><a href="/post/geekagent-day12.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day12 代码搜索与网页抓取</a></li><li><a href="/post/geekagent-day13.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day13 主动记忆</a></li><li><a href="/post/geekagent-day14.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day14 轻 RAG 知识库</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">扩展 - 工具互联</span></div><ul><li><a href="/post/geekagent-day15.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day15 MCP 工具接入</a></li><li><a href="/post/geekagent-day16.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day16 插件框架与 Web</a></li></ul></section></nav></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> 七天从零实现 GeekAgent</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">从零实现 GeekAgent —— Day16 插件框架</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-09-03">2026-09-03</time><span aria-hidden="true">·</span><span>约 20 分钟</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub 仓库：https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-插件和之前的能力有什么区别" class="toc-link block text-muted" data-toc-depth="2">0. 插件和之前的能力有什么区别？</a></li><li style="padding-left:0rem"><a href="#1-为什么每个新功能都要改主程序" class="toc-link block text-muted" data-toc-depth="2">1. 为什么：每个新功能都要改主程序</a></li><li style="padding-left:0rem"><a href="#2-目标" class="toc-link block text-muted" data-toc-depth="2">2. 目标</a></li><li style="padding-left:0rem"><a href="#3-设计插件--目录--plugints" class="toc-link block text-muted" data-toc-depth="2">3. 设计：插件 = 目录 + plugin.ts</a></li><li style="padding-left:0.9rem"><a href="#31-插件可以放在哪里运行" class="toc-link block text-muted" data-toc-depth="3">3.1 插件可以放在哪里运行</a></li><li style="padding-left:0.9rem"><a href="#32-三种能力" class="toc-link block text-muted" data-toc-depth="3">3.2 三种能力</a></li><li style="padding-left:0.9rem"><a href="#33-依赖方向由主程序注入" class="toc-link block text-muted" data-toc-depth="3">3.3 依赖方向：由主程序注入</a></li><li style="padding-left:0.9rem"><a href="#34-服务模式复用同一条对话链路" class="toc-link block text-muted" data-toc-depth="3">3.4 服务模式：复用同一条对话链路</a></li><li style="padding-left:0.9rem"><a href="#35-加载与生命周期" class="toc-link block text-muted" data-toc-depth="3">3.5 加载与生命周期</a></li><li style="padding-left:0rem"><a href="#4-实现先效果后实现" class="toc-link block text-muted" data-toc-depth="2">4. 实现：先效果，后实现</a></li><li style="padding-left:0.9rem"><a href="#41-先看效果" class="toc-link block text-muted" data-toc-depth="3">4.1 先看效果</a></li><li style="padding-left:0.9rem"><a href="#42-plugin-sdkts插件唯一需要-import-的文件完整-7-行" class="toc-link block text-muted" data-toc-depth="3">4.2 plugin-sdk.ts：插件唯一需要 import 的文件（完整 7 行）</a></li><li style="padding-left:0.9rem"><a href="#43-plugints插件框架本体完整-161-行" class="toc-link block text-muted" data-toc-depth="3">4.3 plugin.ts：插件框架本体（完整 161 行）</a></li><li style="padding-left:0.9rem"><a href="#44-pluginsechoplugints最简插件完整-26-行" class="toc-link block text-muted" data-toc-depth="3">4.4 plugins/echo/plugin.ts：最简插件（完整 26 行）</a></li><li style="padding-left:0.9rem"><a href="#45-pluginswebplugintsweb-对话界面完整-97-行" class="toc-link block text-muted" data-toc-depth="3">4.5 plugins/web/plugin.ts：Web 对话界面（完整 97 行）</a></li><li style="padding-left:0.9rem"><a href="#46-pluginswebindexhtml浏览器端" class="toc-link block text-muted" data-toc-depth="3">4.6 plugins/web/index.html：浏览器端</a></li><li style="padding-left:0.9rem"><a href="#47-indexts主程序的改动" class="toc-link block text-muted" data-toc-depth="3">4.7 index.ts：主程序的改动</a></li><li style="padding-left:0.9rem"><a href="#48-tuits保持不变" class="toc-link block text-muted" data-toc-depth="3">4.8 tui.ts：保持不变</a></li><li style="padding-left:0rem"><a href="#5-验证" class="toc-link block text-muted" data-toc-depth="2">5. 验证</a></li><li style="padding-left:0rem"><a href="#6-没做什么" class="toc-link block text-muted" data-toc-depth="2">6. 没做什么</a></li><li style="padding-left:0rem"><a href="#7-下一步" class="toc-link block text-muted" data-toc-depth="2">7. 下一步</a></li></ul></nav><div class="mt-6 markdown"><h1 id="day-16插件框架plugins-目录即插即用">Day 16：插件框架——plugins/ 目录即插即用</h1>
+<blockquote>
+<p>Day 15 已经能动态发现 MCP 工具，但 Skills、RAG、MCP 的启动和清理仍由主程序逐项接线。今天补一层插件约定：主程序只负责发现和调度，扩展能力自己声明命令、工具和生命周期。</p>
+</blockquote>
+<h2 id="0-插件和之前的能力有什么区别">0. 插件和之前的能力有什么区别？</h2>
+<p>从 Day 11 开始，我们陆续引入了技能（Skills）、MCP 工具、RAG 知识库，每项能力都对应一个独立的模块文件。但它们和”插件”有什么不同？</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>对比项</th><th>技能 / MCP / RAG</th><th>插件</th></tr></thead><tbody><tr><td>加载方式</td><td>主程序显式 import 和调用</td><td>扫描 plugins/ 目录，自动动态加载</td></tr><tr><td>注册能力</td><td>直接调用 <code>registerTool</code></td><td>通过 <code>onStart</code> 钩子拿到上下文</td></tr><tr><td>能否起服务</td><td>不能，所有代码在主进程内</td><td>可以，<code>onStart</code> 里随意建 HTTP 服务</td></tr><tr><td>能否独立演进</td><td>修改后要同步调整主程序接线</td><td>只要 SDK 契约不变，就能单独修改目录内容</td></tr><tr><td>失败影响</td><td>代码写错会导致主程序崩溃</td><td>加载失败或钩子抛错，只回滚该插件</td></tr><tr><td>与主程序耦合</td><td>紧密——import 关系明确</td><td>松散——只依赖 SDK 接口</td></tr></tbody></table>
+<p>技能按任务组织指令和工具，MCP 用协议连接外部进程，RAG 管理可检索的资料。插件不替代它们，它解决的是另一层问题：一组代码怎样被主程序发现，怎样拿到运行环境，又怎样在退出时释放资源。</p>
+<p>插件也不等于”只能注册工具”。它还能注册命令（如 echo 插件的 <code>/echo</code>）和启动服务（web 插件在端口 8787 起 HTTP 服务）。工具注册只是 <code>onStart</code> 里可以做的事情之一。</p>
+<h2 id="1-为什么每个新功能都要改主程序">1. 为什么：每个新功能都要改主程序</h2>
+<p>前 15 天每新增一项能力，我们都要打开 <code>index.ts</code>：增加 import 和初始化调用，再给 <code>handleCommand</code> 加一个 case。能力本身虽然已经分文件，接线仍集中在入口里。</p>
+<p>把能力从主程序抽出来，做成独立模块，带来几个直接的好处：</p>
+<ul>
+<li><strong>入口稳定</strong>。新增插件只增加一个目录，不再为它增加 import、初始化调用和命令 case。</li>
+<li><strong>失败隔离</strong>。某个插件加载或启动失败时，框架记录错误并回滚它注册的命令和工具，其他插件继续启动。</li>
+<li><strong>生命周期统一</strong>。插件在 <code>onStart</code> 获取依赖，在 <code>onExit</code> 释放 HTTP server 等资源，主程序只负责按顺序调用。</li>
+</ul>
+<p>这不是把所有旧模块都改造成插件。Day 16 先建立最小契约，并用 echo 和 web 两个目录验证命令、工具与服务三类扩展点。</p>
+<h2 id="2-目标">2. 目标</h2>
+<ol>
+<li>启动时扫描 <code>plugins/*/plugin.ts</code>：合法插件进入列表，插件命令可以直接通过 <code>/命令</code> 执行；</li>
+<li><code>onStart</code> 可以注册模型工具或启动服务；启动失败时只回滚当前插件，其他插件仍然可用；</li>
+<li>以 <code>web</code> 服务模式启动时，浏览器消息复用主程序已有的命令分发、记忆召回和工具循环，并通过 SSE 返回流式结果。</li>
+</ol>
+<p><strong>当天代码行数</strong>：相对 Day 15，源码新增 420 行、删除 9 行，净增 411 行；其中 <code>plugins/web/index.html</code>（73 行）是浏览器端聊天页面，<code>tui.ts</code> 与 Day 15 完全一致。</p>
+<h2 id="3-设计插件--目录--plugints">3. 设计：插件 = 目录 + plugin.ts</h2>
+<h3 id="31-插件可以放在哪里运行">3.1 插件可以放在哪里运行</h3>
+<p>成熟系统里的插件大致有三种形态：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>方案</th><th>怎样接入</th><th>隔离能力</th><th>主要成本</th><th>适用场景</th></tr></thead><tbody><tr><td>编译期扩展</td><td>主程序直接 import 模块</td><td>无</td><td>每次新增都改入口</td><td>内置且稳定的能力</td></tr><tr><td>进程内插件</td><td>运行时发现并加载模块</td><td>只能隔离生命周期错误</td><td>插件拥有主进程权限</td><td>本机、小规模扩展</td></tr><tr><td>进程外插件</td><td>子进程或远程服务，通过协议通信</td><td>可限制进程权限和故障范围</td><td>协议、序列化与部署更复杂</td><td>第三方或不可信扩展</td></tr></tbody></table>
+<p>VS Code 扩展使用单独的 extension host，浏览器扩展依赖受限 API 和权限声明，MCP server 则通过进程或网络边界提供能力。这些方案都比直接加载模块更容易控制故障和权限，但实现成本也更高。</p>
+<p>今天选择进程内插件：扫描目录后动态 <code>import</code>，再用 TypeScript 接口约定形状。它适合我们这个本机 demo，也能用较少代码讲清发现、依赖注入和生命周期。代价同样明确：插件代码与 Agent 权限相同，模块顶层代码造成的副作用无法回滚，所以它不是安全沙箱。</p>
+<h3 id="32-三种能力">3.2 三种能力</h3>
+<p>一个插件目录的基本结构：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="plaintext"><code><span class="line"><span>plugins/echo/</span></span>
+<span class="line"><span>  plugin.ts         # 必须：导出 Plugin 对象</span></span></code></pre>
+<p>Plugin 接口定义了三段可选能力：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#D73A49">interface</span><span style="color:#6F42C1"> Plugin</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    description</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    commands</span><span style="color:#D73A49">?:</span><span style="color:#6F42C1"> PluginCommand</span><span style="color:#24292E">[];        </span><span style="color:#6A737D">// 注册为 /命令</span></span>
+<span class="line"><span style="color:#6F42C1">    onStart</span><span style="color:#D73A49">?:</span><span style="color:#24292E"> (</span><span style="color:#E36209">ctx</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> PluginContext</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">;  </span><span style="color:#6A737D">// 启动时执行</span></span>
+<span class="line"><span style="color:#6F42C1">    onExit</span><span style="color:#D73A49">?:</span><span style="color:#24292E"> (</span><span style="color:#E36209">ctx</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> PluginContext</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> void</span><span style="color:#24292E">;   </span><span style="color:#6A737D">// 退出前执行</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>commands</code> 是最轻量的能力——注册一条命令，用户输入 <code>/命令</code> 时执行处理函数。<code>onStart</code> 获得完整的上下文，可以注册工具、启动后台服务、读取插件自己的配置文件。<code>onExit</code> 负责清理：关闭 HTTP 服务、断开连接等。</p>
+<h3 id="33-依赖方向由主程序注入">3.3 依赖方向：由主程序注入</h3>
+<p>插件需要访问主程序的输出、对话入口和工具注册器。如果插件直接 import 主程序入口 <code>index.ts</code>，加载方向就会首尾相接，模块初始化顺序也会变得难以判断。</p>
+<p>我们的做法是反过来：主程序把所有插件需要的东西打包成 <code>PluginContext</code>，通过 <code>onStart</code> 的参数注入给插件。插件只需要 import <code>plugin-sdk.js</code>，不需要关心主程序的内部模块路径。</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#D73A49">interface</span><span style="color:#6F42C1"> PluginContext</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    tui</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Pick</span><span style="color:#24292E">&#x3C;</span><span style="color:#6F42C1">TUI</span><span style="color:#24292E">, </span><span style="color:#032F62">'append'</span><span style="color:#D73A49"> |</span><span style="color:#032F62"> 'appendInline'</span><span style="color:#24292E">>;  </span><span style="color:#6A737D">// 插件实际使用的输出接口</span></span>
+<span class="line"><span style="color:#E36209">    mode</span><span style="color:#D73A49">:</span><span style="color:#032F62"> 'tui'</span><span style="color:#D73A49"> |</span><span style="color:#032F62"> 'web'</span><span style="color:#24292E">;  </span><span style="color:#6A737D">// 运行模式</span></span>
+<span class="line"><span style="color:#6F42C1">    registerTool</span><span style="color:#24292E">(</span><span style="color:#E36209">tool</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E">;        </span><span style="color:#6A737D">// 注册工具（出错时自动回滚）</span></span>
+<span class="line"><span style="color:#6F42C1">    reply</span><span style="color:#24292E">(</span><span style="color:#E36209">line</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">>;    </span><span style="color:#6A737D">// 对话处理函数</span></span>
+<span class="line"><span style="color:#6F42C1">    handleCommand</span><span style="color:#24292E">(</span><span style="color:#E36209">line</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">>;  </span><span style="color:#6A737D">// 命令处理函数</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这种设计限制了耦合面：插件拿不到主程序的 <code>Chat</code>、模型配置、权限根目录和会话状态，也不需要知道命令怎样分发、面板怎样更新。它约束的是代码依赖，不是权限边界。</p>
+<h3 id="34-服务模式复用同一条对话链路">3.4 服务模式：复用同一条对话链路</h3>
+<p>普通 TUI 模式需要真实终端。命令行参数为 <code>web</code> 时，主程序跳过 TUI 初始化，改用一套 headless 实现：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> tui</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> webMode </span><span style="color:#D73A49">?</span><span style="color:#6F42C1"> createHeadlessTui</span><span style="color:#24292E">() </span><span style="color:#D73A49">:</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> TUI</span><span style="color:#24292E">(onLine, onExit);</span></span></code></pre>
+<p>headless 实现放在新增的 <code>plugin.ts</code> 中：<code>append</code> 默认写到终端，其余界面方法保留同名空实现，原有 <code>tui.ts</code> 不需要修改。web 插件在请求处理时把 <code>append</code> 替换成 SSE 写入函数，这样 <code>reply</code> 和 <code>handleCommand</code> 的输出就能流到浏览器。<code>confirm</code> 返回 true，意味着服务模式下所有需要确认的操作用户都看不到提示就直接放行（这是 demo 的简化，不是最终方案）。</p>
+<h3 id="35-加载与生命周期">3.5 加载与生命周期</h3>
+<p>主程序在启动时依次执行：</p>
+<ol>
+<li>扫描 <code>plugins/</code> 目录，对每个子目录 <code>import('./plugins/&#x3C;name>/plugin.ts')</code>；</li>
+<li>把 <code>commands</code> 注册进命令表；</li>
+<li>调用每个插件的 <code>onStart(ctx)</code>，把上下文传进去；</li>
+<li>退出前调用每个插件的 <code>onExit(ctx)</code>。</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>阶段</th><th>主程序做的事</th><th>插件做的事</th></tr></thead><tbody><tr><td>加载</td><td>扫描目录、动态 import</td><td>无（只导出 Plugin 对象）</td></tr><tr><td>启动</td><td>逐个调用 onStart，失败则回滚</td><td>注册命令、注册工具、起服务</td></tr><tr><td>运行</td><td>命中外层 switch 未匹配的 /命令时，委托给插件命令表</td><td>处理命令、处理请求</td></tr><tr><td>退出</td><td>逐个调用 onExit，失败只记录</td><td>关闭服务、释放资源</td></tr></tbody></table>
+<p><code>onStart</code> 失败时，框架回滚通过上下文注册的命令和工具，不影响其他插件继续启动；目标服务插件失败时，服务模式直接退出。<code>onExit</code> 失败只记录错误，不阻塞退出流程。动态 import 时已经执行的模块顶层副作用不在回滚范围内，因此这里只称为生命周期隔离。</p>
+<h2 id="4-实现先效果后实现">4. 实现：先效果，后实现</h2>
+<h3 id="41-先看效果">4.1 先看效果</h3>
+<p>TUI 模式下，<code>/plugins</code> 展示已加载的插件和它们的命令：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#808080">[echo 插件] 已加载</span>
+<span style="color:#808080">[web 插件] 已加载</span>
+<span style="color:#808080">GeekAgent Day 16 —— 插件框架</span>
+<span style="color:#808080">plugins/ 目录下的插件已自动加载：/plugins 查看，插件命令可直接使用（如 /echo hello）。</span>
+<span style="color:#00cdcd">You › /plugins</span>
+<span style="color:#808080">已加载插件（plugins/ 目录）：</span>
+<span style="color:#808080">echo — 回显与工具注册演示（命令：/echo）</span>
+<span style="color:#808080">web — Web 对话界面：web 模式启动，浏览器里和模型交互</span>
+<span style="color:#00cdcd">You › /echo hello</span>
+<span style="color:#808080">回声：hello</span>
+</pre>
+<p>启动 web 服务模式时，终端会直接打印对话界面的地址：</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#808080">$ npm run dev -- day16/index.ts web</span>
+<span style="color:#808080">[echo 插件] 已加载</span>
+<span style="color:#808080">[web 插件] 对话界面已启动：http://localhost:8787</span>
+<span style="color:#808080">[web 插件] 已加载</span>
+</pre>
+<p>打开这个地址，就可以在浏览器里执行命令、对话和调用工具：</p>
+<p><img alt="web 插件对话界面" loading="lazy" decoding="async" width="963" height="491" src="/_astro/web-plugin.CKlZ60R8_Z3zkAV.webp" srcset=""></p>
+<h3 id="42-plugin-sdkts插件唯一需要-import-的文件完整-7-行">4.2 plugin-sdk.ts：插件唯一需要 import 的文件（完整 7 行）</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day16/plugin-sdk.ts</span></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 插件 SDK —— 插件可调用的接口全在此处导出。</span></span>
+<span class="line"><span style="color:#6A737D"> * 插件只需 `import { … } from '../../plugin-sdk.js'`，无需关心内部模块路径。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> type</span><span style="color:#24292E"> { Plugin, PluginContext } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './plugin.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> type</span><span style="color:#24292E"> { Tool } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './tools.js'</span><span style="color:#24292E">;</span></span></code></pre>
+<p>这一层只暴露插件契约和工具类型。注册动作必须经过 <code>PluginContext</code>，框架才能记录资源归属，并在插件启动失败时准确回滚。</p>
+<h3 id="43-plugints插件框架本体完整-161-行">4.3 plugin.ts：插件框架本体（完整 161 行）</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day16/plugin.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { readdir } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:fs/promises'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { dirname, join, resolve } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:path'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { fileURLToPath, pathToFileURL } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:url'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#D73A49"> type</span><span style="color:#24292E"> { Color, TUI } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './tui.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { registerTool </span><span style="color:#D73A49">as</span><span style="color:#24292E"> registerToolGlobal, unregisterTool </span><span style="color:#D73A49">as</span><span style="color:#24292E"> unregisterToolGlobal, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> Tool } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './tools.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> PluginCommand</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6A737D">    /** 命令名（不含 `/`），如 `echo` 对应 `/echo`。 */</span></span>
+<span class="line"><span style="color:#E36209">    name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    description</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">    /** 处理函数：接收命令后的整段参数，返回要展示给用户的文本。 */</span></span>
+<span class="line"><span style="color:#6F42C1">    handler</span><span style="color:#D73A49">:</span><span style="color:#24292E"> (</span><span style="color:#E36209">args</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">> </span><span style="color:#D73A49">|</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 注入给插件钩子的运行时上下文。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> PluginContext</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    tui</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Pick</span><span style="color:#24292E">&#x3C;</span><span style="color:#6F42C1">TUI</span><span style="color:#24292E">, </span><span style="color:#032F62">'append'</span><span style="color:#D73A49"> |</span><span style="color:#032F62"> 'appendInline'</span><span style="color:#24292E">>;</span></span>
+<span class="line"><span style="color:#6A737D">    /** 主入口（index.ts）导出的对话处理函数：普通消息走 reply，斜杠命令走 handleCommand。服务插件（web 等）按需调用。 */</span></span>
+<span class="line"><span style="color:#6F42C1">    reply</span><span style="color:#D73A49">:</span><span style="color:#24292E"> (</span><span style="color:#E36209">line</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">>;</span></span>
+<span class="line"><span style="color:#6F42C1">    handleCommand</span><span style="color:#D73A49">:</span><span style="color:#24292E"> (</span><span style="color:#E36209">line</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">>;</span></span>
+<span class="line"><span style="color:#6A737D">    /** 运行模式：'tui' = 终端界面，'web' = Web 对话界面。 */</span></span>
+<span class="line"><span style="color:#E36209">    mode</span><span style="color:#D73A49">:</span><span style="color:#032F62"> 'tui'</span><span style="color:#D73A49"> |</span><span style="color:#032F62"> 'web'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">    /** 注册工具并计入本插件账上：onStart 失败时自动回滚该插件注册的工具。 */</span></span>
+<span class="line"><span style="color:#6F42C1">    registerTool</span><span style="color:#24292E">(</span><span style="color:#E36209">tool</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 主程序提供的公共上下文；registerTool 由框架按插件注入。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> type</span><span style="color:#6F42C1"> PluginBaseContext</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> Omit</span><span style="color:#24292E">&#x3C;</span><span style="color:#6F42C1">PluginContext</span><span style="color:#24292E">, </span><span style="color:#032F62">'registerTool'</span><span style="color:#24292E">>;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 服务模式不创建真实终端，只保留主程序会调用的同名方法。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> createHeadlessTui</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#6F42C1"> noop</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> () </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {};</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        start: noop,</span></span>
+<span class="line"><span style="color:#24292E">        stop: noop,</span></span>
+<span class="line"><span style="color:#6F42C1">        append</span><span style="color:#24292E">: (</span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">_color</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Color</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> console.</span><span style="color:#6F42C1">log</span><span style="color:#24292E">(text),</span></span>
+<span class="line"><span style="color:#6F42C1">        appendInline</span><span style="color:#24292E">: (</span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">_color</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Color</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> process.stdout.</span><span style="color:#6F42C1">write</span><span style="color:#24292E">(text),</span></span>
+<span class="line"><span style="color:#6F42C1">        setPanel</span><span style="color:#24292E">: (</span><span style="color:#E36209">_lines</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[]) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {},</span></span>
+<span class="line"><span style="color:#6F42C1">        setBusy</span><span style="color:#24292E">: (</span><span style="color:#E36209">_busy</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> boolean</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {},</span></span>
+<span class="line"><span style="color:#24292E">        ready: noop,</span></span>
+<span class="line"><span style="color:#6F42C1">        confirm</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">_prompt</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#005CC5"> true</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    };</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * 插件 = 一个 plugins/&#x3C;name>/ 目录，目录里的 plugin.ts 导出此接口。</span></span>
+<span class="line"><span style="color:#6A737D"> * 三种能力：commands 在加载时注册（进命令表）；onStart/onExit 拿到 ctx，</span></span>
+<span class="line"><span style="color:#6A737D"> * 可以在里面起 HTTP 服务、注册工具。</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> Plugin</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    description</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    commands</span><span style="color:#D73A49">?:</span><span style="color:#6F42C1"> PluginCommand</span><span style="color:#24292E">[];</span></span>
+<span class="line"><span style="color:#6F42C1">    onStart</span><span style="color:#D73A49">?:</span><span style="color:#24292E"> (</span><span style="color:#E36209">ctx</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> PluginContext</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> </span><span style="color:#D73A49">|</span><span style="color:#005CC5"> void</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6F42C1">    onExit</span><span style="color:#D73A49">?:</span><span style="color:#24292E"> (</span><span style="color:#E36209">ctx</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> PluginContext</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> </span><span style="color:#D73A49">|</span><span style="color:#005CC5"> void</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> PLUGINS_DIR</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> resolve</span><span style="color:#24292E">(</span><span style="color:#6F42C1">dirname</span><span style="color:#24292E">(</span><span style="color:#6F42C1">fileURLToPath</span><span style="color:#24292E">(</span><span style="color:#D73A49">import</span><span style="color:#24292E">.</span><span style="color:#005CC5">meta</span><span style="color:#24292E">.url)), </span><span style="color:#032F62">'plugins'</span><span style="color:#24292E">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> plugins</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Plugin</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#6A737D">/** 命令注册表：插件命令全量进表，内置命令优先级高于插件命令。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> commands</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Map</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#6F42C1">PluginCommand</span><span style="color:#24292E">>();</span></span>
+<span class="line"><span style="color:#6A737D">/** 每个插件注册的工具名，onStart 失败时按此回滚。 */</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> ownedTools</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Map</span><span style="color:#24292E">&#x3C;</span><span style="color:#6F42C1">Plugin</span><span style="color:#24292E">, </span><span style="color:#005CC5">string</span><span style="color:#24292E">[]>();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 执行插件命令：返回展示文本；命令不存在返回 null。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> execPluginCommand</span><span style="color:#24292E">(</span><span style="color:#E36209">name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">args</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#D73A49"> |</span><span style="color:#005CC5"> null</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> cmd</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> commands.</span><span style="color:#6F42C1">get</span><span style="color:#24292E">(name);</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">cmd) </span><span style="color:#D73A49">return</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> cmd.</span><span style="color:#6F42C1">handler</span><span style="color:#24292E">(args);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 列出已注册的插件命令（供 /help 和 /plugins 展示）。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> listPluginCommands</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> readonly</span><span style="color:#6F42C1"> PluginCommand</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> [</span><span style="color:#D73A49">...</span><span style="color:#24292E">commands.</span><span style="color:#6F42C1">values</span><span style="color:#24292E">()];</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#6A737D">/** 扫描 plugins/ 目录：每个子目录一个插件，动态 import 其中的 plugin.ts；加载失败的插件跳过。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> loadPlugins</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#6F42C1">Plugin</span><span style="color:#24292E">[]> {</span></span>
+<span class="line"><span style="color:#24292E">    plugins </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#24292E">    commands.</span><span style="color:#6F42C1">clear</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    ownedTools.</span><span style="color:#6F42C1">clear</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> entries;</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        entries </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readdir</span><span style="color:#24292E">(</span><span style="color:#005CC5">PLUGINS_DIR</span><span style="color:#24292E">, { withFileTypes: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> ((err </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> NodeJS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">ErrnoException</span><span style="color:#24292E">).code </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'ENOENT'</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#24292E"> plugins;</span></span>
+<span class="line"><span style="color:#D73A49">        throw</span><span style="color:#24292E"> err;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> entry</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> entries) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">entry.</span><span style="color:#6F42C1">isDirectory</span><span style="color:#24292E">()) </span><span style="color:#D73A49">continue</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> dir</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> join</span><span style="color:#24292E">(</span><span style="color:#005CC5">PLUGINS_DIR</span><span style="color:#24292E">, entry.name);</span></span>
+<span class="line"><span style="color:#D73A49">        try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> mod</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> import</span><span style="color:#24292E">(</span><span style="color:#6F42C1">pathToFileURL</span><span style="color:#24292E">(</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(dir, </span><span style="color:#032F62">'plugin.ts'</span><span style="color:#24292E">)).href);</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> plugin</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> mod.default </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> Plugin</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">plugin?.name) </span><span style="color:#D73A49">throw</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(</span><span style="color:#032F62">'plugin.ts 未导出 default Plugin 对象'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (plugins.</span><span style="color:#6F42C1">some</span><span style="color:#24292E">((</span><span style="color:#E36209">item</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> item.name </span><span style="color:#D73A49">===</span><span style="color:#24292E"> plugin.name)) </span><span style="color:#D73A49">throw</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(</span><span style="color:#032F62">`插件名 ${</span><span style="color:#24292E">plugin</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">} 已注册`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> seen</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Set</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">>();</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> duplicate</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> (plugin.commands </span><span style="color:#D73A49">??</span><span style="color:#24292E"> []).</span><span style="color:#6F42C1">find</span><span style="color:#24292E">((</span><span style="color:#E36209">cmd</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (commands.</span><span style="color:#6F42C1">has</span><span style="color:#24292E">(cmd.name) </span><span style="color:#D73A49">||</span><span style="color:#24292E"> seen.</span><span style="color:#6F42C1">has</span><span style="color:#24292E">(cmd.name)) </span><span style="color:#D73A49">return</span><span style="color:#005CC5"> true</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">                seen.</span><span style="color:#6F42C1">add</span><span style="color:#24292E">(cmd.name);</span></span>
+<span class="line"><span style="color:#D73A49">                return</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">            });</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (duplicate) </span><span style="color:#D73A49">throw</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(</span><span style="color:#032F62">`插件命令 /${</span><span style="color:#24292E">duplicate</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">} 已注册`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">            for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> cmd</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> plugin.commands </span><span style="color:#D73A49">??</span><span style="color:#24292E"> []) commands.</span><span style="color:#6F42C1">set</span><span style="color:#24292E">(cmd.name, cmd);</span></span>
+<span class="line"><span style="color:#24292E">            plugins.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(plugin);</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#24292E">            console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">`插件 ${</span><span style="color:#24292E">entry</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">} 加载失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> plugins;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> listPlugins</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> readonly</span><span style="color:#6F42C1"> Plugin</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> plugins;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 为该插件构建带账本的上下文：registerTool 记录到回滚清单。 */</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> contextFor</span><span style="color:#24292E">(</span><span style="color:#E36209">base</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> PluginBaseContext</span><span style="color:#24292E">, </span><span style="color:#E36209">p</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Plugin</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> PluginContext</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        ...</span><span style="color:#24292E">base,</span></span>
+<span class="line"><span style="color:#6F42C1">        registerTool</span><span style="color:#24292E">: (</span><span style="color:#E36209">tool</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">            registerToolGlobal</span><span style="color:#24292E">(tool);</span></span>
+<span class="line"><span style="color:#D73A49">            const</span><span style="color:#005CC5"> list</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> ownedTools.</span><span style="color:#6F42C1">get</span><span style="color:#24292E">(p) </span><span style="color:#D73A49">??</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#24292E">            list.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(tool.name);</span></span>
+<span class="line"><span style="color:#24292E">            ownedTools.</span><span style="color:#6F42C1">set</span><span style="color:#24292E">(p, list);</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    };</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#6A737D">/** 依次执行所有插件的启动钩子；某个插件抛错就回滚它的命令与工具，不阻断其余插件。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> runPluginStart</span><span style="color:#24292E">(</span><span style="color:#E36209">base</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> PluginBaseContext</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#D73A49">readonly</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[]> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> failed</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [];</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> failedPlugins</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Set</span><span style="color:#24292E">&#x3C;</span><span style="color:#6F42C1">Plugin</span><span style="color:#24292E">>();</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> p</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> plugins) {</span></span>
+<span class="line"><span style="color:#D73A49">        try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            await</span><span style="color:#24292E"> p.</span><span style="color:#6F42C1">onStart</span><span style="color:#24292E">?.(</span><span style="color:#6F42C1">contextFor</span><span style="color:#24292E">(base, p));</span></span>
+<span class="line"><span style="color:#24292E">            base.tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">`[${</span><span style="color:#24292E">p</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">} 插件] 已加载`</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">            for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> cmd</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> p.commands </span><span style="color:#D73A49">??</span><span style="color:#24292E"> []) commands.</span><span style="color:#6F42C1">delete</span><span style="color:#24292E">(cmd.name);</span></span>
+<span class="line"><span style="color:#D73A49">            for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> name</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> ownedTools.</span><span style="color:#6F42C1">get</span><span style="color:#24292E">(p) </span><span style="color:#D73A49">??</span><span style="color:#24292E"> []) </span><span style="color:#6F42C1">unregisterToolGlobal</span><span style="color:#24292E">(name);</span></span>
+<span class="line"><span style="color:#24292E">            failed.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">(p.name);</span></span>
+<span class="line"><span style="color:#24292E">            failedPlugins.</span><span style="color:#6F42C1">add</span><span style="color:#24292E">(p);</span></span>
+<span class="line"><span style="color:#24292E">            console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">`插件 ${</span><span style="color:#24292E">p</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">} onStart 失败，已回滚：${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">    plugins </span><span style="color:#D73A49">=</span><span style="color:#24292E"> plugins.</span><span style="color:#6F42C1">filter</span><span style="color:#24292E">((</span><span style="color:#E36209">p</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> !</span><span style="color:#24292E">failedPlugins.</span><span style="color:#6F42C1">has</span><span style="color:#24292E">(p));</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> failed;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 退出钩子：同样逐个执行、隔离失败。 */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> runPluginExit</span><span style="color:#24292E">(</span><span style="color:#E36209">base</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> PluginBaseContext</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> p</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> plugins) {</span></span>
+<span class="line"><span style="color:#D73A49">        try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            await</span><span style="color:#24292E"> p.</span><span style="color:#6F42C1">onExit</span><span style="color:#24292E">?.(</span><span style="color:#6F42C1">contextFor</span><span style="color:#24292E">(base, p));</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#24292E">            console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">`插件 ${</span><span style="color:#24292E">p</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">} onExit 失败：${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>这份框架按加载顺序完成三件事。</p>
+<p><strong>先发现并校验。</strong> <code>loadPlugins</code> 动态 import 每个插件，拒绝重复的插件名和命令名。加载错误只记录当前目录，不中断后续扫描。</p>
+<p><strong>再注入依赖。</strong> <code>contextFor</code> 为每个插件补上带归属记录的 <code>registerTool</code>。<code>reply</code> 与 <code>handleCommand</code> 从主程序传入，web 插件因此复用已有的对话链路。</p>
+<p><strong>最后管理生命周期。</strong> <code>runPluginStart</code> 逐个启动插件，成功后统一打印已加载，失败时删除它的命令和工具，并返回失败名单。TUI 模式继续运行，服务模式发现目标插件失败则退出。<code>runPluginExit</code> 隔离每个退出钩子的错误，确保其他插件仍有机会清理。</p>
+<h3 id="44-pluginsechoplugints最简插件完整-26-行">4.4 plugins/echo/plugin.ts：最简插件（完整 26 行）</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day16/plugins/echo/plugin.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#D73A49"> type</span><span style="color:#24292E"> { Plugin, Tool } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> '../../plugin-sdk.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> plugin</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Plugin</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    name: </span><span style="color:#032F62">'echo'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    description: </span><span style="color:#032F62">'回显与工具注册演示'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    commands: [</span></span>
+<span class="line"><span style="color:#24292E">        {</span></span>
+<span class="line"><span style="color:#24292E">            name: </span><span style="color:#032F62">'echo'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            description: </span><span style="color:#032F62">'回显文本（/echo &#x3C;内容>）'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">            handler</span><span style="color:#24292E">: (</span><span style="color:#E36209">args</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#032F62"> `回声：${</span><span style="color:#24292E">args</span><span style="color:#D73A49"> ||</span><span style="color:#032F62"> '（空）'}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    ],</span></span>
+<span class="line"><span style="color:#6F42C1">    onStart</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">ctx</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        ctx.</span><span style="color:#6F42C1">registerTool</span><span style="color:#24292E">(echoTool);</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span>
+<span class="line"><span style="color:#24292E">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> default</span><span style="color:#24292E"> plugin;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> echoTool</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    name: </span><span style="color:#032F62">'echo_repeat'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    description: </span><span style="color:#032F62">'重复输入文本，用于测试工具调用'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    parameters: { type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">, properties: { text: { type: </span><span style="color:#032F62">'string'</span><span style="color:#24292E"> } }, required: [</span><span style="color:#032F62">'text'</span><span style="color:#24292E">] },</span></span>
+<span class="line"><span style="color:#6F42C1">    run</span><span style="color:#24292E">: (</span><span style="color:#E36209">args</span><span style="color:#D73A49">:</span><span style="color:#24292E"> { </span><span style="color:#E36209">text</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> }) </span><span style="color:#D73A49">=></span><span style="color:#032F62"> `重复：${</span><span style="color:#24292E">args</span><span style="color:#032F62">.</span><span style="color:#24292E">text</span><span style="color:#032F62">}`</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">};</span></span></code></pre>
+<p>echo 插件演示了命令（<code>/echo</code>）和工具（<code>echo_repeat</code>）两种扩展点。它不需要自己打印启动通知；框架在 <code>onStart</code> 成功后统一输出。<code>plugin.ts</code> 使用 <code>import type { Plugin, Tool }</code> 从 SDK 导入类型，不需要关心主程序内部模块。</p>
+<h3 id="45-pluginswebplugintsweb-对话界面完整-97-行">4.5 plugins/web/plugin.ts：Web 对话界面（完整 97 行）</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day16/plugins/web/plugin.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { readFile } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:fs/promises'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { createServer, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> Server, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> ServerResponse } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:http'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { dirname, join } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:path'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { fileURLToPath } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:url'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#D73A49"> type</span><span style="color:#24292E"> { Plugin, PluginContext } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> '../../plugin-sdk.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> ROOT</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> dirname</span><span style="color:#24292E">(</span><span style="color:#6F42C1">fileURLToPath</span><span style="color:#24292E">(</span><span style="color:#D73A49">import</span><span style="color:#24292E">.</span><span style="color:#005CC5">meta</span><span style="color:#24292E">.url));</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> PORT</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> 8787</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> server</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Server</span><span style="color:#D73A49"> |</span><span style="color:#005CC5"> null</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> chatting </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> readChatHtml</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readFile</span><span style="color:#24292E">(</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(</span><span style="color:#005CC5">ROOT</span><span style="color:#24292E">, </span><span style="color:#032F62">'index.html'</span><span style="color:#24292E">), </span><span style="color:#032F62">'utf8'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** 把全局 tui 的 append 接到当前请求的 SSE 流上，然后调用 reply 或 handleCommand。 */</span></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> handleChatSSE</span><span style="color:#24292E">(</span><span style="color:#E36209">ctx</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> PluginContext</span><span style="color:#24292E">, </span><span style="color:#E36209">message</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">res</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> ServerResponse</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> tui</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> ctx.tui;</span></span>
+<span class="line"><span style="color:#24292E">    tui.</span><span style="color:#6F42C1">append</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> (</span><span style="color:#E36209">text</span><span style="color:#24292E">, </span><span style="color:#E36209">color</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">text) </span><span style="color:#D73A49">return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> type</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> color </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'model'</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> 'content'</span><span style="color:#D73A49"> :</span><span style="color:#24292E"> color </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'sys'</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> 'system'</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> 'tool'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        res.</span><span style="color:#6F42C1">write</span><span style="color:#24292E">(</span><span style="color:#032F62">`data: ${</span><span style="color:#005CC5">JSON</span><span style="color:#032F62">.</span><span style="color:#6F42C1">stringify</span><span style="color:#032F62">({ </span><span style="color:#24292E">type</span><span style="color:#032F62">, </span><span style="color:#24292E">text</span><span style="color:#032F62"> })</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n\n</span><span style="color:#032F62">`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    };</span></span>
+<span class="line"><span style="color:#24292E">    tui.</span><span style="color:#6F42C1">appendInline</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> (</span><span style="color:#E36209">text</span><span style="color:#24292E">, </span><span style="color:#E36209">color</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(text, color);</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (message.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'/'</span><span style="color:#24292E">)) </span><span style="color:#D73A49">await</span><span style="color:#24292E"> ctx.</span><span style="color:#6F42C1">handleCommand</span><span style="color:#24292E">(message);</span></span>
+<span class="line"><span style="color:#D73A49">        else</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> ctx.</span><span style="color:#6F42C1">reply</span><span style="color:#24292E">(message);</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) {</span></span>
+<span class="line"><span style="color:#24292E">        res.</span><span style="color:#6F42C1">write</span><span style="color:#24292E">(</span><span style="color:#032F62">`data: ${</span><span style="color:#005CC5">JSON</span><span style="color:#032F62">.</span><span style="color:#6F42C1">stringify</span><span style="color:#032F62">({ type: </span><span style="color:#032F62">'error'</span><span style="color:#032F62">, text: (</span><span style="color:#24292E">e</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62"> })</span><span style="color:#032F62">}</span><span style="color:#005CC5">\n\n</span><span style="color:#032F62">`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">finally</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        chatting </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">    res.</span><span style="color:#6F42C1">write</span><span style="color:#24292E">(</span><span style="color:#032F62">'data: {"type":"done"}</span><span style="color:#005CC5">\n\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    res.</span><span style="color:#6F42C1">end</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> plugin</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Plugin</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    name: </span><span style="color:#032F62">'web'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    description: </span><span style="color:#032F62">'Web 对话界面：web 模式启动，浏览器里和模型交互'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">    onStart</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">ctx</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (ctx.mode </span><span style="color:#D73A49">!==</span><span style="color:#032F62"> 'web'</span><span style="color:#24292E">) </span><span style="color:#D73A49">return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> html</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> readChatHtml</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">        server </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> createServer</span><span style="color:#24292E">((</span><span style="color:#E36209">req</span><span style="color:#24292E">, </span><span style="color:#E36209">res</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            if</span><span style="color:#24292E"> (req.method </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'GET'</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> req.url </span><span style="color:#D73A49">===</span><span style="color:#032F62"> '/'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">                res.</span><span style="color:#6F42C1">writeHead</span><span style="color:#24292E">(</span><span style="color:#005CC5">200</span><span style="color:#24292E">, { </span><span style="color:#032F62">'Content-Type'</span><span style="color:#24292E">: </span><span style="color:#032F62">'text/html; charset=utf-8'</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#24292E">                res.</span><span style="color:#6F42C1">end</span><span style="color:#24292E">(html);</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">else</span><span style="color:#D73A49"> if</span><span style="color:#24292E"> (req.method </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'GET'</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> req.url </span><span style="color:#D73A49">===</span><span style="color:#032F62"> '/status'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">                res.</span><span style="color:#6F42C1">writeHead</span><span style="color:#24292E">(</span><span style="color:#005CC5">200</span><span style="color:#24292E">, { </span><span style="color:#032F62">'Content-Type'</span><span style="color:#24292E">: </span><span style="color:#032F62">'application/json'</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#24292E">                res.</span><span style="color:#6F42C1">end</span><span style="color:#24292E">(</span><span style="color:#005CC5">JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">stringify</span><span style="color:#24292E">({ plugin: </span><span style="color:#032F62">'web'</span><span style="color:#24292E">, status: </span><span style="color:#032F62">'ok'</span><span style="color:#24292E">, port: </span><span style="color:#005CC5">PORT</span><span style="color:#24292E">, at: </span><span style="color:#D73A49">new</span><span style="color:#6F42C1"> Date</span><span style="color:#24292E">().</span><span style="color:#6F42C1">toISOString</span><span style="color:#24292E">() }));</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">else</span><span style="color:#D73A49"> if</span><span style="color:#24292E"> (req.method </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'POST'</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> req.url </span><span style="color:#D73A49">===</span><span style="color:#032F62"> '/api/chat'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">                if</span><span style="color:#24292E"> (chatting) {</span></span>
+<span class="line"><span style="color:#24292E">                    res.</span><span style="color:#6F42C1">writeHead</span><span style="color:#24292E">(</span><span style="color:#005CC5">409</span><span style="color:#24292E">, { </span><span style="color:#032F62">'Content-Type'</span><span style="color:#24292E">: </span><span style="color:#032F62">'application/json'</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#24292E">                    res.</span><span style="color:#6F42C1">end</span><span style="color:#24292E">(</span><span style="color:#032F62">'{"error":"chat is busy"}'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                    return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">                }</span></span>
+<span class="line"><span style="color:#D73A49">                let</span><span style="color:#24292E"> body </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">                req.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'data'</span><span style="color:#24292E">, (</span><span style="color:#E36209">c</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> (body </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> c));</span></span>
+<span class="line"><span style="color:#24292E">                req.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'end'</span><span style="color:#24292E">, () </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">                        const</span><span style="color:#24292E"> { </span><span style="color:#005CC5">message</span><span style="color:#24292E"> } </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">parse</span><span style="color:#24292E">(body);</span></span>
+<span class="line"><span style="color:#D73A49">                        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">typeof</span><span style="color:#24292E"> message </span><span style="color:#D73A49">!==</span><span style="color:#032F62"> 'string'</span><span style="color:#D73A49"> ||</span><span style="color:#D73A49"> !</span><span style="color:#24292E">message.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">()) {</span></span>
+<span class="line"><span style="color:#24292E">                            res.</span><span style="color:#6F42C1">writeHead</span><span style="color:#24292E">(</span><span style="color:#005CC5">400</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">                            res.</span><span style="color:#6F42C1">end</span><span style="color:#24292E">(</span><span style="color:#032F62">'{"error":"message required"}'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                            return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">                        }</span></span>
+<span class="line"><span style="color:#24292E">                        res.</span><span style="color:#6F42C1">writeHead</span><span style="color:#24292E">(</span><span style="color:#005CC5">200</span><span style="color:#24292E">, {</span></span>
+<span class="line"><span style="color:#032F62">                            'Content-Type'</span><span style="color:#24292E">: </span><span style="color:#032F62">'text/event-stream'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">                            'Cache-Control'</span><span style="color:#24292E">: </span><span style="color:#032F62">'no-cache'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                            Connection: </span><span style="color:#032F62">'keep-alive'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                        });</span></span>
+<span class="line"><span style="color:#24292E">                        chatting </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> true</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                        void</span><span style="color:#6F42C1"> handleChatSSE</span><span style="color:#24292E">(ctx, message, res);</span></span>
+<span class="line"><span style="color:#24292E">                    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) {</span></span>
+<span class="line"><span style="color:#D73A49">                        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">res.headersSent) res.</span><span style="color:#6F42C1">writeHead</span><span style="color:#24292E">(</span><span style="color:#005CC5">500</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">                        res.</span><span style="color:#6F42C1">end</span><span style="color:#24292E">(</span><span style="color:#6F42C1">String</span><span style="color:#24292E">((e </span><span style="color:#D73A49">as</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">).message));</span></span>
+<span class="line"><span style="color:#24292E">                    }</span></span>
+<span class="line"><span style="color:#24292E">                });</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">                res.</span><span style="color:#6F42C1">writeHead</span><span style="color:#24292E">(</span><span style="color:#005CC5">404</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">                res.</span><span style="color:#6F42C1">end</span><span style="color:#24292E">(</span><span style="color:#032F62">'not found'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span>
+<span class="line"><span style="color:#D73A49">        await</span><span style="color:#D73A49"> new</span><span style="color:#005CC5"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">>((</span><span style="color:#E36209">resolve</span><span style="color:#24292E">, </span><span style="color:#E36209">reject</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">            server</span><span style="color:#D73A49">!</span><span style="color:#24292E">.</span><span style="color:#6F42C1">once</span><span style="color:#24292E">(</span><span style="color:#032F62">'error'</span><span style="color:#24292E">, reject);</span></span>
+<span class="line"><span style="color:#24292E">            server</span><span style="color:#D73A49">!</span><span style="color:#24292E">.</span><span style="color:#6F42C1">listen</span><span style="color:#24292E">(</span><span style="color:#005CC5">PORT</span><span style="color:#24292E">, resolve);</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span>
+<span class="line"><span style="color:#24292E">        ctx.tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">`[web 插件] 对话界面已启动：http://localhost:${</span><span style="color:#005CC5">PORT</span><span style="color:#032F62">}`</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span>
+<span class="line"><span style="color:#6F42C1">    onExit</span><span style="color:#24292E">: </span><span style="color:#D73A49">async</span><span style="color:#24292E"> () </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (server) </span><span style="color:#D73A49">await</span><span style="color:#D73A49"> new</span><span style="color:#005CC5"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">>((</span><span style="color:#E36209">resolve</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> server</span><span style="color:#D73A49">!</span><span style="color:#24292E">.</span><span style="color:#6F42C1">close</span><span style="color:#24292E">(() </span><span style="color:#D73A49">=></span><span style="color:#6F42C1"> resolve</span><span style="color:#24292E">()));</span></span>
+<span class="line"><span style="color:#24292E">        server </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span>
+<span class="line"><span style="color:#24292E">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> default</span><span style="color:#24292E"> plugin;</span></span></code></pre>
+<p><code>onStart</code> 先检查运行模式：只有 web 模式才启动 HTTP 服务并打印访问地址，统一的已加载通知由框架输出。收到聊天请求后，<code>handleChatSSE</code> 临时把 headless 输出接到当前 SSE 响应，再调用注入的 <code>reply</code> 或 <code>handleCommand</code>。模型回复、工具进度和命令结果因此沿用同一套主程序逻辑。</p>
+<p>服务模式下的 HTTP 服务有三个端点：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>端点</th><th>方法</th><th>用途</th></tr></thead><tbody><tr><td><code>/</code></td><td>GET</td><td>返回聊天页面（index.html）</td></tr><tr><td><code>/status</code></td><td>GET</td><td>返回 JSON 状态</td></tr><tr><td><code>/api/chat</code></td><td>POST</td><td>接收消息，返回 SSE 流</td></tr></tbody></table>
+<p><code>Chat</code> 和输出桩都是共享状态，因此服务端同时只接受一段对话；已有请求执行时，新请求返回 HTTP 409，避免两段流写进彼此的 SSE。<code>onExit</code> 等待 HTTP 服务真正关闭，再把 <code>server</code> 置成 null。</p>
+<h3 id="46-pluginswebindexhtml浏览器端">4.6 plugins/web/index.html：浏览器端</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="html"><code><span class="line"><span style="color:#24292E">&#x3C;!</span><span style="color:#22863A">DOCTYPE</span><span style="color:#6F42C1"> html</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">html</span><span style="color:#6F42C1"> lang</span><span style="color:#24292E">=</span><span style="color:#032F62">"zh"</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">head</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">meta</span><span style="color:#6F42C1"> charset</span><span style="color:#24292E">=</span><span style="color:#032F62">"UTF-8"</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">meta</span><span style="color:#6F42C1"> name</span><span style="color:#24292E">=</span><span style="color:#032F62">"viewport"</span><span style="color:#6F42C1"> content</span><span style="color:#24292E">=</span><span style="color:#032F62">"width=device-width, initial-scale=1.0"</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">title</span><span style="color:#24292E">>GeekAgent Day 16&#x3C;/</span><span style="color:#22863A">title</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">style</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#22863A">body</span><span style="color:#24292E"> { </span><span style="color:#005CC5">margin</span><span style="color:#24292E">: </span><span style="color:#005CC5">0</span><span style="color:#24292E">; </span><span style="color:#005CC5">background</span><span style="color:#24292E">: </span><span style="color:#005CC5">#16181d</span><span style="color:#24292E">; </span><span style="color:#005CC5">color</span><span style="color:#24292E">: </span><span style="color:#005CC5">#d4d4d4</span><span style="color:#24292E">; </span><span style="color:#005CC5">display</span><span style="color:#24292E">: </span><span style="color:#005CC5">flex</span><span style="color:#24292E">; </span><span style="color:#005CC5">flex-direction</span><span style="color:#24292E">: </span><span style="color:#005CC5">column</span><span style="color:#24292E">; </span><span style="color:#005CC5">height</span><span style="color:#24292E">: </span><span style="color:#005CC5">100</span><span style="color:#D73A49">vh</span><span style="color:#24292E">; </span><span style="color:#005CC5">font</span><span style="color:#24292E">: </span><span style="color:#005CC5">13</span><span style="color:#D73A49">px</span><span style="color:#24292E">/</span><span style="color:#005CC5">1.5</span><span style="color:#005CC5"> monospace</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#6F42C1">#chat</span><span style="color:#24292E"> { </span><span style="color:#005CC5">width</span><span style="color:#24292E">: </span><span style="color:#005CC5">100</span><span style="color:#D73A49">%</span><span style="color:#24292E">; </span><span style="color:#005CC5">max-width</span><span style="color:#24292E">: </span><span style="color:#005CC5">880</span><span style="color:#D73A49">px</span><span style="color:#24292E">; </span><span style="color:#005CC5">box-sizing</span><span style="color:#24292E">: </span><span style="color:#005CC5">border-box</span><span style="color:#24292E">; </span><span style="color:#005CC5">align-self</span><span style="color:#24292E">: </span><span style="color:#005CC5">center</span><span style="color:#24292E">; </span><span style="color:#005CC5">flex</span><span style="color:#24292E">: </span><span style="color:#005CC5">1</span><span style="color:#24292E">; </span><span style="color:#005CC5">overflow-y</span><span style="color:#24292E">: </span><span style="color:#005CC5">auto</span><span style="color:#24292E">; </span><span style="color:#005CC5">padding</span><span style="color:#24292E">: </span><span style="color:#005CC5">12</span><span style="color:#D73A49">px</span><span style="color:#24292E">; </span><span style="color:#005CC5">display</span><span style="color:#24292E">: </span><span style="color:#005CC5">flex</span><span style="color:#24292E">; </span><span style="color:#005CC5">flex-direction</span><span style="color:#24292E">: </span><span style="color:#005CC5">column</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#6F42C1">.bubble</span><span style="color:#24292E"> { </span><span style="color:#005CC5">max-width</span><span style="color:#24292E">: </span><span style="color:#005CC5">80</span><span style="color:#D73A49">%</span><span style="color:#24292E">; </span><span style="color:#005CC5">padding</span><span style="color:#24292E">: </span><span style="color:#005CC5">8</span><span style="color:#D73A49">px</span><span style="color:#005CC5"> 12</span><span style="color:#D73A49">px</span><span style="color:#24292E">; </span><span style="color:#005CC5">margin</span><span style="color:#24292E">: </span><span style="color:#005CC5">0</span><span style="color:#005CC5"> 0</span><span style="color:#005CC5"> 8</span><span style="color:#D73A49">px</span><span style="color:#24292E">; </span><span style="color:#005CC5">white-space</span><span style="color:#24292E">: </span><span style="color:#005CC5">pre-wrap</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#6F42C1">.user</span><span style="color:#24292E"> { </span><span style="color:#005CC5">background</span><span style="color:#24292E">: </span><span style="color:#005CC5">#1f4d3a</span><span style="color:#24292E">; </span><span style="color:#005CC5">color</span><span style="color:#24292E">: </span><span style="color:#005CC5">#d7fff0</span><span style="color:#24292E">; </span><span style="color:#005CC5">align-self</span><span style="color:#24292E">: </span><span style="color:#005CC5">flex-end</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#6F42C1">.assistant</span><span style="color:#24292E"> { </span><span style="color:#005CC5">background</span><span style="color:#24292E">: </span><span style="color:#005CC5">#23262e</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#6F42C1">.tool</span><span style="color:#24292E"> { </span><span style="color:#005CC5">color</span><span style="color:#24292E">: </span><span style="color:#005CC5">#cdcd00</span><span style="color:#24292E">; </span><span style="color:#005CC5">font-size</span><span style="color:#24292E">: </span><span style="color:#005CC5">12</span><span style="color:#D73A49">px</span><span style="color:#24292E">; </span><span style="color:#005CC5">margin</span><span style="color:#24292E">: </span><span style="color:#005CC5">0</span><span style="color:#005CC5"> 0</span><span style="color:#005CC5"> 6</span><span style="color:#D73A49">px</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#6F42C1">.system</span><span style="color:#24292E"> { </span><span style="color:#005CC5">color</span><span style="color:#24292E">: </span><span style="color:#005CC5">#808080</span><span style="color:#24292E">; </span><span style="color:#005CC5">font-size</span><span style="color:#24292E">: </span><span style="color:#005CC5">12</span><span style="color:#D73A49">px</span><span style="color:#24292E">; </span><span style="color:#005CC5">margin</span><span style="color:#24292E">: </span><span style="color:#005CC5">0</span><span style="color:#005CC5"> 0</span><span style="color:#005CC5"> 6</span><span style="color:#D73A49">px</span><span style="color:#24292E">; </span><span style="color:#005CC5">white-space</span><span style="color:#24292E">: </span><span style="color:#005CC5">pre-wrap</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#6F42C1">.error</span><span style="color:#24292E"> { </span><span style="color:#005CC5">color</span><span style="color:#24292E">: </span><span style="color:#005CC5">#cd5c5c</span><span style="color:#24292E">; </span><span style="color:#005CC5">font-size</span><span style="color:#24292E">: </span><span style="color:#005CC5">12</span><span style="color:#D73A49">px</span><span style="color:#24292E">; </span><span style="color:#005CC5">margin</span><span style="color:#24292E">: </span><span style="color:#005CC5">0</span><span style="color:#005CC5"> 0</span><span style="color:#005CC5"> 6</span><span style="color:#D73A49">px</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#6F42C1">#bar</span><span style="color:#24292E"> { </span><span style="color:#005CC5">width</span><span style="color:#24292E">: </span><span style="color:#005CC5">100</span><span style="color:#D73A49">%</span><span style="color:#24292E">; </span><span style="color:#005CC5">max-width</span><span style="color:#24292E">: </span><span style="color:#005CC5">880</span><span style="color:#D73A49">px</span><span style="color:#24292E">; </span><span style="color:#005CC5">box-sizing</span><span style="color:#24292E">: </span><span style="color:#005CC5">border-box</span><span style="color:#24292E">; </span><span style="color:#005CC5">align-self</span><span style="color:#24292E">: </span><span style="color:#005CC5">center</span><span style="color:#24292E">; </span><span style="color:#005CC5">display</span><span style="color:#24292E">: </span><span style="color:#005CC5">flex</span><span style="color:#24292E">; </span><span style="color:#005CC5">gap</span><span style="color:#24292E">: </span><span style="color:#005CC5">6</span><span style="color:#D73A49">px</span><span style="color:#24292E">; </span><span style="color:#005CC5">padding</span><span style="color:#24292E">: </span><span style="color:#005CC5">10</span><span style="color:#D73A49">px</span><span style="color:#005CC5"> 12</span><span style="color:#D73A49">px</span><span style="color:#24292E">; </span><span style="color:#005CC5">border-top</span><span style="color:#24292E">: </span><span style="color:#005CC5">1</span><span style="color:#D73A49">px</span><span style="color:#005CC5"> solid</span><span style="color:#005CC5"> #2a2d36</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#6F42C1">#inp</span><span style="color:#24292E"> { </span><span style="color:#005CC5">flex</span><span style="color:#24292E">: </span><span style="color:#005CC5">1</span><span style="color:#24292E">; </span><span style="color:#005CC5">background</span><span style="color:#24292E">: </span><span style="color:#005CC5">#23262e</span><span style="color:#24292E">; </span><span style="color:#005CC5">border</span><span style="color:#24292E">: </span><span style="color:#005CC5">1</span><span style="color:#D73A49">px</span><span style="color:#005CC5"> solid</span><span style="color:#005CC5"> #3a3e48</span><span style="color:#24292E">; </span><span style="color:#005CC5">color</span><span style="color:#24292E">: </span><span style="color:#005CC5">#e8e8e8</span><span style="color:#24292E">; </span><span style="color:#005CC5">padding</span><span style="color:#24292E">: </span><span style="color:#005CC5">8</span><span style="color:#D73A49">px</span><span style="color:#005CC5"> 10</span><span style="color:#D73A49">px</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#6F42C1">#btn</span><span style="color:#24292E"> { </span><span style="color:#005CC5">background</span><span style="color:#24292E">: </span><span style="color:#005CC5">#0cc</span><span style="color:#24292E">; </span><span style="color:#005CC5">color</span><span style="color:#24292E">: </span><span style="color:#005CC5">#000</span><span style="color:#24292E">; </span><span style="color:#005CC5">border</span><span style="color:#24292E">: </span><span style="color:#005CC5">0</span><span style="color:#24292E">; </span><span style="color:#005CC5">padding</span><span style="color:#24292E">: </span><span style="color:#005CC5">0</span><span style="color:#005CC5"> 18</span><span style="color:#D73A49">px</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#6F42C1">#btn:disabled</span><span style="color:#24292E"> { </span><span style="color:#005CC5">background</span><span style="color:#24292E">: </span><span style="color:#005CC5">#3a3e48</span><span style="color:#24292E">; </span><span style="color:#005CC5">color</span><span style="color:#24292E">: </span><span style="color:#005CC5">#808080</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#24292E">&#x3C;/</span><span style="color:#22863A">style</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;/</span><span style="color:#22863A">head</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">body</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">div</span><span style="color:#6F42C1"> id</span><span style="color:#24292E">=</span><span style="color:#032F62">"chat"</span><span style="color:#24292E">>&#x3C;/</span><span style="color:#22863A">div</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">div</span><span style="color:#6F42C1"> id</span><span style="color:#24292E">=</span><span style="color:#032F62">"bar"</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">  &#x3C;</span><span style="color:#22863A">input</span><span style="color:#6F42C1"> id</span><span style="color:#24292E">=</span><span style="color:#032F62">"inp"</span><span style="color:#6F42C1"> placeholder</span><span style="color:#24292E">=</span><span style="color:#032F62">"输入消息，回车发送"</span><span style="color:#6F42C1"> autocomplete</span><span style="color:#24292E">=</span><span style="color:#032F62">"off"</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">  &#x3C;</span><span style="color:#22863A">button</span><span style="color:#6F42C1"> id</span><span style="color:#24292E">=</span><span style="color:#032F62">"btn"</span><span style="color:#24292E">>发送&#x3C;/</span><span style="color:#22863A">button</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;/</span><span style="color:#22863A">div</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;</span><span style="color:#22863A">script</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> chat</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> document.</span><span style="color:#6F42C1">getElementById</span><span style="color:#24292E">(</span><span style="color:#032F62">'chat'</span><span style="color:#24292E">), </span><span style="color:#005CC5">inp</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> document.</span><span style="color:#6F42C1">getElementById</span><span style="color:#24292E">(</span><span style="color:#032F62">'inp'</span><span style="color:#24292E">), </span><span style="color:#005CC5">btn</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> document.</span><span style="color:#6F42C1">getElementById</span><span style="color:#24292E">(</span><span style="color:#032F62">'btn'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> add</span><span style="color:#24292E">(</span><span style="color:#E36209">c</span><span style="color:#24292E">, </span><span style="color:#E36209">t</span><span style="color:#24292E">) { </span><span style="color:#D73A49">const</span><span style="color:#005CC5"> e</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> document.</span><span style="color:#6F42C1">createElement</span><span style="color:#24292E">(</span><span style="color:#032F62">'div'</span><span style="color:#24292E">); e.className </span><span style="color:#D73A49">=</span><span style="color:#24292E"> c; e.textContent </span><span style="color:#D73A49">=</span><span style="color:#24292E"> t; chat.</span><span style="color:#6F42C1">appendChild</span><span style="color:#24292E">(e); chat.scrollTop </span><span style="color:#D73A49">=</span><span style="color:#24292E"> chat.scrollHeight; </span><span style="color:#D73A49">return</span><span style="color:#24292E"> e; }</span></span>
+<span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> send</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#D73A49">  if</span><span style="color:#24292E"> (busy) </span><span style="color:#D73A49">return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">  const</span><span style="color:#005CC5"> msg</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> inp.value.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">  if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">msg) </span><span style="color:#D73A49">return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  inp.value </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">; </span><span style="color:#6F42C1">add</span><span style="color:#24292E">(</span><span style="color:#032F62">'bubble user'</span><span style="color:#24292E">, msg);</span></span>
+<span class="line"><span style="color:#24292E">  busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> true</span><span style="color:#24292E">; btn.disabled </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> true</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">  let</span><span style="color:#24292E"> cur </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> null</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">  try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> resp</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> fetch</span><span style="color:#24292E">(</span><span style="color:#032F62">'/api/chat'</span><span style="color:#24292E">, { method: </span><span style="color:#032F62">'POST'</span><span style="color:#24292E">, headers: { </span><span style="color:#032F62">'Content-Type'</span><span style="color:#24292E">: </span><span style="color:#032F62">'application/json'</span><span style="color:#24292E"> }, body: </span><span style="color:#005CC5">JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">stringify</span><span style="color:#24292E">({ message: msg }) });</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">resp.ok </span><span style="color:#D73A49">||</span><span style="color:#D73A49"> !</span><span style="color:#24292E">resp.body) </span><span style="color:#D73A49">throw</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Error</span><span style="color:#24292E">(</span><span style="color:#032F62">'HTTP '</span><span style="color:#D73A49"> +</span><span style="color:#24292E"> resp.status);</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> reader</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> resp.body.</span><span style="color:#6F42C1">getReader</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> dec</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> TextDecoder</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> buf </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (;;) {</span></span>
+<span class="line"><span style="color:#D73A49">      const</span><span style="color:#24292E"> { </span><span style="color:#005CC5">done</span><span style="color:#24292E">, </span><span style="color:#005CC5">value</span><span style="color:#24292E"> } </span><span style="color:#D73A49">=</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> reader.</span><span style="color:#6F42C1">read</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">      if</span><span style="color:#24292E"> (done) </span><span style="color:#D73A49">break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">      buf </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> dec.</span><span style="color:#6F42C1">decode</span><span style="color:#24292E">(value, { stream: </span><span style="color:#005CC5">true</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#D73A49">      let</span><span style="color:#24292E"> idx;</span></span>
+<span class="line"><span style="color:#D73A49">      while</span><span style="color:#24292E"> ((idx </span><span style="color:#D73A49">=</span><span style="color:#24292E"> buf.</span><span style="color:#6F42C1">indexOf</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n\n</span><span style="color:#032F62">'</span><span style="color:#24292E">)) </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> line</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> buf.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">, idx).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">        buf </span><span style="color:#D73A49">=</span><span style="color:#24292E"> buf.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(idx </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">line.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'data: '</span><span style="color:#24292E">)) </span><span style="color:#D73A49">continue</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> evt</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">parse</span><span style="color:#24292E">(line.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">6</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (evt.type </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'content'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">          if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">cur) cur </span><span style="color:#D73A49">=</span><span style="color:#6F42C1"> add</span><span style="color:#24292E">(</span><span style="color:#032F62">'bubble assistant'</span><span style="color:#24292E">, </span><span style="color:#032F62">''</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">          cur.textContent </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> evt.text;</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">else</span><span style="color:#D73A49"> if</span><span style="color:#24292E"> (evt.type </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'tool'</span><span style="color:#24292E">) { </span><span style="color:#6F42C1">add</span><span style="color:#24292E">(</span><span style="color:#032F62">'tool'</span><span style="color:#24292E">, evt.text.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">()); }</span></span>
+<span class="line"><span style="color:#D73A49">        else</span><span style="color:#D73A49"> if</span><span style="color:#24292E"> (evt.type </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'system'</span><span style="color:#24292E">) { </span><span style="color:#6F42C1">add</span><span style="color:#24292E">(</span><span style="color:#032F62">'system'</span><span style="color:#24292E">, evt.text); }</span></span>
+<span class="line"><span style="color:#D73A49">        else</span><span style="color:#D73A49"> if</span><span style="color:#24292E"> (evt.type </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'error'</span><span style="color:#24292E">) { </span><span style="color:#6F42C1">add</span><span style="color:#24292E">(</span><span style="color:#032F62">'error'</span><span style="color:#24292E">, evt.text); }</span></span>
+<span class="line"><span style="color:#D73A49">        else</span><span style="color:#D73A49"> if</span><span style="color:#24292E"> (evt.type </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'done'</span><span style="color:#24292E">) { cur </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> null</span><span style="color:#24292E">; }</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">  } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) { </span><span style="color:#6F42C1">add</span><span style="color:#24292E">(</span><span style="color:#032F62">'error'</span><span style="color:#24292E">, e.message); }</span></span>
+<span class="line"><span style="color:#24292E">  busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">; btn.disabled </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">; inp.</span><span style="color:#6F42C1">focus</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#24292E">inp.</span><span style="color:#6F42C1">addEventListener</span><span style="color:#24292E">(</span><span style="color:#032F62">'keydown'</span><span style="color:#24292E">, (</span><span style="color:#E36209">e</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> { </span><span style="color:#D73A49">if</span><span style="color:#24292E"> (e.key </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'Enter'</span><span style="color:#24292E">) </span><span style="color:#6F42C1">send</span><span style="color:#24292E">(); });</span></span>
+<span class="line"><span style="color:#24292E">btn.</span><span style="color:#6F42C1">addEventListener</span><span style="color:#24292E">(</span><span style="color:#032F62">'click'</span><span style="color:#24292E">, send);</span></span>
+<span class="line"><span style="color:#6F42C1">add</span><span style="color:#24292E">(</span><span style="color:#032F62">'bubble assistant'</span><span style="color:#24292E">, </span><span style="color:#032F62">'你好，我是 GeekAgent。'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">inp.</span><span style="color:#6F42C1">focus</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">&#x3C;/</span><span style="color:#22863A">script</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;/</span><span style="color:#22863A">body</span><span style="color:#24292E">></span></span>
+<span class="line"><span style="color:#24292E">&#x3C;/</span><span style="color:#22863A">html</span><span style="color:#24292E">></span></span></code></pre>
+<p>浏览器端使用 <code>fetch</code> + <code>ReadableStream</code> 读取 SSE 流，按 <code>data: </code> 前缀切分事件，每个事件有 <code>type</code> 字段：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>type</th><th>含义</th><th>前端行为</th></tr></thead><tbody><tr><td><code>content</code></td><td>模型回复文本</td><td>追加到当前气泡</td></tr><tr><td><code>tool</code></td><td>工具调用日志</td><td>新建黄色文本行</td></tr><tr><td><code>system</code></td><td>命令结果或系统消息</td><td>新建灰色文本行</td></tr><tr><td><code>error</code></td><td>请求错误</td><td>新建红色行</td></tr><tr><td><code>done</code></td><td>流结束</td><td>准备下一轮回复</td></tr></tbody></table>
+<h3 id="47-indexts主程序的改动">4.7 index.ts：主程序的改动</h3>
+<p>主程序 <code>index.ts</code> 围绕插件框架做了几处改动，这里只贴新增的部分，完整代码见仓库。</p>
+<p><strong>引入插件模块</strong>（<code>day16/index.ts:18</code>）：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { createHeadlessTui, execPluginCommand, listPluginCommands, listPlugins, loadPlugins, runPluginExit, runPluginStart, </span><span style="color:#D73A49">type</span><span style="color:#24292E"> PluginBaseContext } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './plugin.js'</span><span style="color:#24292E">;</span></span></code></pre>
+<p><strong>服务模式判断</strong>（<code>day16/index.ts:26</code>）：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> mode</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> process.argv[</span><span style="color:#005CC5">2</span><span style="color:#24292E">] </span><span style="color:#D73A49">??</span><span style="color:#032F62"> 'tui'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#24292E"> (mode </span><span style="color:#D73A49">!==</span><span style="color:#032F62"> 'tui'</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> mode </span><span style="color:#D73A49">!==</span><span style="color:#032F62"> 'web'</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">    console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">`未知启动模式：${</span><span style="color:#24292E">mode</span><span style="color:#032F62">}（可选：web）`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> webMode</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> mode </span><span style="color:#D73A49">===</span><span style="color:#032F62"> 'web'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">webMode </span><span style="color:#D73A49">&#x26;&#x26;</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">process.stdin.isTTY </span><span style="color:#D73A49">||</span><span style="color:#D73A49"> !</span><span style="color:#24292E">process.stdout.isTTY)) {</span></span>
+<span class="line"><span style="color:#24292E">    console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">'Day 11 的 TUI 需要真实终端（TTY）；管道 / 重定向下请运行 day6。'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><code>argv[2]</code> 只接受 <code>web</code>；其他值直接报错，避免让不启动服务的插件进入永久等待。</p>
+<p><strong>选择终端实现</strong>：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> tui</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> webMode </span><span style="color:#D73A49">?</span><span style="color:#6F42C1"> createHeadlessTui</span><span style="color:#24292E">() </span><span style="color:#D73A49">:</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> TUI</span><span style="color:#24292E">(onLine, onExit);</span></span></code></pre>
+<p><strong>加载插件与启动钩子</strong>（<code>day16/index.ts:82</code>）：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> plugins</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> loadPlugins</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> pluginCtx</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> PluginBaseContext</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> { tui, mode, reply, handleCommand };</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> failedPlugins</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> runPluginStart</span><span style="color:#24292E">(pluginCtx);</span></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#24292E"> (webMode </span><span style="color:#D73A49">&#x26;&#x26;</span><span style="color:#24292E"> failedPlugins.</span><span style="color:#6F42C1">includes</span><span style="color:#24292E">(</span><span style="color:#032F62">'web'</span><span style="color:#24292E">)) process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span></span></code></pre>
+<p><code>reply</code> 和 <code>handleCommand</code> 仍是 <code>index.ts</code> 内部函数，只通过 <code>PluginContext</code> 注入给插件，不增加新的模块导出。</p>
+<p><strong>/plugins 命令</strong>（<code>day16/index.ts:258</code>）：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#D73A49">case</span><span style="color:#032F62"> '/plugins'</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">    if</span><span style="color:#24292E"> (plugins.length === 0) {</span></span>
+<span class="line"><span style="color:#24292E">        tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">'（plugins/ 目录下暂无插件）'</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">        break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">    const pluginLines </span><span style="color:#D73A49">=</span><span style="color:#24292E"> plugins.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">p</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> cmds</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> (p.commands </span><span style="color:#D73A49">??</span><span style="color:#24292E"> []).</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">c</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#032F62"> `/${</span><span style="color:#24292E">c</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">}`</span><span style="color:#24292E">).</span><span style="color:#6F42C1">join</span><span style="color:#24292E">(</span><span style="color:#032F62">'、'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#032F62"> `${</span><span style="color:#24292E">p</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">} — ${</span><span style="color:#24292E">p</span><span style="color:#032F62">.</span><span style="color:#24292E">description</span><span style="color:#032F62">}${</span><span style="color:#24292E">cmds</span><span style="color:#D73A49"> ?</span><span style="color:#032F62"> `（命令：${</span><span style="color:#24292E">cmds</span><span style="color:#032F62">}）`</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    });</span></span>
+<span class="line"><span style="color:#24292E">    tui.append(</span><span style="color:#032F62">`已加载插件（plugins/ 目录）：</span><span style="color:#005CC5">\n</span><span style="color:#032F62">${</span><span style="color:#24292E">pluginLines</span><span style="color:#032F62">.</span><span style="color:#6F42C1">join</span><span style="color:#032F62">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#032F62">)</span><span style="color:#032F62">}`</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    break;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p><strong>default 分支委托插件命令</strong>（<code>day16/index.ts:324</code>）：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#D73A49">default</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#6F42C1">    if</span><span style="color:#24292E"> (command.startsWith(</span><span style="color:#032F62">'/'</span><span style="color:#24292E">)) {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> cmdName</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> command.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> args</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> line.</span><span style="color:#6F42C1">slice</span><span style="color:#24292E">(command.</span><span style="color:#005CC5">length</span><span style="color:#24292E">).</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> execPluginCommand</span><span style="color:#24292E">(cmdName, args);</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (result </span><span style="color:#D73A49">!==</span><span style="color:#005CC5"> null</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#24292E">            tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(result, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">            break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">    tui.append(</span><span style="color:#032F62">`未知命令：${</span><span style="color:#24292E">command</span><span style="color:#032F62">}（输入 /help 查看）`</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>内置命令的 <code>switch case</code> 优先匹配，匹配不上时交给插件命令表。先匹配内置再匹配插件，确保内置命令不能被插件覆盖。</p>
+<p><strong>退出前通知插件</strong>（<code>day16/index.ts:378</code>）：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#D73A49">async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> onExit</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">void</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#6F42C1">    stopMcpServers</span><span style="color:#24292E">(); </span><span style="color:#6A737D">// 关掉 MCP server 子进程</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#6F42C1"> runPluginExit</span><span style="color:#24292E">(pluginCtx); </span><span style="color:#6A737D">// 退出前通知插件</span></span></code></pre>
+<p><strong>末尾分流</strong>（<code>day16/index.ts:394</code>）：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#D73A49">if</span><span style="color:#24292E"> (webMode) {</span></span>
+<span class="line"><span style="color:#24292E">    process.</span><span style="color:#6F42C1">once</span><span style="color:#24292E">(</span><span style="color:#032F62">'SIGINT'</span><span style="color:#24292E">, () </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> void</span><span style="color:#6F42C1"> onExit</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#24292E">    process.</span><span style="color:#6F42C1">once</span><span style="color:#24292E">(</span><span style="color:#032F62">'SIGTERM'</span><span style="color:#24292E">, () </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> void</span><span style="color:#6F42C1"> onExit</span><span style="color:#24292E">());</span></span>
+<span class="line"><span style="color:#D73A49">    await</span><span style="color:#D73A49"> new</span><span style="color:#005CC5"> Promise</span><span style="color:#24292E">(() </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {});</span></span>
+<span class="line"><span style="color:#24292E">} </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    tui.</span><span style="color:#6F42C1">start</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#6F42C1">    updatePanel</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">'GeekAgent Day 16 —— 插件框架'</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    tui.</span><span style="color:#6F42C1">append</span><span style="color:#24292E">(</span><span style="color:#032F62">'plugins/ 目录下的插件已自动加载：/plugins 查看，插件命令可直接使用（如 /echo hello）。'</span><span style="color:#24292E">, </span><span style="color:#032F62">'sys'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>服务模式用 <code>await new Promise(() => {})</code> 挂住进程；收到 Ctrl+C 或 SIGTERM 后，先执行所有退出钩子，再结束进程。TUI 模式正常启动界面。</p>
+<h3 id="48-tuits保持不变">4.8 tui.ts：保持不变</h3>
+<p>插件只通过 <code>Pick&#x3C;TUI, 'append' | 'appendInline'></code> 描述自己依赖的两个输出方法，服务模式的空实现在 <code>plugin.ts</code> 中提供。因此 <code>tui.ts</code> 与 Day 15 逐字一致，插件能力没有侵入终端实现。</p>
+<h2 id="5-验证">5. 验证</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> typecheck</span></span>
+<span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day16/index.ts</span></span></code></pre>
+<ol>
+<li>启动后输入 <code>/echo hello</code>，输出 <code>回声：hello</code>；</li>
+<li>输入 <code>/plugins</code>，显示 echo 和 web 两个插件，其中 echo 带有 <code>/echo</code> 命令；</li>
+<li>按 Ctrl+C 退出，检查确认退出前保存了会话。</li>
+</ol>
+<p>服务模式验证：</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day16/index.ts</span><span style="color:#032F62"> web</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 另一个终端</span></span>
+<span class="line"><span style="color:#6F42C1">curl</span><span style="color:#005CC5"> -s</span><span style="color:#032F62"> http://localhost:8787/status</span></span>
+<span class="line"><span style="color:#6A737D"># → {"plugin":"web","status":"ok","port":8787,"at":"2026-09-03T10:54:19.049Z"}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">curl</span><span style="color:#005CC5"> -s</span><span style="color:#005CC5"> -X</span><span style="color:#032F62"> POST</span><span style="color:#032F62"> http://localhost:8787/api/chat</span><span style="color:#005CC5"> \</span></span>
+<span class="line"><span style="color:#005CC5">  -H</span><span style="color:#032F62"> 'Content-Type: application/json'</span><span style="color:#005CC5"> \</span></span>
+<span class="line"><span style="color:#005CC5">  -d</span><span style="color:#032F62"> '{"message":"/plugins"}'</span></span>
+<span class="line"><span style="color:#6A737D"># → SSE 流，包含 echo 和 web 两个插件的信息</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">curl</span><span style="color:#005CC5"> -s</span><span style="color:#005CC5"> -o</span><span style="color:#032F62"> /dev/null</span><span style="color:#005CC5"> -w</span><span style="color:#032F62"> "%{http_code}"</span><span style="color:#032F62"> http://localhost:8787/</span></span>
+<span class="line"><span style="color:#6A737D"># → 200（首页正常返回）</span></span></code></pre>
+<h2 id="6-没做什么">6. 没做什么</h2>
+<ul>
+<li>插件不能热加载或热卸载，增减插件需要重启 Agent；</li>
+<li>插件仍共享主进程，没有依赖声明、资源协调和独立的权限或故障边界；</li>
+<li>Web 模式没有远程确认，对话历史和断线重连等交互能力也未实现。</li>
+</ul>
+<h2 id="7-下一步">7. 下一步</h2>
+<p>现在，新增本地能力已经有了统一入口，但插件仍与主进程共享权限和故障范围。下一步可以继续研究更清晰的运行边界：让扩展通过受控接口与 Agent 协作，同时保留今天建立的发现和生命周期模型。</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><span class="block h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1 [&amp;&gt;svg]:h-full [&amp;&gt;svg]:w-full"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#1a1815" d="M1 1.5h7m1 0h1m1 0h1m2 0h3m1 0h1m1 0h1m2 0h7M1 2.5h1m5 0h1m1 0h8m1 0h1m1 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m3 0h3m3 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h2m2 0h2m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m2 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m3 0h2m3 0h2m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m1 0h1m2 0h1m2 0h1m1 0h2M1 9.5h1m2 0h8m1 0h6m3 0h1m2 0h1m1 0h3M1 10.5h2m1 0h1m1 0h1m1 0h1m2 0h1m3 0h1m4 0h2m1 0h5m1 0h1M1 11.5h5m1 0h1m3 0h1m3 0h1m3 0h1m1 0h1m2 0h1M1 12.5h1m2 0h2m4 0h1m1 0h1m2 0h2m1 0h1m1 0h1m2 0h3m2 0h2M3 13.5h1m3 0h1m2 0h2m2 0h2m4 0h2m1 0h2m4 0h1M1 14.5h1m2 0h2m2 0h1m1 0h2m1 0h1m6 0h1m2 0h2m4 0h1M1 15.5h4m1 0h2m1 0h2m2 0h1m1 0h2m4 0h2m1 0h1m4 0h1M1 16.5h1m1 0h1m5 0h3m1 0h3m1 0h2m2 0h6M1 17.5h1m1 0h2m1 0h3m1 0h1m2 0h1m2 0h1m1 0h2m1 0h2m3 0h4M1 18.5h2m1 0h1m4 0h2m1 0h1m7 0h1m2 0h4M1 19.5h3m3 0h1m4 0h4m1 0h1m2 0h1m1 0h3m1 0h3M1 20.5h2m1 0h1m1 0h1m2 0h2m3 0h1m1 0h2m1 0h2m2 0h2m1 0h1m1 0h1M1 21.5h2m2 0h8m1 0h1m2 0h1m1 0h1m1 0h9M9 22.5h1m2 0h3m2 0h2m2 0h1m3 0h2m1 0h1M1 23.5h7m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m1 0h1m1 0h4M1 24.5h1m5 0h1m1 0h1m3 0h2m2 0h1m1 0h3m3 0h3M1 25.5h1m1 0h3m1 0h1m1 0h2m3 0h1m1 0h2m1 0h1m1 0h6m2 0h1M1 26.5h1m1 0h3m1 0h1m1 0h1m1 0h5m1 0h1m3 0h2m2 0h1m2 0h1M1 27.5h1m1 0h3m1 0h1m2 0h5m3 0h1m2 0h1m1 0h1m1 0h1m2 0h2M1 28.5h1m5 0h1m4 0h1m3 0h1m2 0h2m1 0h3M1 29.5h7m1 0h3m3 0h1m2 0h1m8 0h2"/></svg>
+</span><figcaption class="text-sm text-muted">支付宝</figcaption></figure><figure class="flex flex-col items-center gap-2"><span class="block h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1 [&amp;&gt;svg]:h-full [&amp;&gt;svg]:w-full"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#1a1815" d="M1 1.5h7m3 0h1m3 0h3m2 0h2m1 0h7M1 2.5h1m5 0h1m3 0h6m1 0h1m4 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h2m2 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m4 0h1m1 0h2m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h5m1 0h1m3 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m1 0h3m1 0h4m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m1 0h1m1 0h1m5 0h1M1 9.5h1m1 0h5m3 0h1m1 0h4m1 0h1m1 0h2m1 0h5M3 10.5h1m1 0h2m1 0h3m1 0h1m2 0h1m1 0h3m1 0h2m1 0h2m1 0h1m1 0h1M1 11.5h2m4 0h2m2 0h2m1 0h1m1 0h1m1 0h2m4 0h1m2 0h2M2 12.5h2m6 0h3m2 0h1m1 0h1m1 0h2m2 0h3m2 0h1M1 13.5h3m2 0h5m2 0h1m1 0h2m1 0h1m1 0h2m5 0h2M5 14.5h1m3 0h1m1 0h3m3 0h3m1 0h2m1 0h4m1 0h1M2 15.5h4m1 0h3m3 0h2m1 0h1m2 0h1m2 0h1m1 0h4M2 16.5h1m1 0h2m6 0h1m3 0h1m3 0h4m1 0h1m2 0h1M1 17.5h2m2 0h4m2 0h1m2 0h5m1 0h1m3 0h1m2 0h3M1 18.5h1m1 0h1m1 0h1m3 0h3m1 0h1m1 0h1m3 0h9m1 0h1M1 19.5h1m2 0h1m1 0h3m7 0h1m4 0h1m1 0h1m1 0h3M1 20.5h1m1 0h2m1 0h1m3 0h4m1 0h1m6 0h1m2 0h2m2 0h1M1 21.5h1m3 0h3m4 0h1m1 0h1m2 0h2m2 0h5m1 0h1M9 22.5h1m1 0h3m1 0h1m1 0h1m2 0h2m3 0h2m2 0h1M1 23.5h7m2 0h4m1 0h2m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h2m2 0h1m1 0h1m3 0h1m2 0h2M1 25.5h1m1 0h3m1 0h1m1 0h1m6 0h3m2 0h9M1 26.5h1m1 0h3m1 0h1m1 0h4m1 0h1m3 0h1m5 0h1m3 0h2M1 27.5h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h2m2 0h2m1 0h2m1 0h1m1 0h2M1 28.5h1m5 0h1m2 0h2m2 0h2m3 0h1m6 0h1m1 0h1M1 29.5h7m1 0h4m1 0h1m1 0h1m3 0h1m1 0h4m1 0h1"/></svg>
+</span><figcaption class="text-sm text-muted">微信</figcaption></figure></div></section><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换"><a href="/post/geekagent-day15.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← 上一章</span><span class="font-display font-medium transition-colors group-hover:text-accent">从零实现 GeekAgent —— Day15 MCP 工具接入</span></a><span></span></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day16";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p><div id="gitalk-container"></div></section><script>(function(){const id = "/post/geekagent-day16.html";
+const title = "从零实现 GeekAgent —— Day16 插件框架";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: 'zh-CN',
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 极客兔兔 · 把技术文章写成书</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/about" class="transition-colors hover:text-accent">关于</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});var e=document.getElementById(`reading-bar`);function t(){if(!e)return;let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e.style.width=n+`%`}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();var n=document.querySelector(`.book-toc-scroll`),r=document.querySelector(`.book-toc [aria-current="page"]`);if(n&&r){let e=r.offsetTop-n.clientHeight/2+r.offsetHeight/2;n.scrollTop=Math.max(0,e)}var i=Array.from(document.querySelectorAll(`#section-toc a`)),a=i.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(e=>!!e);function o(){let e=null;for(let t of a)t.getBoundingClientRect().top<=120&&(e=t);i.forEach(e=>e.classList.remove(`active`)),e&&i.find(t=>t.getAttribute(`href`)===`#`+e.id)?.classList.add(`active`)}window.addEventListener(`scroll`,o,{passive:!0}),o();</script>
