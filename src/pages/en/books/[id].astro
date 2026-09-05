@@ -59,9 +59,9 @@ const bookLd = {
 };
 const toLd = (ld: unknown) => JSON.stringify(ld).replace(/</g, '\\u003c');
 
-// 按 part 分组
+// 按 part 分组（未发布的 upcoming 章节不展示）
 const groups: { part: string; items: typeof chapters }[] = [];
-for (const c of chapters) {
+for (const c of published) {
   const key = c.part ?? '—';
   let last = groups[groups.length - 1];
   if (!last || last.part !== key) {
@@ -127,26 +127,20 @@ for (const c of chapters) {
             <ol>
               {group.items.map((item) => (
                 <li>
-                  {item.post ? (
-                    <a
-                      href={postHref(lang, item.slug)}
-                      class="group flex items-center justify-between gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-surface"
-                    >
-                      <span class="min-w-0 truncate text-[0.95rem] text-ink/85 transition-colors group-hover:text-accent">
-                        {item.post.data.title}
-                      </span>
-                      <span
-                        class="shrink-0 text-faint opacity-0 transition-all group-hover:translate-x-0.5 group-hover:text-accent group-hover:opacity-100"
-                        aria-hidden="true"
-                      >
-                        →
-                      </span>
-                    </a>
-                  ) : (
-                    <span class="block truncate rounded-lg px-3 py-2 text-[0.95rem] italic text-faint/70" title={t.book.pending}>
-                      {t.book.pendingWrite(item.slug)}
+                  <a
+                    href={postHref(lang, item.slug)}
+                    class="group flex items-center justify-between gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-surface"
+                  >
+                    <span class="min-w-0 truncate text-[0.95rem] text-ink/85 transition-colors group-hover:text-accent">
+                      {item.post!.data.title}
                     </span>
-                  )}
+                    <span
+                      class="shrink-0 text-faint opacity-0 transition-all group-hover:translate-x-0.5 group-hover:text-accent group-hover:opacity-100"
+                      aria-hidden="true"
+                    >
+                      →
+                    </span>
+                  </a>
                 </li>
               ))}
             </ol>

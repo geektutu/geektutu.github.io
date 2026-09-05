@@ -60,9 +60,9 @@ const bookLd = {
 };
 const toLd = (ld: unknown) => JSON.stringify(ld).replace(/</g, '\\u003c');
 
-// 按 part 分组
+// 按 part 分组（未发布的 upcoming 章节不展示）
 const groups: { part: string; items: typeof chapters }[] = [];
-for (const c of chapters) {
+for (const c of published) {
   const key = c.part ?? '—';
   let last = groups[groups.length - 1];
   if (!last || last.part !== key) {
@@ -85,8 +85,9 @@ for (const c of chapters) {
         <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">Book</p>
         <h1 class="sr-only">{book.data.title}</h1>
         <p class="text-lg leading-relaxed text-muted">{book.data.description}</p>
-        <div class="mt-6 flex flex-wrap gap-3">
-          <a href={postHref(lang, chapters[0]?.slug ?? '')} class="rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90">
+        {published.length > 0 && (
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a href={postHref(lang, published[0]!.slug)} class="rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90">
             {t.card.startReading}
           </a>
           {repo && (
@@ -103,7 +104,8 @@ for (const c of chapters) {
               Github
             </a>
           )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
 
@@ -126,26 +128,20 @@ for (const c of chapters) {
             <ol>
               {group.items.map((item) => (
                 <li>
-                  {item.post ? (
-                    <a
-                      href={postHref(lang, item.slug)}
-                      class="group flex items-center justify-between gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-surface"
-                    >
-                      <span class="min-w-0 truncate text-[0.95rem] text-ink/85 transition-colors group-hover:text-accent">
-                        {item.post.data.title}
-                      </span>
-                      <span
-                        class="shrink-0 text-faint opacity-0 transition-all group-hover:translate-x-0.5 group-hover:text-accent group-hover:opacity-100"
-                        aria-hidden="true"
-                      >
-                        →
-                      </span>
-                    </a>
-                  ) : (
-                    <span class="block truncate rounded-lg px-3 py-2 text-[0.95rem] italic text-faint/70" title={t.book.pending}>
-                      {t.book.pendingWrite(item.slug)}
+                  <a
+                    href={postHref(lang, item.slug)}
+                    class="group flex items-center justify-between gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-surface"
+                  >
+                    <span class="min-w-0 truncate text-[0.95rem] text-ink/85 transition-colors group-hover:text-accent">
+                      {item.post!.data.title}
                     </span>
-                  )}
+                    <span
+                      class="shrink-0 text-faint opacity-0 transition-all group-hover:translate-x-0.5 group-hover:text-accent group-hover:opacity-100"
+                      aria-hidden="true"
+                    >
+                      →
+                    </span>
+                  </a>
                 </li>
               ))}
             </ol>

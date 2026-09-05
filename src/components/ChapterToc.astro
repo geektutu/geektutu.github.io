@@ -13,9 +13,10 @@ interface Props {
 const { bookTitle, bookId, chapters, currentSlug, lang } = Astro.props;
 const t = getDict(lang);
 
-// 按 part 分段（保持大纲顺序）
+// 按 part 分段（保持大纲顺序；未发布的 upcoming 章节不展示）
 const byPart: { part: string; items: ChapterItem[] }[] = [];
 for (const c of chapters) {
+  if (!c.post) continue;
   const key = c.part ?? '—';
   let last = byPart[byPart.length - 1];
   if (!last || last.part !== key) {
@@ -53,31 +54,22 @@ for (const c of chapters) {
         )}
         <ul>
           {group.items.map((item) => {
-            const href = item.post ? `${lang === 'en' ? '/en' : ''}/post/${item.slug}.html` : null;
+            const href = `${lang === 'en' ? '/en' : ''}/post/${item.slug}.html`;
             const active = item.slug === currentSlug;
             return (
               <li>
-                {href ? (
-                  <a
-                    href={href}
-                    class:list={[
-                      'toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed',
-                      active
-                        ? 'bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]'
-                        : 'text-ink/85 hover:bg-surface hover:text-ink',
-                    ]}
-                    aria-current={active ? 'page' : undefined}
-                  >
-                    {item.short ?? item.post?.data.title ?? item.slug}
-                  </a>
-                ) : (
-                  <span
-                    class="block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-faint/70 italic"
-                    title={t.book.pending}
-                  >
-                    {t.book.pendingWrite(item.slug)}
-                  </span>
-                )}
+                <a
+                  href={href}
+                  class:list={[
+                    'toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed',
+                    active
+                      ? 'bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]'
+                      : 'text-ink/85 hover:bg-surface hover:text-ink',
+                  ]}
+                  aria-current={active ? 'page' : undefined}
+                >
+                  {item.short ?? item.post!.data.title ?? item.slug}
+                </a>
               </li>
             );
           })}
