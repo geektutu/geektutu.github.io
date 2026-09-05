@@ -11,6 +11,8 @@ import { glob } from 'astro/loaders';
  */
 const bookSchema = z.object({
   id: z.string(),
+  /** 语言：缺省中文；en 为英文站（目录 books-en/posts-en，id 与中文一致） */
+  lang: z.string().optional(),
   title: z.string(),
   description: z.string().default(''),
   cover: z.string().optional(),
@@ -38,6 +40,8 @@ const bookSchema = z.object({
 const postSchema = ({ image }: { image: ImageFunction }) =>
   z.object({
     title: z.string(),
+    /** 语言：缺省中文；en 为英文站（目录 posts-en，slug 与中文一致） */
+    lang: z.string().optional(),
     description: z.string().default(''),
     date: z.coerce.date(),
     updated: z.coerce.date().optional(),

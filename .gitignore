@@ -34,3 +34,11 @@ pnpm-debug.log*
 .idea/
 .vscode/
 .trae/
+
+# import-content.mjs 生成（新版式源仓库拷贝，可随时重新生成）
+src/content/posts-en/geekagent/
+src/content/books-en/geekagent.md
+
+# import-content.mjs 生成（新版式源仓库拷贝，可随时重新生成）
+src/content/posts-en/7days-golang/
+src/content/books-en/7days-golang.md

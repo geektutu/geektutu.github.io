@@ -18,8 +18,5 @@ cd $root
 pull geektutu/7days-golang posts/7days-golang
 pull geektutu/interview-questions posts/interview-questions
 pull geektutu/high-performance-go posts/high-performance-go
-# 按照 astro 新格式的仓库
+# 按照 astro 新格式的仓库（由 scripts/import-content.mjs 按约定自动导入）
 pull geektutu/7days-geekagent posts/7days-geekagent
-mkdir -p src/content/posts/geekagent
-cp -rf posts/7days-geekagent/doc/* src/content/posts/geekagent
-mv src/content/posts/geekagent/geekagent.md src/content/books
