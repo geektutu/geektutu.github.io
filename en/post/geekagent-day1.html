@@ -1,0 +1,384 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Build GeekAgent from Scratch — Day 1 REPL Foundation · Geektutu</title><meta name="description" content="A 7-day build-an-Agent-from-scratch tutorial: hand-write the simplest possible Agent/Harness in TypeScript/Node.js, implementing a REPL loop and streaming multi-turn conversation from zero. This post covers what a REPL is, why it makes the right foundation for an Agent, and how readline plus an OpenAI-compatible API gets the first step, &quot;being able to chat,&quot; running in under 160 lines of code."><link rel="canonical" href="https://geektutu.com/en/post/geekagent-day1.html"><link rel="alternate" hreflang="en" href="https://geektutu.com/en/post/geekagent-day1.html"><link rel="alternate" hreflang="zh-CN" href="https://geektutu.com/post/geekagent-day1.html"><link rel="alternate" hreflang="x-default" href="https://geektutu.com/post/geekagent-day1.html"><link rel="alternate" type="application/rss+xml" title="Geektutu" hreflang="zh-CN" href="https://geektutu.com/feed.xml"><link rel="alternate" type="application/rss+xml" title="Geektutu" hreflang="en" href="https://geektutu.com/en/feed.xml"><link rel="sitemap" type="application/xml" href="https://geektutu.com/sitemap-index.xml"><!-- Open Graph --><meta property="og:site_name" content="Geektutu"><meta property="og:type" content="article"><meta property="og:title" content="Build GeekAgent from Scratch — Day 1 REPL Foundation · Geektutu"><meta property="og:description" content="A 7-day build-an-Agent-from-scratch tutorial: hand-write the simplest possible Agent/Harness in TypeScript/Node.js, implementing a REPL loop and streaming multi-turn conversation from zero. This post covers what a REPL is, why it makes the right foundation for an Agent, and how readline plus an OpenAI-compatible API gets the first step, &quot;being able to chat,&quot; running in under 160 lines of code."><meta property="og:url" content="https://geektutu.com/en/post/geekagent-day1.html"><meta property="og:image" content="https://geektutu.com/og-default.png"><meta property="og:image:alt" content="Build GeekAgent from Scratch — Day 1 REPL Foundation · Geektutu"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="en_US"><meta property="og:locale:alternate" content="zh_CN"><meta property="article:published_time" content="2026-08-20T13:30:00.000Z"><meta property="article:modified_time" content="2026-08-20T13:30:00.000Z"><meta property="article:tag" content="Agent"><meta property="article:tag" content="Harness"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Build GeekAgent from Scratch — Day 1 REPL Foundation · Geektutu"><meta name="twitter:description" content="A 7-day build-an-Agent-from-scratch tutorial: hand-write the simplest possible Agent/Harness in TypeScript/Node.js, implementing a REPL loop and streaming multi-turn conversation from zero. This post covers what a REPL is, why it makes the right foundation for an Agent, and how readline plus an OpenAI-compatible API gets the first step, &quot;being able to chat,&quot; running in under 160 lines of code."><meta name="twitter:image" content="https://geektutu.com/og-default.png"><!-- 结构化数据：全站 WebSite，子页面通过 head slot 追加 --><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Geektutu","alternateName":"Geektutu","url":"https://geektutu.com/en/","inLanguage":"en","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://geektutu.com/en/search/?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Build GeekAgent from Scratch — Day 1 REPL Foundation","description":"A 7-day build-an-Agent-from-scratch tutorial: hand-write the simplest possible Agent/Harness in TypeScript/Node.js, implementing a REPL loop and streaming multi-turn conversation from zero. This post covers what a REPL is, why it makes the right foundation for an Agent, and how readline plus an OpenAI-compatible API gets the first step, \"being able to chat,\" running in under 160 lines of code.","image":["https://geektutu.com/og-default.png"],"datePublished":"2026-08-20T13:30:00.000Z","dateModified":"2026-08-20T13:30:00.000Z","author":{"@type":"Person","name":"Geektutu","url":"https://github.com/geektutu"},"keywords":"Agent, Harness","inLanguage":"en","mainEntityOfPage":{"@type":"WebPage","@id":"https://geektutu.com/en/post/geekagent-day1.html"},"isPartOf":{"@type":"Blog","@id":"https://geektutu.com/#blog","name":"Geektutu","url":"https://geektutu.com/"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://geektutu.com/en/"},{"@type":"ListItem","position":2,"name":"Build GeekAgent from Scratch in 7 Days","item":"https://geektutu.com/en/books/geekagent"},{"@type":"ListItem","position":3,"name":"Build GeekAgent from Scratch — Day 1 REPL Foundation"}]}</script><link rel="icon" type="image/png" href="/icon.png"><link rel="preload" href="/fonts/literata-latin-subset.woff2" as="font" type="font/woff2" crossorigin><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.3bYFP7Qy.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/en/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">Geektutu</span></a><div class="flex items-center gap-2"><nav class="hidden items-center gap-2 sm:flex" aria-label="Main navigation"><a href="/en/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Home</a><a href="/en/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Books</a><a href="/en/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Tags</a><a href="/en/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Search</a><a href="/en/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">About</a></nav><a href="/post/geekagent-day1.html" hreflang="zh-CN" aria-label="切换到中文" class="inline-flex h-9 items-center justify-center rounded-full border border-line px-3 text-sm text-muted transition-colors hover:text-accent hover:border-accent/40">中文</a><button id="theme-toggle" type="button" aria-label="Toggle dark mode" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="Contents"><!-- 书名 --><a href="/en/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">Build GeekAgent from Scratch in 7 Days</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Foundations - Tools and Sessions</span></div><ul><li><a href="/en/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day1 REPL Foundation</a></li><li><a href="/en/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day2 Tool Calling Loop</a></li><li><a href="/en/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash Tool</a></li><li><a href="/en/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 File Tools and Registry</a></li><li><a href="/en/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 History Compression</a></li><li><a href="/en/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 Multi-session and Persistence</a></li><li><a href="/en/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 Lightweight TUI and Usage Panel</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Intermediate - Safety and Memory</span></div><ul><li><a href="/en/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 Permissions and Rollback</a></li><li><a href="/en/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 Task Planning and Sub-agents</a></li><li><a href="/en/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 Project Instructions and Long-term Memory</a></li><li><a href="/en/post/geekagent-day11.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day11 Skill System</a></li><li><a href="/en/post/geekagent-day12.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day12 Code Search and Web Scraping</a></li><li><a href="/en/post/geekagent-day13.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day13 Proactive Memory</a></li><li><a href="/en/post/geekagent-day14.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day14 Lightweight RAG Knowledge Base</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Extensions - Tool Connectivity</span></div><ul><li><a href="/en/post/geekagent-day15.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day15 MCP Tool Integration</a></li><li><a href="/en/post/geekagent-day16.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day16 Plugin Framework and Web</a></li></ul></section></nav></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/en/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> Build GeekAgent from Scratch in 7 Days</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">Build GeekAgent from Scratch — Day 1 REPL Foundation</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-08-20">2026-08-20</time><span aria-hidden="true">·</span><span>12 min read</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub repository: https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/en/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/en/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-6 rounded-2xl border border-line bg-paper-soft px-5 py-4"><p class="text-[0.7rem] font-medium uppercase tracking-widest text-faint">TL;DR</p><p class="mt-1.5 text-[0.95rem] leading-relaxed text-muted">A 7-day build-an-Agent-from-scratch tutorial: hand-write the simplest possible Agent/Harness in TypeScript/Node.js, implementing a REPL loop and streaming multi-turn conversation from zero. This post covers what a REPL is, why it makes the right foundation for an Agent, and how readline plus an OpenAI-compatible API gets the first step, &quot;being able to chat,&quot; running in under 160 lines of code.</p></div><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="On this page"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">On this page</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-where-the-title-comes-from-what-is-a-repl" class="toc-link block text-muted" data-toc-depth="2">0. Where the Title Comes From: What Is a REPL</a></li><li style="padding-left:0rem"><a href="#1-why-build-this-project" class="toc-link block text-muted" data-toc-depth="2">1. Why Build This Project</a></li><li style="padding-left:0rem"><a href="#2-goal-repl--streaming-multi-turn-conversation" class="toc-link block text-muted" data-toc-depth="2">2. Goal: REPL + Streaming Multi-turn Conversation</a></li><li style="padding-left:0rem"><a href="#3-design-choices-and-a-few-decisions" class="toc-link block text-muted" data-toc-depth="2">3. Design: Choices and a Few Decisions</a></li><li style="padding-left:0.9rem"><a href="#31-why-this-tech-stack" class="toc-link block text-muted" data-toc-depth="3">3.1 Why This Tech Stack</a></li><li style="padding-left:0.9rem"><a href="#32-two-key-decisions" class="toc-link block text-muted" data-toc-depth="3">3.2 Two Key Decisions</a></li><li style="padding-left:0.9rem"><a href="#33-why-not-just-use-curl" class="toc-link block text-muted" data-toc-depth="3">3.3 Why Not Just Use curl</a></li><li style="padding-left:0rem"><a href="#4-implementation-the-effect-first-then-the-code" class="toc-link block text-muted" data-toc-depth="2">4. Implementation: The Effect First, Then the Code</a></li><li style="padding-left:0.9rem"><a href="#41-chatts--one-class-governs-conversation-and-memory" class="toc-link block text-muted" data-toc-depth="3">4.1 chat.ts — One Class Governs Conversation and Memory</a></li><li style="padding-left:0.9rem"><a href="#42-the-shape-of-history-how-a-new-question-enters" class="toc-link block text-muted" data-toc-depth="3">4.2 The Shape of history: How a New Question Enters</a></li><li style="padding-left:0.9rem"><a href="#43-configts--three-lines-of-configuration" class="toc-link block text-muted" data-toc-depth="3">4.3 config.ts — Three Lines of Configuration</a></li><li style="padding-left:0.9rem"><a href="#44-colorts--terminal-coloring-inputoutput-told-apart-at-a-glance" class="toc-link block text-muted" data-toc-depth="3">4.4 color.ts — Terminal Coloring, Input/Output Told Apart at a Glance</a></li><li style="padding-left:0.9rem"><a href="#45-indexts--the-repl-loop" class="toc-link block text-muted" data-toc-depth="3">4.5 index.ts — The REPL Loop</a></li><li style="padding-left:0rem"><a href="#5-verification" class="toc-link block text-muted" data-toc-depth="2">5. Verification</a></li><li style="padding-left:0rem"><a href="#6-what-we-didnt-do" class="toc-link block text-muted" data-toc-depth="2">6. What We Didn’t Do</a></li><li style="padding-left:0rem"><a href="#7-whats-next" class="toc-link block text-muted" data-toc-depth="2">7. What’s Next</a></li></ul></nav><div class="mt-6 markdown"><h1 id="day-1-the-repl-foundation-of-a-simplest-possible-agent">Day 1: The REPL Foundation of a “Simplest Possible” Agent</h1>
+<h2 id="0-where-the-title-comes-from-what-is-a-repl">0. Where the Title Comes From: What Is a REPL</h2>
+<p>The <strong>REPL</strong> in the title is jargon, so let’s pin it down first; everything else builds on it.</p>
+<p>REPL stands for Read-Eval-Print-Loop, which reads out as “read → eval → print → loop”. The command lines we use every day, the Python interactive interpreter, and typing <code>node</code> with no filename are all REPLs: type a line, get a reply, and the cursor lights up again waiting for the next line.</p>
+<p>Why is a REPL the right foundation for an Agent? Because a conversation between human and model is at its core a “back-and-forth loop”: we type, the model answers, we type again… A loop that keeps collecting input is exactly what a REPL is for. So Day 1 doesn’t chase a fancy interface; it gets this “chat again and again” loop working first. Adding tools and file read/write later all amounts to teaching this loop new tricks.</p>
+<h2 id="1-why-build-this-project">1. Why Build This Project</h2>
+<p>Agents on the market today (OpenCode, Claude Code, Cursor and the like) are capable, but they increasingly feel like black boxes. I wanted to get hands-on and write an Agent from scratch, to see how little code an Agent that can actually “chat” needs.</p>
+<p>So I set three ground rules:</p>
+<ol>
+<li><strong>Simplest possible</strong>: no Agent/CLI frameworks; the core dependencies are just two — “call the model” and “read environment variables”.</li>
+<li><strong>One feature per day</strong>: each day delivers exactly one feature, runnable the same day.</li>
+<li><strong>Additive, non-invasive</strong>: every later day’s feature builds on the previous day, never a rewrite from scratch.</li>
+</ol>
+<h2 id="2-goal-repl--streaming-multi-turn-conversation">2. Goal: REPL + Streaming Multi-turn Conversation</h2>
+<p>Day 1 lays the foundation and does exactly one thing: <strong>make the model able to chat</strong>. Here are the three acceptance criteria:</p>
+<ol>
+<li>Run <code>npm run dev -- day1/index.ts</code> to enter the REPL; when an answer finishes, <code>You ›</code> reappears and we can keep asking;</li>
+<li>As soon as the model generates a chunk, the terminal displays it immediately — no waiting for the complete answer to come back;</li>
+<li>Say “remember my name is Zhang San” first, then ask “what’s my name” and get the right answer; after running <code>/reset</code>, the same question no longer depends on the earlier conversation.</li>
+</ol>
+<p>While we’re here, two possibly unfamiliar terms:</p>
+<ul>
+<li><strong>Streaming</strong>: the model doesn’t hold its breath to produce the complete answer before releasing it — it sends pieces back while it generates. Seen the effect of characters popping out one by one in an input method while typing? A model’s answer is the same: each chunk is displayed the moment it arrives, turning the experience from “staring at a spinner for ages” into “watching it think and talk at the same time”.</li>
+<li><strong>Multi-turn memory</strong>: the model is stateless by itself — it doesn’t remember the previous turn. The so-called “memory” is us resending the conversation history along with every request. Day 1 lays this mechanism down; every later day leans on it.</li>
+</ul>
+<p><strong>Lines of code for the day</strong>: 4 source files, about 157 lines in total.</p>
+<h2 id="3-design-choices-and-a-few-decisions">3. Design: Choices and a Few Decisions</h2>
+<h3 id="31-why-this-tech-stack">3.1 Why This Tech Stack</h3>
+<ul>
+<li><strong>Language</strong>: TypeScript + Node.js 22. Our benchmark, OpenCode, is itself in the TS ecosystem; Node 22 was already on this machine, and file I/O and starting a REPL are both extremely fast.</li>
+<li><strong>Runtime</strong>: <code>tsx</code> runs TS source directly — no compiling, no bundling; the lightest possible developer experience.</li>
+<li><strong>Model API</strong>: the OpenAI-compatible API (the <code>baseURL</code> + <code>apiKey</code> + <code>model</code> trio). That means DeepSeek, Kimi, Ollama, and practically every model on the market plug right in; <code>deepseek-v4-flash</code> is only the default.</li>
+<li><strong>Zero frameworks</strong>: not even <code>commander</code>/<code>inquirer</code>. The REPL uses Node’s built-in <code>readline</code> — a hundred extra lines of code in exchange for a codebase where every line is understandable.</li>
+</ul>
+<p>The final dependency list is just 5 packages:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#005CC5">  "dependencies"</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#005CC5">    "dotenv"</span><span style="color:#24292E">: </span><span style="color:#032F62">"^17.4.2"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">    "openai"</span><span style="color:#24292E">: </span><span style="color:#032F62">"^7.5.0"</span></span>
+<span class="line"><span style="color:#24292E">  },</span></span>
+<span class="line"><span style="color:#005CC5">  "devDependencies"</span><span style="color:#24292E">: {</span></span>
+<span class="line"><span style="color:#005CC5">    "@types/node"</span><span style="color:#24292E">: </span><span style="color:#032F62">"^26.3.0"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">    "tsx"</span><span style="color:#24292E">: </span><span style="color:#032F62">"^4.23.12"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#005CC5">    "typescript"</span><span style="color:#24292E">: </span><span style="color:#032F62">"^7.0.2"</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h3 id="32-two-key-decisions">3.2 Two Key Decisions</h3>
+<ol>
+<li><strong>history is exactly OpenAI’s <code>messages</code> array, zero conversion</strong>. This is Day 1’s most important design decision, and every later day collects the dividends: multi-turn memory, tool calling, system prompts — all just entries with different <code>role</code>s appended to the same array.</li>
+<li><strong>All colors live in one file</strong>: every bit of terminal coloring stays inside <code>color.ts</code> alone; adding a color means editing one table, never polluting business code.</li>
+</ol>
+<h3 id="33-why-not-just-use-curl">3.3 Why Not Just Use <code>curl</code></h3>
+<p>One might think: isn’t calling the model just firing an HTTP request? One <code>curl</code> line does the job — why write 157 lines?</p>
+<p>Let’s compare with the bare-bones way and spell out why each piece is necessary:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>One-off <code>curl</code></th><th>Day 1 REPL</th></tr></thead><tbody><tr><td>Continuous conversation</td><td>Manually re-request every time</td><td>Automatically enters the next round after each input</td></tr><tr><td>Multi-turn memory</td><td>Manually stitch history together</td><td><code>history</code> accumulates and is resent automatically</td></tr><tr><td>Streaming output</td><td>The response stream needs extra handling</td><td>Print each chunk the moment it arrives</td></tr><tr><td>Distinguishing messages</td><td>Input and output mixed together</td><td>User, model, and system each in their own color</td></tr></tbody></table>
+<p><code>curl</code> is perfect for checking the API is reachable, but repeated conversation needs an extra layer of state plus an interaction loop. <code>readline</code> keeps reading input, <code>history</code> keeps the context, and streaming iteration prints while receiving.</p>
+<p>So we’re not re-implementing an HTTP client; we’re adding continuous interaction, history state, and streaming display around the model API.</p>
+<h2 id="4-implementation-the-effect-first-then-the-code">4. Implementation: The Effect First, Then the Code</h2>
+<p>Running it shows the following in the terminal (colors reproduced with HTML):</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#808080">GeekAgent Day 1 — The Simplest Agent</span>
+<span style="color:#00cdcd">You › Hello, remember my name is Zhang San.</span>
+<span style="color:#00cd00">Hello Zhang San, I'll remember that.</span>
+<span style="color:#00cdcd">You › What's my name?</span>
+<span style="color:#00cd00">Your name is Zhang San.</span>
+<span style="color:#00cdcd">You › /reset</span>
+<span style="color:#808080">(Conversation memory cleared)</span>
+<span style="color:#00cdcd">You › /exit</span>
+<span style="color:#808080">bye</span>
+</pre>
+<p>Day 1 contains 4 source files:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="plaintext"><code><span class="line"><span>day1/                  # Day 1's project directory; one directory per day from here on</span></span>
+<span class="line"><span>├── index.ts        # Entry point: the readline REPL loop</span></span>
+<span class="line"><span>├── chat.ts         # The Chat class: streaming calls + context memory</span></span>
+<span class="line"><span>├── config.ts       # Reads .env; exits with an error if the key is missing</span></span>
+<span class="line"><span>└── color.ts        # Terminal coloring</span></span></code></pre>
+<h3 id="41-chatts--one-class-governs-conversation-and-memory">4.1 chat.ts — One Class Governs Conversation and Memory</h3>
+<p>This maps to necessity points 1 and 2: it holds <code>history</code> (solving memory) and exposes the streaming method <code>streamReply</code> (solving streaming). Full contents:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day1/chat.ts</span></span>
+<span class="line"><span style="color:#24292E">async </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">streamReply</span><span style="color:#24292E">(userInput: string): AsyncGenerator</span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E">string</span><span style="color:#D73A49">></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">  this.history.push({ </span><span style="color:#6F42C1">role</span><span style="color:#24292E">: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">content</span><span style="color:#24292E">: userInput });</span></span>
+<span class="line"><span style="color:#24292E">  try {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> stream</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.client.chat.completions.</span><span style="color:#6F42C1">create</span><span style="color:#24292E">({</span></span>
+<span class="line"><span style="color:#24292E">      model: </span><span style="color:#005CC5">this</span><span style="color:#24292E">.model,</span></span>
+<span class="line"><span style="color:#24292E">      messages: </span><span style="color:#005CC5">this</span><span style="color:#24292E">.history,   </span><span style="color:#6A737D">// full history sent on every turn</span></span>
+<span class="line"><span style="color:#24292E">      stream: </span><span style="color:#005CC5">true</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> answer </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> chunk</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> stream) {</span></span>
+<span class="line"><span style="color:#D73A49">      const</span><span style="color:#005CC5"> delta</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> chunk.choices[</span><span style="color:#005CC5">0</span><span style="color:#24292E">]?.delta?.content </span><span style="color:#D73A49">??</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">      if</span><span style="color:#24292E"> (delta) { answer </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> delta; </span><span style="color:#D73A49">yield</span><span style="color:#24292E"> delta; }  </span><span style="color:#6A737D">// emit as chunks arrive</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#005CC5">    this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ role: </span><span style="color:#032F62">'assistant'</span><span style="color:#24292E">, content: answer });</span></span>
+<span class="line"><span style="color:#24292E">  } catch (err) {</span></span>
+<span class="line"><span style="color:#24292E">    this.history.</span><span style="color:#6F42C1">pop</span><span style="color:#24292E">();   </span><span style="color:#6A737D">// roll back on error, so history only ever holds paired exchanges</span></span>
+<span class="line"><span style="color:#24292E">    throw err;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>The key here is <code>AsyncGenerator</code>:</p>
+<ul>
+<li><strong>AsyncGenerator</strong>: <code>async function*</code> paired with <code>yield</code>; the caller’s <code>for await</code> writes out one increment the moment it gets it — that’s streaming. Each chunk the model emits is <code>yield</code>ed out for printing immediately.</li>
+</ul>
+<h3 id="42-the-shape-of-history-how-a-new-question-enters">4.2 The Shape of history: How a New Question Enters</h3>
+<p><code>history</code> is just a plain array whose element format is <strong>exactly identical</strong> to the <code>messages</code> of the OpenAI Chat Completions API — which is why <code>messages: this.history</code> can be passed straight through as-is:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day1/chat.ts (history data example)</span></span>
+<span class="line"><span style="color:#24292E">[</span></span>
+<span class="line"><span style="color:#24292E">  { role: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">,      content: </span><span style="color:#032F62">'Remember my name is Zhang San'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { role: </span><span style="color:#032F62">'assistant'</span><span style="color:#24292E">, content: </span><span style="color:#032F62">'Got it, Zhang San.'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">  { role: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">,      content: </span><span style="color:#032F62">'What is my name?'</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#24292E">]</span></span></code></pre>
+<p>A new question follows the standard “one in, one out” flow:</p>
+<ol>
+<li>The user’s input is appended to <code>history</code> as <code>{ role: 'user', content }</code>;</li>
+<li>The entire <code>history</code> is sent to the model in full (<code>messages: this.history</code> in code), and the model uses it to grasp the context;</li>
+<li>When the streaming answer ends, the complete answer is appended back as <code>{ role: 'assistant', content }</code>.</li>
+</ol>
+<p>So “multi-turn memory” involves no magic at all: the longer the conversation, the more context <code>history</code> carries. And because the format needs zero conversion against the API, adding a system prompt or tool call messages later is just appending entries with different <code>role</code>s to the same array.</p>
+<h3 id="43-configts--three-lines-of-configuration">4.3 config.ts — Three Lines of Configuration</h3>
+<p><code>OPENAI_BASE_URL</code> / <code>OPENAI_API_KEY</code> / <code>OPENAI_MODEL</code> are read from environment variables; a missing key exits right away and suggests copying <code>.env.example</code>:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day1/config.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#032F62"> 'dotenv/config'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> Config</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    baseURL</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    apiKey</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    model</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** Read model config from environment variables; exit with a hint if the API key is missing. */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> loadConfig</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Config</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> baseURL</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> process.env.</span><span style="color:#005CC5">OPENAI_BASE_URL</span><span style="color:#24292E">?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">||</span><span style="color:#032F62"> 'https://api.deepseek.com'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> apiKey</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> process.env.</span><span style="color:#005CC5">OPENAI_API_KEY</span><span style="color:#24292E">?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">||</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> model</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> process.env.</span><span style="color:#005CC5">OPENAI_MODEL</span><span style="color:#24292E">?.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">() </span><span style="color:#D73A49">||</span><span style="color:#032F62"> 'deepseek-v4-flash'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">apiKey) {</span></span>
+<span class="line"><span style="color:#24292E">        console.</span><span style="color:#6F42C1">error</span><span style="color:#24292E">(</span><span style="color:#032F62">'Missing OPENAI_API_KEY: copy .env.example to .env and fill it in.'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">        process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> { baseURL, apiKey, model };</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h3 id="44-colorts--terminal-coloring-inputoutput-told-apart-at-a-glance">4.4 color.ts — Terminal Coloring, Input/Output Told Apart at a Glance</h3>
+<p>This maps to necessity point 4. Conversation alone isn’t intuitive enough: if the user’s typing and the model’s reply share one color, you have to mentally reconstruct who said what when reading a sample. Coloring the terminal is the plainest and most effective readability upgrade, and it costs zero dependencies — terminal color is just the trio “escape sequence + text + reset sequence”; no library needed.</p>
+<p>Full contents:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day1/color.ts</span></span>
+<span class="line"><span style="color:#6A737D">/** Terminal coloring: auto-disabled when not a TTY (pipe / redirect) so logs stay clean. */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> const</span><span style="color:#005CC5"> useColor</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> process.stdout.isTTY;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> const</span><span style="color:#005CC5"> C</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    reset: </span><span style="color:#032F62">'</span><span style="color:#005CC5">\x1b</span><span style="color:#032F62">[0m'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">    user: </span><span style="color:#032F62">'</span><span style="color:#005CC5">\x1b</span><span style="color:#032F62">[36m'</span><span style="color:#24292E">, </span><span style="color:#6A737D">// cyan: user input</span></span>
+<span class="line"><span style="color:#24292E">    model: </span><span style="color:#032F62">'</span><span style="color:#005CC5">\x1b</span><span style="color:#032F62">[32m'</span><span style="color:#24292E">, </span><span style="color:#6A737D">// green: model reply</span></span>
+<span class="line"><span style="color:#24292E">    tool: </span><span style="color:#032F62">'</span><span style="color:#005CC5">\x1b</span><span style="color:#032F62">[33m'</span><span style="color:#24292E">, </span><span style="color:#6A737D">// yellow: tool calling progress</span></span>
+<span class="line"><span style="color:#24292E">    sys: </span><span style="color:#032F62">'</span><span style="color:#005CC5">\x1b</span><span style="color:#032F62">[90m'</span><span style="color:#24292E">, </span><span style="color:#6A737D">// gray: system messages</span></span>
+<span class="line"><span style="color:#24292E">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** Wrap a string in the given color and reset at the end. */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> paint</span><span style="color:#24292E">(</span><span style="color:#E36209">color</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> keyof</span><span style="color:#D73A49"> typeof</span><span style="color:#005CC5"> C</span><span style="color:#24292E">, </span><span style="color:#E36209">s</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> useColor </span><span style="color:#D73A49">?</span><span style="color:#032F62"> `${</span><span style="color:#005CC5">C</span><span style="color:#032F62">[</span><span style="color:#24292E">color</span><span style="color:#032F62">]</span><span style="color:#032F62">}${</span><span style="color:#24292E">s</span><span style="color:#032F62">}${</span><span style="color:#005CC5">C</span><span style="color:#032F62">.</span><span style="color:#24292E">reset</span><span style="color:#032F62">}`</span><span style="color:#D73A49"> :</span><span style="color:#24292E"> s;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** Write a chunk to stdout in the given color; append a newline when nl is true (used for whole messages). */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> out</span><span style="color:#24292E">(</span><span style="color:#E36209">color</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> keyof</span><span style="color:#D73A49"> typeof</span><span style="color:#005CC5"> C</span><span style="color:#24292E">, </span><span style="color:#E36209">s</span><span style="color:#D73A49"> =</span><span style="color:#032F62"> ''</span><span style="color:#24292E">, </span><span style="color:#E36209">nl</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> false</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    process.stdout.</span><span style="color:#6F42C1">write</span><span style="color:#24292E">(</span><span style="color:#6F42C1">paint</span><span style="color:#24292E">(color, s) </span><span style="color:#D73A49">+</span><span style="color:#24292E"> (nl </span><span style="color:#D73A49">?</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> ''</span><span style="color:#24292E">));</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** Write one line (newline included) to stderr in the given color; used for errors. */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> err</span><span style="color:#24292E">(</span><span style="color:#E36209">color</span><span style="color:#D73A49">:</span><span style="color:#D73A49"> keyof</span><span style="color:#D73A49"> typeof</span><span style="color:#005CC5"> C</span><span style="color:#24292E">, </span><span style="color:#E36209">s</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">    process.stderr.</span><span style="color:#6F42C1">write</span><span style="color:#24292E">(</span><span style="color:#6F42C1">paint</span><span style="color:#24292E">(color, s) </span><span style="color:#D73A49">+</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>A few points:</p>
+<ul>
+<li><strong>A color is just an escape code</strong>: <code>\x1b[36m</code> means “cyan on”, <code>\x1b[0m</code> means “reset”; whatever sits in between comes out colored. <code>paint</code> includes the reset, so what it writes is self-contained — “color on → content → reset” — with no worry that a forgotten reset will stain everything printed afterward.</li>
+<li><strong>One <code>out</code> covers all stdout output</strong>: the <code>nl</code> parameter decides whether to append a newline — streaming increments use <code>out('model', delta)</code> (no newline, glued together piece by piece), whole messages use <code>out('sys', '...', true)</code> (newline appended). <code>err</code> goes to stderr and is reserved for errors.</li>
+</ul>
+<p>Every output in <code>index.ts</code> goes through <code>out</code> / <code>err</code>: model replies in green, system messages in gray, and errors through <code>err</code> too:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day1/index.ts</span></span>
+<span class="line"><span style="color:#6F42C1">out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);                              </span><span style="color:#6A737D">// start a new line before the model reply</span></span>
+<span class="line"><span style="color:#D73A49">for</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> delta</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> chat.</span><span style="color:#6F42C1">streamReply</span><span style="color:#24292E">(line)) {</span></span>
+<span class="line"><span style="color:#6F42C1">    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'model'</span><span style="color:#24292E">, delta);                       </span><span style="color:#6A737D">// model reply: green, glued together piece by piece</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"><span style="color:#6F42C1">out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'(Conversation memory cleared)'</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);          </span><span style="color:#6A737D">// system message: gray, whole line</span></span></code></pre>
+<p>Colors are centralized in that one table <code>C</code> plus the three functions <code>paint</code> / <code>out</code> / <code>err</code>; adding a new color only requires touching <code>C</code>.</p>
+<h3 id="45-indexts--the-repl-loop">4.5 index.ts — The REPL Loop</h3>
+<p>This maps to necessity point 3: Node’s built-in <code>readline</code> builds the REPL (solving the loop). A colored <code>You › </code> prompt marks the input side, commands are dispatched (<code>/help</code> <code>/reset</code> <code>/exit</code>), and a <code>busy</code> flag keeps rapid-fire input from interleaving with streaming output. All output goes through <code>out</code> / <code>err</code> (coloring details in §4.4), and the model’s reply is streamed out piece by piece with <code>out('model', delta)</code>. Full contents:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day1/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { createInterface } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'node:readline'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { loadConfig } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './config.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { Chat } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './chat.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> { err, out, paint } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> './color.js'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> config</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> loadConfig</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> chat</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Chat</span><span style="color:#24292E">(config.baseURL, config.apiKey, config.model);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">const</span><span style="color:#005CC5"> rl</span><span style="color:#D73A49"> =</span><span style="color:#6F42C1"> createInterface</span><span style="color:#24292E">({ input: process.stdin, output: process.stdout });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Mark the "user input" side with a colored prompt.</span></span>
+<span class="line"><span style="color:#24292E">rl.</span><span style="color:#6F42C1">setPrompt</span><span style="color:#24292E">(</span><span style="color:#6F42C1">paint</span><span style="color:#24292E">(</span><span style="color:#032F62">'user'</span><span style="color:#24292E">, </span><span style="color:#032F62">'You › '</span><span style="color:#24292E">));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">let</span><span style="color:#24292E"> busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">function</span><span style="color:#6F42C1"> printHelp</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> void</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">`Available commands:</span></span>
+<span class="line"><span style="color:#032F62">  /help   Show help</span></span>
+<span class="line"><span style="color:#032F62">  /reset  Clear this session's conversation memory</span></span>
+<span class="line"><span style="color:#032F62">  /exit   Quit (same as Ctrl+C / Ctrl+D)</span></span>
+<span class="line"><span style="color:#032F62">Type anything to chat with the model.`</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">rl.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'line'</span><span style="color:#24292E">, </span><span style="color:#D73A49">async</span><span style="color:#24292E"> (</span><span style="color:#E36209">raw</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (busy) </span><span style="color:#D73A49">return</span><span style="color:#24292E">; </span><span style="color:#6A737D">// the previous turn is still streaming; ignore rapid-fire input</span></span>
+<span class="line"><span style="color:#24292E">    busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> true</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> line</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> raw.</span><span style="color:#6F42C1">trim</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (line) {</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (line.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'/'</span><span style="color:#24292E">)) {</span></span>
+<span class="line"><span style="color:#D73A49">            switch</span><span style="color:#24292E"> (line) {</span></span>
+<span class="line"><span style="color:#D73A49">                case</span><span style="color:#032F62"> '/help'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">                    printHelp</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                    break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                case</span><span style="color:#032F62"> '/reset'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">                    chat.</span><span style="color:#6F42C1">reset</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#6F42C1">                    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'(Conversation memory cleared)'</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#D73A49">                    break</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                case</span><span style="color:#032F62"> '/exit'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">                    rl.</span><span style="color:#6F42C1">close</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#D73A49">                    return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">                default</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#6F42C1">                    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">`Unknown command: ${</span><span style="color:#24292E">line</span><span style="color:#032F62">} (type /help for help)`</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        } </span><span style="color:#D73A49">else</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">            try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">                out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">); </span><span style="color:#6A737D">// new line before the model reply</span></span>
+<span class="line"><span style="color:#D73A49">                for</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> delta</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> chat.</span><span style="color:#6F42C1">streamReply</span><span style="color:#24292E">(line)) {</span></span>
+<span class="line"><span style="color:#6F42C1">                    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'model'</span><span style="color:#24292E">, delta);</span></span>
+<span class="line"><span style="color:#24292E">                }</span></span>
+<span class="line"><span style="color:#6F42C1">                out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">'</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (e) {</span></span>
+<span class="line"><span style="color:#6F42C1">                err</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">`</span><span style="color:#005CC5">\n</span><span style="color:#032F62">Request failed: ${</span><span style="color:#032F62">(</span><span style="color:#24292E">e</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">            }</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    busy </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> false</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    rl.</span><span style="color:#6F42C1">prompt</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">rl.</span><span style="color:#6F42C1">on</span><span style="color:#24292E">(</span><span style="color:#032F62">'close'</span><span style="color:#24292E">, () </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#6F42C1">    out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">'bye'</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">    process.</span><span style="color:#6F42C1">exit</span><span style="color:#24292E">(</span><span style="color:#005CC5">0</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">out</span><span style="color:#24292E">(</span><span style="color:#032F62">'sys'</span><span style="color:#24292E">, </span><span style="color:#032F62">`GeekAgent Day 1 — The Simplest Agent (model: ${</span><span style="color:#24292E">config</span><span style="color:#032F62">.</span><span style="color:#24292E">model</span><span style="color:#032F62">}, type /help for commands)`</span><span style="color:#24292E">, </span><span style="color:#005CC5">true</span><span style="color:#24292E">);</span></span>
+<span class="line"><span style="color:#24292E">rl.</span><span style="color:#6F42C1">prompt</span><span style="color:#24292E">();</span></span></code></pre>
+<h2 id="5-verification">5. Verification</h2>
+<ul>
+<li><code>npm run typecheck</code>: confirms the TypeScript type check passes.</li>
+<li>Start it and type <code>/help</code> and <code>/exit</code>: you see the help text and then <code>bye</code>.</li>
+<li>Ask “remember my name is Zhang San” and then “what’s my name”: confirm the second turn can use the first turn’s history.</li>
+</ul>
+<p>Just two commands to run (dependencies and config live at the repo root, one shared copy for the whole repo):</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">cp</span><span style="color:#032F62"> .env.example</span><span style="color:#032F62"> .env</span><span style="color:#6A737D">        # fill in the key once, at the repo root</span></span>
+<span class="line"><span style="color:#6F42C1">npm</span><span style="color:#032F62"> run</span><span style="color:#032F62"> dev</span><span style="color:#005CC5"> --</span><span style="color:#032F62"> day1/index.ts</span></span></code></pre>
+<h2 id="6-what-we-didnt-do">6. What We Didn’t Do</h2>
+<p>No tool calling, no file read/write, no session persistence yet. Day 1 does exactly one thing: <strong>chat</strong>.</p>
+<h2 id="7-whats-next">7. What’s Next</h2>
+<p>For now the model can only answer from its training knowledge. Next, we let it request outside information from the program, then continue answering based on the real result.</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">Found this helpful? Buy me a coffee ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><span class="block h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1 [&amp;&gt;svg]:h-full [&amp;&gt;svg]:w-full"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#1a1815" d="M1 1.5h7m1 0h1m1 0h1m2 0h3m1 0h1m1 0h1m2 0h7M1 2.5h1m5 0h1m1 0h8m1 0h1m1 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m3 0h3m3 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h2m2 0h2m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m2 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m3 0h2m3 0h2m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m1 0h1m2 0h1m2 0h1m1 0h2M1 9.5h1m2 0h8m1 0h6m3 0h1m2 0h1m1 0h3M1 10.5h2m1 0h1m1 0h1m1 0h1m2 0h1m3 0h1m4 0h2m1 0h5m1 0h1M1 11.5h5m1 0h1m3 0h1m3 0h1m3 0h1m1 0h1m2 0h1M1 12.5h1m2 0h2m4 0h1m1 0h1m2 0h2m1 0h1m1 0h1m2 0h3m2 0h2M3 13.5h1m3 0h1m2 0h2m2 0h2m4 0h2m1 0h2m4 0h1M1 14.5h1m2 0h2m2 0h1m1 0h2m1 0h1m6 0h1m2 0h2m4 0h1M1 15.5h4m1 0h2m1 0h2m2 0h1m1 0h2m4 0h2m1 0h1m4 0h1M1 16.5h1m1 0h1m5 0h3m1 0h3m1 0h2m2 0h6M1 17.5h1m1 0h2m1 0h3m1 0h1m2 0h1m2 0h1m1 0h2m1 0h2m3 0h4M1 18.5h2m1 0h1m4 0h2m1 0h1m7 0h1m2 0h4M1 19.5h3m3 0h1m4 0h4m1 0h1m2 0h1m1 0h3m1 0h3M1 20.5h2m1 0h1m1 0h1m2 0h2m3 0h1m1 0h2m1 0h2m2 0h2m1 0h1m1 0h1M1 21.5h2m2 0h8m1 0h1m2 0h1m1 0h1m1 0h9M9 22.5h1m2 0h3m2 0h2m2 0h1m3 0h2m1 0h1M1 23.5h7m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m1 0h1m1 0h4M1 24.5h1m5 0h1m1 0h1m3 0h2m2 0h1m1 0h3m3 0h3M1 25.5h1m1 0h3m1 0h1m1 0h2m3 0h1m1 0h2m1 0h1m1 0h6m2 0h1M1 26.5h1m1 0h3m1 0h1m1 0h1m1 0h5m1 0h1m3 0h2m2 0h1m2 0h1M1 27.5h1m1 0h3m1 0h1m2 0h5m3 0h1m2 0h1m1 0h1m1 0h1m2 0h2M1 28.5h1m5 0h1m4 0h1m3 0h1m2 0h2m1 0h3M1 29.5h7m1 0h3m3 0h1m2 0h1m8 0h2"/></svg>
+</span><figcaption class="text-sm text-muted">Alipay</figcaption></figure><figure class="flex flex-col items-center gap-2"><span class="block h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1 [&amp;&gt;svg]:h-full [&amp;&gt;svg]:w-full"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#1a1815" d="M1 1.5h7m3 0h1m3 0h3m2 0h2m1 0h7M1 2.5h1m5 0h1m3 0h6m1 0h1m4 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h2m2 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m4 0h1m1 0h2m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h5m1 0h1m3 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m1 0h3m1 0h4m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m1 0h1m1 0h1m5 0h1M1 9.5h1m1 0h5m3 0h1m1 0h4m1 0h1m1 0h2m1 0h5M3 10.5h1m1 0h2m1 0h3m1 0h1m2 0h1m1 0h3m1 0h2m1 0h2m1 0h1m1 0h1M1 11.5h2m4 0h2m2 0h2m1 0h1m1 0h1m1 0h2m4 0h1m2 0h2M2 12.5h2m6 0h3m2 0h1m1 0h1m1 0h2m2 0h3m2 0h1M1 13.5h3m2 0h5m2 0h1m1 0h2m1 0h1m1 0h2m5 0h2M5 14.5h1m3 0h1m1 0h3m3 0h3m1 0h2m1 0h4m1 0h1M2 15.5h4m1 0h3m3 0h2m1 0h1m2 0h1m2 0h1m1 0h4M2 16.5h1m1 0h2m6 0h1m3 0h1m3 0h4m1 0h1m2 0h1M1 17.5h2m2 0h4m2 0h1m2 0h5m1 0h1m3 0h1m2 0h3M1 18.5h1m1 0h1m1 0h1m3 0h3m1 0h1m1 0h1m3 0h9m1 0h1M1 19.5h1m2 0h1m1 0h3m7 0h1m4 0h1m1 0h1m1 0h3M1 20.5h1m1 0h2m1 0h1m3 0h4m1 0h1m6 0h1m2 0h2m2 0h1M1 21.5h1m3 0h3m4 0h1m1 0h1m2 0h2m2 0h5m1 0h1M9 22.5h1m1 0h3m1 0h1m1 0h1m2 0h2m3 0h2m2 0h1M1 23.5h7m2 0h4m1 0h2m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h2m2 0h1m1 0h1m3 0h1m2 0h2M1 25.5h1m1 0h3m1 0h1m1 0h1m6 0h3m2 0h9M1 26.5h1m1 0h3m1 0h1m1 0h4m1 0h1m3 0h1m5 0h1m3 0h2M1 27.5h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h2m2 0h2m1 0h2m1 0h1m1 0h2M1 28.5h1m5 0h1m2 0h2m2 0h2m3 0h1m6 0h1m1 0h1M1 29.5h7m1 0h4m1 0h1m1 0h1m3 0h1m1 0h4m1 0h1"/></svg>
+</span><figcaption class="text-sm text-muted">WeChat</figcaption></figure></div></section><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="Chapter navigation"><span></span><a href="/en/post/geekagent-day2.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">Next chapter →</span><span class="font-display font-medium transition-colors group-hover:text-accent">Build GeekAgent from Scratch — Day 2 Tool Calling Loop</span></a></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day1";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">Comments</p><div id="gitalk-container"></div></section><script>(function(){const id = "/en/post/geekagent-day1.html";
+const title = "Build GeekAgent from Scratch — Day 1 REPL Foundation";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+const gitalkLang = "en";
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: gitalkLang,
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 Geektutu · Turning articles into books</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/en/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/en/about" class="transition-colors hover:text-accent">About</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="Total visits">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="Page views"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});var e=document.getElementById(`reading-bar`);function t(){if(!e)return;let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e.style.width=n+`%`}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();var n=document.querySelector(`.book-toc-scroll`),r=document.querySelector(`.book-toc [aria-current="page"]`);if(n&&r){let e=r.offsetTop-n.clientHeight/2+r.offsetHeight/2;n.scrollTop=Math.max(0,e)}var i=Array.from(document.querySelectorAll(`#section-toc a`)),a=i.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(e=>!!e);function o(){let e=null;for(let t of a)t.getBoundingClientRect().top<=120&&(e=t);i.forEach(e=>e.classList.remove(`active`)),e&&i.find(t=>t.getAttribute(`href`)===`#`+e.id)?.classList.add(`active`)}window.addEventListener(`scroll`,o,{passive:!0}),o();</script>

@@ -1,0 +1,381 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Build GeekAgent from Scratch — Day 2 Tool Calling Loop · Geektutu</title><meta name="description" content="A 7-day build-an-Agent-from-scratch tutorial: hand-write the simplest possible Agent/Harness in TypeScript. Day 2 builds the tool calling loop: the model can request get_current_time, the program executes it and hands the real time back to the model, laying the groundwork for the command and file tools to come."><link rel="canonical" href="https://geektutu.com/en/post/geekagent-day2.html"><link rel="alternate" hreflang="en" href="https://geektutu.com/en/post/geekagent-day2.html"><link rel="alternate" hreflang="zh-CN" href="https://geektutu.com/post/geekagent-day2.html"><link rel="alternate" hreflang="x-default" href="https://geektutu.com/post/geekagent-day2.html"><link rel="alternate" type="application/rss+xml" title="Geektutu" hreflang="zh-CN" href="https://geektutu.com/feed.xml"><link rel="alternate" type="application/rss+xml" title="Geektutu" hreflang="en" href="https://geektutu.com/en/feed.xml"><link rel="sitemap" type="application/xml" href="https://geektutu.com/sitemap-index.xml"><!-- Open Graph --><meta property="og:site_name" content="Geektutu"><meta property="og:type" content="article"><meta property="og:title" content="Build GeekAgent from Scratch — Day 2 Tool Calling Loop · Geektutu"><meta property="og:description" content="A 7-day build-an-Agent-from-scratch tutorial: hand-write the simplest possible Agent/Harness in TypeScript. Day 2 builds the tool calling loop: the model can request get_current_time, the program executes it and hands the real time back to the model, laying the groundwork for the command and file tools to come."><meta property="og:url" content="https://geektutu.com/en/post/geekagent-day2.html"><meta property="og:image" content="https://geektutu.com/og-default.png"><meta property="og:image:alt" content="Build GeekAgent from Scratch — Day 2 Tool Calling Loop · Geektutu"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="en_US"><meta property="og:locale:alternate" content="zh_CN"><meta property="article:published_time" content="2026-08-21T13:30:00.000Z"><meta property="article:modified_time" content="2026-08-21T13:30:00.000Z"><meta property="article:tag" content="Agent"><meta property="article:tag" content="Harness"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Build GeekAgent from Scratch — Day 2 Tool Calling Loop · Geektutu"><meta name="twitter:description" content="A 7-day build-an-Agent-from-scratch tutorial: hand-write the simplest possible Agent/Harness in TypeScript. Day 2 builds the tool calling loop: the model can request get_current_time, the program executes it and hands the real time back to the model, laying the groundwork for the command and file tools to come."><meta name="twitter:image" content="https://geektutu.com/og-default.png"><!-- 结构化数据：全站 WebSite，子页面通过 head slot 追加 --><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Geektutu","alternateName":"Geektutu","url":"https://geektutu.com/en/","inLanguage":"en","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://geektutu.com/en/search/?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Build GeekAgent from Scratch — Day 2 Tool Calling Loop","description":"A 7-day build-an-Agent-from-scratch tutorial: hand-write the simplest possible Agent/Harness in TypeScript. Day 2 builds the tool calling loop: the model can request get_current_time, the program executes it and hands the real time back to the model, laying the groundwork for the command and file tools to come.","image":["https://geektutu.com/og-default.png"],"datePublished":"2026-08-21T13:30:00.000Z","dateModified":"2026-08-21T13:30:00.000Z","author":{"@type":"Person","name":"Geektutu","url":"https://github.com/geektutu"},"keywords":"Agent, Harness","inLanguage":"en","mainEntityOfPage":{"@type":"WebPage","@id":"https://geektutu.com/en/post/geekagent-day2.html"},"isPartOf":{"@type":"Blog","@id":"https://geektutu.com/#blog","name":"Geektutu","url":"https://geektutu.com/"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://geektutu.com/en/"},{"@type":"ListItem","position":2,"name":"Build GeekAgent from Scratch in 7 Days","item":"https://geektutu.com/en/books/geekagent"},{"@type":"ListItem","position":3,"name":"Build GeekAgent from Scratch — Day 2 Tool Calling Loop"}]}</script><link rel="icon" type="image/png" href="/icon.png"><link rel="preload" href="/fonts/literata-latin-subset.woff2" as="font" type="font/woff2" crossorigin><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.3bYFP7Qy.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/en/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">Geektutu</span></a><div class="flex items-center gap-2"><nav class="hidden items-center gap-2 sm:flex" aria-label="Main navigation"><a href="/en/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Home</a><a href="/en/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Books</a><a href="/en/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Tags</a><a href="/en/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Search</a><a href="/en/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">About</a></nav><a href="/post/geekagent-day2.html" hreflang="zh-CN" aria-label="切换到中文" class="inline-flex h-9 items-center justify-center rounded-full border border-line px-3 text-sm text-muted transition-colors hover:text-accent hover:border-accent/40">中文</a><button id="theme-toggle" type="button" aria-label="Toggle dark mode" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="Contents"><!-- 书名 --><a href="/en/books/geekagent" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">Build GeekAgent from Scratch in 7 Days</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Foundations - Tools and Sessions</span></div><ul><li><a href="/en/post/geekagent-day1.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day1 REPL Foundation</a></li><li><a href="/en/post/geekagent-day2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">Day2 Tool Calling Loop</a></li><li><a href="/en/post/geekagent-day3.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day3 Bash Tool</a></li><li><a href="/en/post/geekagent-day4.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day4 File Tools and Registry</a></li><li><a href="/en/post/geekagent-day5.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day5 History Compression</a></li><li><a href="/en/post/geekagent-day6.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day6 Multi-session and Persistence</a></li><li><a href="/en/post/geekagent-day7.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day7 Lightweight TUI and Usage Panel</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Intermediate - Safety and Memory</span></div><ul><li><a href="/en/post/geekagent-day8.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day8 Permissions and Rollback</a></li><li><a href="/en/post/geekagent-day9.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day9 Task Planning and Sub-agents</a></li><li><a href="/en/post/geekagent-day10.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day10 Project Instructions and Long-term Memory</a></li><li><a href="/en/post/geekagent-day11.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day11 Skill System</a></li><li><a href="/en/post/geekagent-day12.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day12 Code Search and Web Scraping</a></li><li><a href="/en/post/geekagent-day13.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day13 Proactive Memory</a></li><li><a href="/en/post/geekagent-day14.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day14 Lightweight RAG Knowledge Base</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Extensions - Tool Connectivity</span></div><ul><li><a href="/en/post/geekagent-day15.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day15 MCP Tool Integration</a></li><li><a href="/en/post/geekagent-day16.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Day16 Plugin Framework and Web</a></li></ul></section></nav></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/en/books/geekagent" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> Build GeekAgent from Scratch in 7 Days</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">Build GeekAgent from Scratch — Day 2 Tool Calling Loop</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2026-08-21">2026-08-21</time><span aria-hidden="true">·</span><span>14 min read</span><a href="https://github.com/geektutu/7days-geekagent" target="_blank" rel="noopener" aria-label="GitHub repository: https://github.com/geektutu/7days-geekagent" class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>github/7days-geekagent</a><span class="flex flex-wrap gap-2"><a href="/en/tags/Agent" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Agent</a><a href="/en/tags/Harness" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Harness</a></span></div></header><div class="mt-6 rounded-2xl border border-line bg-paper-soft px-5 py-4"><p class="text-[0.7rem] font-medium uppercase tracking-widest text-faint">TL;DR</p><p class="mt-1.5 text-[0.95rem] leading-relaxed text-muted">A 7-day build-an-Agent-from-scratch tutorial: hand-write the simplest possible Agent/Harness in TypeScript. Day 2 builds the tool calling loop: the model can request get_current_time, the program executes it and hands the real time back to the model, laying the groundwork for the command and file tools to come.</p></div><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="On this page"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">On this page</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-where-the-title-comes-from-what-is-the-tool-calling-loop" class="toc-link block text-muted" data-toc-depth="2">0. Where the Title Comes From: What Is the Tool Calling Loop</a></li><li style="padding-left:0rem"><a href="#1-why-let-the-model-act" class="toc-link block text-muted" data-toc-depth="2">1. Why Let the Model Act</a></li><li style="padding-left:0rem"><a href="#2-goal-get-the-tool-calling-loop-working" class="toc-link block text-muted" data-toc-depth="2">2. Goal: Get the Tool Calling Loop Working</a></li><li style="padding-left:0rem"><a href="#3-design-agree-on-tools-messages-and-results-first" class="toc-link block text-muted" data-toc-depth="2">3. Design: Agree on Tools, Messages, and Results First</a></li><li style="padding-left:0.9rem"><a href="#31-three-conventions" class="toc-link block text-muted" data-toc-depth="3">3.1 Three Conventions</a></li><li style="padding-left:0.9rem"><a href="#32-why-the-program-doesnt-match-question--tool" class="toc-link block text-muted" data-toc-depth="3">3.2 Why the Program Doesn’t Match “Question → Tool”</a></li><li style="padding-left:0rem"><a href="#4-implementation-the-effect-first-then-the-code" class="toc-link block text-muted" data-toc-depth="2">4. Implementation: The Effect First, Then the Code</a></li><li style="padding-left:0.9rem"><a href="#41-toolsts--the-tools-smallest-common-denominator" class="toc-link block text-muted" data-toc-depth="3">4.1 tools.ts — The Tool’s “Smallest Common Denominator”</a></li><li style="padding-left:0.9rem"><a href="#42-chatts--the-tool-calling-loop" class="toc-link block text-muted" data-toc-depth="3">4.2 chat.ts — The Tool Calling Loop</a></li><li style="padding-left:0.9rem"><a href="#43-what-history-looks-like-after-one-tool-call" class="toc-link block text-muted" data-toc-depth="3">4.3 What history Looks Like After One Tool Call</a></li><li style="padding-left:0.9rem"><a href="#44-role-the-identity-of-every-entry-in-history" class="toc-link block text-muted" data-toc-depth="3">4.4 role: The Identity of Every Entry in history</a></li><li style="padding-left:0.9rem"><a href="#45-colorts--reusing-day-1s-terminal-coloring" class="toc-link block text-muted" data-toc-depth="3">4.5 color.ts — Reusing Day 1’s Terminal Coloring</a></li><li style="padding-left:0rem"><a href="#5-verification" class="toc-link block text-muted" data-toc-depth="2">5. Verification</a></li><li style="padding-left:0rem"><a href="#6-what-we-didnt-do" class="toc-link block text-muted" data-toc-depth="2">6. What We Didn’t Do</a></li><li style="padding-left:0rem"><a href="#7-whats-next" class="toc-link block text-muted" data-toc-depth="2">7. What’s Next</a></li></ul></nav><div class="mt-6 markdown"><h1 id="day-2-the-model-acts-for-the-first-time--the-tool-calling-loop">Day 2: The Model Acts for the First Time — The Tool Calling Loop</h1>
+<blockquote>
+<p>Day 1 got multi-turn conversation working; today we add tool calling: the model requests <code>get_current_time</code>, the program executes it and returns the real time, and the model continues answering.</p>
+</blockquote>
+<h2 id="0-where-the-title-comes-from-what-is-the-tool-calling-loop">0. Where the Title Comes From: What Is the Tool Calling Loop</h2>
+<p>Two terms in the title need clearing up first, or nothing that follows will land.</p>
+<p><strong>Tool calling (also called function calling)</strong>: by itself the model can only generate text. The OpenAI-compatible API lets us attach a “tool list” to the request: each tool spells out its name, purpose, and parameter format. When a question like “look up the current time” comes along, the model doesn’t have to answer directly; it can output the agreed JSON saying “call <code>get_current_time</code> with arguments <code>{}</code>”. That is tool calling.</p>
+<p><strong>The loop</strong>: is the model done in one shot? No. It places an order; we actually have to execute it, bring the result back, and feed it to the model before it can compose the final answer. So the full chain is “request → the model calls a tool → we execute → the result goes back → the model continues”; if one round isn’t enough, run another, until it produces a plain text answer with no tool call. Writing this chain as one <code>for</code> loop is all of Day 2’s work.</p>
+<p>In one sentence: <strong>the tool calling loop = the model proposes a call → the program executes → the result goes back → the model continues</strong>. Everything later — Shell, file read/write, search, web fetching — reuses this same loop.</p>
+<h2 id="1-why-let-the-model-act">1. Why Let the Model Act</h2>
+<p>Day 1’s model could only chat. Ask it “what time is it” and it can only blind-guess from its training data — it simply has no ability to “look at a clock”. However articulate a chat-only model is, it still isn’t an Agent; it’s a chatbot.</p>
+<p>One important difference between an Agent and a chatbot is whether it can call on external capabilities to fetch new information or perform actions. Checking the time, running commands, reading files, calling APIs — the program has to actually do all of these. Day 2 uses the simplest possible time tool to get “the model proposes a call → the program executes → the result goes back” running end to end.</p>
+<h2 id="2-goal-get-the-tool-calling-loop-working">2. Goal: Get the Tool Calling Loop Working</h2>
+<p>Day 2 does exactly one thing: <strong>the model returns a <code>tool_call</code> → we execute → the result goes back → the model continues</strong>, until it gives its final answer. Two acceptance criteria:</p>
+<ol>
+<li>When asked “what time is it now”, the model returns a <code>tool_call</code> for <code>get_current_time</code>, the program executes the tool, and the real time is placed back into history under the same <code>tool_call_id</code>;</li>
+<li>After reading the <code>tool</code> message, the model keeps going and finally answers using the tool result; if it requests a tool again, the loop continues until plain text comes back.</li>
+</ol>
+<p><strong>Lines of code for the day</strong>: 5 source files, 268 lines in total; about 56 new lines in <code>tools.ts</code> and about 30 lines refactored in <code>chat.ts</code>.</p>
+<h2 id="3-design-agree-on-tools-messages-and-results-first">3. Design: Agree on Tools, Messages, and Results First</h2>
+<h3 id="31-three-conventions">3.1 Three Conventions</h3>
+<ol>
+<li><strong>A tool = one object</strong>. A name + a description + a JSON Schema for the parameters + one <code>run</code> function. The model only ever sees the tools declared in the list; <code>run</code> is the real world on our side.</li>
+<li><strong>history is still that same array</strong>. Tool calling is just a new kind of message role: the <code>tool_calls</code> initiated by the assistant, and the <code>tool</code> messages sent back.</li>
+<li><strong>Results are strings only</strong>. Whatever a tool’s <code>run</code> returns is converted to a string and handed back to the model. The real world (time, command output, file contents) always ends up folded into one line of text; no structured protocol is needed at the model layer.</li>
+</ol>
+<h3 id="32-why-the-program-doesnt-match-question--tool">3.2 Why the Program Doesn’t Match “Question → Tool”</h3>
+<p>One might wonder: why would the model call a tool of its own accord? Did we write keyword matching like “the question contains ‘what time’ → call <code>get_current_time</code>” in our code?</p>
+<p><strong>No. Quite the opposite — there is not one line of “question keyword → tool” mapping in the entire chain</strong>, and that is the essence of tool calling’s design. Let’s spell out why:</p>
+<ol>
+<li>On every request, we hand each tool’s “manual” to the model through the <code>tools</code> parameter (<code>toOpenAITools()</code>) — just a name + a one-line description + a parameter Schema; there is no branch logic anywhere in the code.</li>
+<li>While generating, the model judges for itself: what it can answer from knowledge (“what is 1+1?”) comes out as ordinary text; for real-time information it doesn’t know (“what time is it now?”), it sees that the description of <code>get_current_time</code> matches the need, so it decides not to write an answer but to issue a tool call instead — the behavior it learned in training: answer from what it knows, reach for a tool for what it doesn’t.</li>
+<li>The call is not natural language but a fixed protocol: the model outputs JSON (<code>name</code> + <code>arguments</code>), and the OpenAI-compatible API puts it into the response’s <code>tool_calls</code> field (fragmented <code>delta.tool_calls</code> when streaming). Our loop only claims, executes, and returns results; it understands no semantics at all.</li>
+<li>So how well the <code>description</code> is written and how precisely the <code>parameters</code> Schema is defined directly determine how correctly the model calls — which is also why “description” is a required field in the <code>Tool</code> abstraction.</li>
+</ol>
+<p>The only corresponding fork on the code side is in chat.ts: if, after this round’s stream ends, there are <strong>no</strong> <code>tool_calls</code>, we take the “final answer” branch. The model is always free to ignore the tools and just speak.</p>
+<p>If we insisted on writing keyword matching in our code, two fatal problems would follow: first, incomplete coverage (any different phrasing from the user misses the match); second, forcing the model down our rigid rules when it could judge perfectly well by itself. Handing “whether to call a tool” to the model is the right way to write less code and cover more.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>App code matches keywords</th><th>Model function calling</th></tr></thead><tbody><tr><td>Who picks the tool</td><td>We write <code>if/else</code></td><td>The model chooses based on tool descriptions</td></tr><tr><td>Supporting new phrasings</td><td>Keep adding rules</td><td>The model understands natural language</td></tr><tr><td>Argument generation</td><td>The app parses them itself</td><td>The model generates per the JSON Schema</td></tr><tr><td>The program’s job</td><td>Understand the question and execute tools</td><td>Declare tools, execute, return results</td></tr></tbody></table>
+<p>function calling here is only a <strong>calling protocol</strong>: the model never actually executes a function; it returns a tool name and arguments. What really touches time, files, or the network is still our program — which is exactly why the tool calling loop can’t be skipped.</p>
+<h2 id="4-implementation-the-effect-first-then-the-code">4. Implementation: The Effect First, Then the Code</h2>
+<p>Running it shows the following in the terminal (colors reproduced with HTML):</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:8px;border-radius:4px"><span style="color:#00cdcd">You › What time is it now</span>
+<span style="color:#00cd00">Hang on, let me check...</span>
+<span style="color:#cdcd00">[Calling tool get_current_time → 2026/8/26 20:42:11]</span>
+<span style="color:#00cd00">It's 8:42 PM now.</span>
+<span style="color:#00cdcd">You › </span>
+</pre>
+<h3 id="41-toolsts--the-tools-smallest-common-denominator">4.1 tools.ts — The Tool’s “Smallest Common Denominator”</h3>
+<p>Day 2 adds <code>tools.ts</code>; full contents:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day2/tools.ts</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#D73A49"> type</span><span style="color:#24292E"> { ChatCompletionTool } </span><span style="color:#D73A49">from</span><span style="color:#032F62"> 'openai/resources/chat/completions'</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * The minimal abstraction of a tool: a name + a description + a JSON Schema for the parameters + one run function.</span></span>
+<span class="line"><span style="color:#6A737D"> * Day 2 has exactly one member, the time tool; later days just append to the TOOLS array (Day 4 folds it into a registry).</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> interface</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#E36209">    name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#E36209">    description</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#6A737D">    /** The parameters layer of the OpenAI function (e.g. { type: 'object', properties, additionalProperties }) */</span></span>
+<span class="line"><span style="color:#E36209">    parameters</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Record</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#005CC5">unknown</span><span style="color:#24292E">>;</span></span>
+<span class="line"><span style="color:#6F42C1">    run</span><span style="color:#24292E">(</span><span style="color:#E36209">args</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Record</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#005CC5">unknown</span><span style="color:#24292E">>)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">> </span><span style="color:#D73A49">|</span><span style="color:#005CC5"> string</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** Every integrated tool. The model only ever receives the functions declared in this list. */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> const</span><span style="color:#005CC5"> TOOLS</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Tool</span><span style="color:#24292E">[] </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [</span></span>
+<span class="line"><span style="color:#24292E">    {</span></span>
+<span class="line"><span style="color:#24292E">        name: </span><span style="color:#032F62">'get_current_time'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        description: </span><span style="color:#032F62">'Get the current local time (Asia/Shanghai).'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        parameters: { type: </span><span style="color:#032F62">'object'</span><span style="color:#24292E">, properties: {}, additionalProperties: </span><span style="color:#005CC5">false</span><span style="color:#24292E"> },</span></span>
+<span class="line"><span style="color:#6F42C1">        run</span><span style="color:#24292E">: () </span><span style="color:#D73A49">=></span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Date</span><span style="color:#24292E">().</span><span style="color:#6F42C1">toLocaleString</span><span style="color:#24292E">(</span><span style="color:#032F62">'zh-CN'</span><span style="color:#24292E">, { timeZone: </span><span style="color:#032F62">'Asia/Shanghai'</span><span style="color:#24292E"> }),</span></span>
+<span class="line"><span style="color:#24292E">    },</span></span>
+<span class="line"><span style="color:#24292E">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/** Convert the internal Tool into the OpenAI Chat Completions tools parameter format. */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> toOpenAITools</span><span style="color:#24292E">()</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> ChatCompletionTool</span><span style="color:#24292E">[] {</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#005CC5"> TOOLS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">tool</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> ({</span></span>
+<span class="line"><span style="color:#24292E">        type: </span><span style="color:#032F62">'function'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">        function: {</span></span>
+<span class="line"><span style="color:#24292E">            name: tool.name,</span></span>
+<span class="line"><span style="color:#24292E">            description: tool.description,</span></span>
+<span class="line"><span style="color:#24292E">            parameters: tool.parameters,</span></span>
+<span class="line"><span style="color:#24292E">        },</span></span>
+<span class="line"><span style="color:#24292E">    }));</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">/**</span></span>
+<span class="line"><span style="color:#6A737D"> * Execute a tool by name. The arguments are a JSON string generated by the model.</span></span>
+<span class="line"><span style="color:#6A737D"> * Any error is returned to the model as "result text" — let the model read the error itself (failure self-checking will be implemented later; this plants the seed for it).</span></span>
+<span class="line"><span style="color:#6A737D"> */</span></span>
+<span class="line"><span style="color:#D73A49">export</span><span style="color:#D73A49"> async</span><span style="color:#D73A49"> function</span><span style="color:#6F42C1"> execTool</span><span style="color:#24292E">(</span><span style="color:#E36209">name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">, </span><span style="color:#E36209">argsJson</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">)</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Promise</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">> {</span></span>
+<span class="line"><span style="color:#D73A49">    const</span><span style="color:#005CC5"> tool</span><span style="color:#D73A49"> =</span><span style="color:#005CC5"> TOOLS</span><span style="color:#24292E">.</span><span style="color:#6F42C1">find</span><span style="color:#24292E">((</span><span style="color:#E36209">t</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> t.name </span><span style="color:#D73A49">===</span><span style="color:#24292E"> name);</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">tool) </span><span style="color:#D73A49">return</span><span style="color:#032F62"> `Unknown tool: ${</span><span style="color:#24292E">name</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    let</span><span style="color:#24292E"> args</span><span style="color:#D73A49">:</span><span style="color:#6F42C1"> Record</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">string</span><span style="color:#24292E">, </span><span style="color:#005CC5">unknown</span><span style="color:#24292E">> </span><span style="color:#D73A49">=</span><span style="color:#24292E"> {};</span></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">        args </span><span style="color:#D73A49">=</span><span style="color:#24292E"> argsJson </span><span style="color:#D73A49">?</span><span style="color:#005CC5"> JSON</span><span style="color:#24292E">.</span><span style="color:#6F42C1">parse</span><span style="color:#24292E">(argsJson) </span><span style="color:#D73A49">:</span><span style="color:#24292E"> {};</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#032F62"> `Arguments are not valid JSON: ${</span><span style="color:#24292E">argsJson</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    try</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> tool.</span><span style="color:#6F42C1">run</span><span style="color:#24292E">(args);</span></span>
+<span class="line"><span style="color:#24292E">    } </span><span style="color:#D73A49">catch</span><span style="color:#24292E"> (err) {</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#032F62"> `Tool execution failed: ${</span><span style="color:#032F62">(</span><span style="color:#24292E">err</span><span style="color:#D73A49"> as</span><span style="color:#6F42C1"> Error</span><span style="color:#032F62">).</span><span style="color:#24292E">message</span><span style="color:#032F62">}`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>Adding a new tool just means registering one object into the <code>TOOLS</code> array; the calling loop keeps executing through the unified interface. Two companion functions handle format conversion and lookup/execution:</p>
+<ul>
+<li><code>toOpenAITools()</code>: converts the internal <code>Tool</code> into OpenAI’s <code>tools</code> parameter format (a wrapper with <code>type: 'function'</code>); what we hand the model is the “manual”, not <code>run</code>.</li>
+</ul>
+<h3 id="42-chatts--the-tool-calling-loop">4.2 chat.ts — The Tool Calling Loop</h3>
+<p>Day 1’s <code>streamReply</code> was “request once → stream the output → done”. Day 2 wraps it in a loop that spins at most 5 turns (<code>MAX_TOOL_TURNS</code>). The full method:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day2/chat.ts</span></span>
+<span class="line"><span style="color:#24292E">async </span><span style="color:#D73A49">*</span><span style="color:#6F42C1">streamReply</span><span style="color:#24292E">(userInput: string): AsyncGenerator</span><span style="color:#D73A49">&#x3C;</span><span style="color:#24292E">string</span><span style="color:#D73A49">></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">  this.history.push({ </span><span style="color:#6F42C1">role</span><span style="color:#24292E">: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">content</span><span style="color:#24292E">: userInput });</span></span>
+<span class="line"><span style="color:#24292E">  try {</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">let</span><span style="color:#24292E"> turn </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">; turn </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> MAX_TOOL_TURNS</span><span style="color:#24292E">; turn</span><span style="color:#D73A49">++</span><span style="color:#24292E">) {</span></span>
+<span class="line"><span style="color:#D73A49">      const</span><span style="color:#005CC5"> stream</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#005CC5"> this</span><span style="color:#24292E">.client.chat.completions.</span><span style="color:#6F42C1">create</span><span style="color:#24292E">({</span></span>
+<span class="line"><span style="color:#24292E">        model: </span><span style="color:#005CC5">this</span><span style="color:#24292E">.model,</span></span>
+<span class="line"><span style="color:#24292E">        messages: </span><span style="color:#005CC5">this</span><span style="color:#24292E">.history,</span></span>
+<span class="line"><span style="color:#24292E">        tools: </span><span style="color:#6F42C1">toOpenAITools</span><span style="color:#24292E">(),</span></span>
+<span class="line"><span style="color:#24292E">        stream: </span><span style="color:#005CC5">true</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">      });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">      // Stream: accumulate content while reassembling tool calls (deltas arrive as index-keyed fragments)</span></span>
+<span class="line"><span style="color:#D73A49">      let</span><span style="color:#24292E"> answer </span><span style="color:#D73A49">=</span><span style="color:#032F62"> ''</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">      const</span><span style="color:#005CC5"> calls</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> new</span><span style="color:#6F42C1"> Map</span><span style="color:#24292E">&#x3C;</span><span style="color:#005CC5">number</span><span style="color:#24292E">, { </span><span style="color:#E36209">id</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">; </span><span style="color:#E36209">name</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E">; </span><span style="color:#E36209">args</span><span style="color:#D73A49">:</span><span style="color:#005CC5"> string</span><span style="color:#24292E"> }>();</span></span>
+<span class="line"><span style="color:#D73A49">      for</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> chunk</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> stream) {</span></span>
+<span class="line"><span style="color:#D73A49">        const</span><span style="color:#005CC5"> delta</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> chunk.choices[</span><span style="color:#005CC5">0</span><span style="color:#24292E">]?.delta;</span></span>
+<span class="line"><span style="color:#D73A49">        if</span><span style="color:#24292E"> (delta?.content) {</span></span>
+<span class="line"><span style="color:#24292E">          answer </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> delta.content;</span></span>
+<span class="line"><span style="color:#D73A49">          yield</span><span style="color:#24292E"> delta.content;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#D73A49">        for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> tc</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> delta?.tool_calls </span><span style="color:#D73A49">??</span><span style="color:#24292E"> []) {</span></span>
+<span class="line"><span style="color:#D73A49">          let</span><span style="color:#24292E"> call </span><span style="color:#D73A49">=</span><span style="color:#24292E"> calls.</span><span style="color:#6F42C1">get</span><span style="color:#24292E">(tc.index);</span></span>
+<span class="line"><span style="color:#D73A49">          if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">call) {</span></span>
+<span class="line"><span style="color:#24292E">            call </span><span style="color:#D73A49">=</span><span style="color:#24292E"> { id: </span><span style="color:#032F62">''</span><span style="color:#24292E">, name: </span><span style="color:#032F62">''</span><span style="color:#24292E">, args: </span><span style="color:#032F62">''</span><span style="color:#24292E"> };</span></span>
+<span class="line"><span style="color:#24292E">            calls.</span><span style="color:#6F42C1">set</span><span style="color:#24292E">(tc.index, call);</span></span>
+<span class="line"><span style="color:#24292E">          }</span></span>
+<span class="line"><span style="color:#D73A49">          if</span><span style="color:#24292E"> (tc.id) call.id </span><span style="color:#D73A49">=</span><span style="color:#24292E"> tc.id;</span></span>
+<span class="line"><span style="color:#D73A49">          if</span><span style="color:#24292E"> (tc.function?.name) call.name </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> tc.function.name;</span></span>
+<span class="line"><span style="color:#D73A49">          if</span><span style="color:#24292E"> (tc.function?.arguments) call.args </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> tc.function.arguments;</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">      const</span><span style="color:#005CC5"> toolCalls</span><span style="color:#D73A49"> =</span><span style="color:#24292E"> [</span><span style="color:#D73A49">...</span><span style="color:#24292E">calls.</span><span style="color:#6F42C1">values</span><span style="color:#24292E">()];</span></span>
+<span class="line"><span style="color:#D73A49">      if</span><span style="color:#24292E"> (toolCalls.</span><span style="color:#005CC5">length</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> &#x26;&#x26;</span><span style="color:#24292E"> toolCalls.</span><span style="color:#6F42C1">every</span><span style="color:#24292E">((</span><span style="color:#E36209">c</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> c.name)) {</span></span>
+<span class="line"><span style="color:#6A737D">        // The model wants to act: first record this assistant message (with tool_calls) into history</span></span>
+<span class="line"><span style="color:#24292E">        toolCalls.</span><span style="color:#6F42C1">forEach</span><span style="color:#24292E">((</span><span style="color:#E36209">c</span><span style="color:#24292E">, </span><span style="color:#E36209">i</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#D73A49">          if</span><span style="color:#24292E"> (</span><span style="color:#D73A49">!</span><span style="color:#24292E">c.id) c.id </span><span style="color:#D73A49">=</span><span style="color:#032F62"> `call_${</span><span style="color:#24292E">i</span><span style="color:#032F62">}`</span><span style="color:#24292E">; </span><span style="color:#6A737D">// some models omit the id; fill in a stable value</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span>
+<span class="line"><span style="color:#005CC5">        this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({</span></span>
+<span class="line"><span style="color:#24292E">          role: </span><span style="color:#032F62">'assistant'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">          content: answer </span><span style="color:#D73A49">||</span><span style="color:#005CC5"> null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">          tool_calls: toolCalls.</span><span style="color:#6F42C1">map</span><span style="color:#24292E">((</span><span style="color:#E36209">c</span><span style="color:#24292E">) </span><span style="color:#D73A49">=></span><span style="color:#24292E"> ({</span></span>
+<span class="line"><span style="color:#24292E">            id: c.id,</span></span>
+<span class="line"><span style="color:#24292E">            type: </span><span style="color:#032F62">'function'</span><span style="color:#D73A49"> as</span><span style="color:#D73A49"> const</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">            function: { name: c.name, arguments: c.args },</span></span>
+<span class="line"><span style="color:#24292E">          })),</span></span>
+<span class="line"><span style="color:#24292E">        });</span></span>
+<span class="line"><span style="color:#6A737D">        // Execute one by one and return each result as a role=tool message, then enter the next turn</span></span>
+<span class="line"><span style="color:#D73A49">        for</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> c</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> toolCalls) {</span></span>
+<span class="line"><span style="color:#D73A49">          const</span><span style="color:#005CC5"> result</span><span style="color:#D73A49"> =</span><span style="color:#D73A49"> await</span><span style="color:#6F42C1"> execTool</span><span style="color:#24292E">(c.name, c.args);</span></span>
+<span class="line"><span style="color:#D73A49">          yield</span><span style="color:#032F62"> `</span><span style="color:#005CC5">\n</span><span style="color:#032F62">[Calling tool ${</span><span style="color:#24292E">c</span><span style="color:#032F62">.</span><span style="color:#24292E">name</span><span style="color:#032F62">} → ${</span><span style="color:#24292E">result</span><span style="color:#032F62">}]</span><span style="color:#005CC5">\n</span><span style="color:#032F62">`</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#005CC5">          this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ role: </span><span style="color:#032F62">'tool'</span><span style="color:#24292E">, tool_call_id: c.id, content: result });</span></span>
+<span class="line"><span style="color:#24292E">        }</span></span>
+<span class="line"><span style="color:#D73A49">        continue</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">      }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">      // No tool calls: this is the final answer</span></span>
+<span class="line"><span style="color:#005CC5">      this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ role: </span><span style="color:#032F62">'assistant'</span><span style="color:#24292E">, content: answer });</span></span>
+<span class="line"><span style="color:#D73A49">      return</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    }</span></span>
+<span class="line"><span style="color:#6A737D">    // Turns exhausted without settling: wrap up as a fallback so history stays ask-and-answer balanced</span></span>
+<span class="line"><span style="color:#D73A49">    yield</span><span style="color:#032F62"> '</span><span style="color:#005CC5">\n</span><span style="color:#032F62">[Too many tool calling turns, stopped]'</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#005CC5">    this</span><span style="color:#24292E">.history.</span><span style="color:#6F42C1">push</span><span style="color:#24292E">({ role: </span><span style="color:#032F62">'assistant'</span><span style="color:#24292E">, content: </span><span style="color:#032F62">'[Too many tool calling turns, stopped]'</span><span style="color:#24292E"> });</span></span>
+<span class="line"><span style="color:#24292E">  } catch (err) {</span></span>
+<span class="line"><span style="color:#6A737D">    // On error, roll back the user message just enqueued, so history only ever holds paired exchanges.</span></span>
+<span class="line"><span style="color:#24292E">    this.history.</span><span style="color:#6F42C1">pop</span><span style="color:#24292E">();</span></span>
+<span class="line"><span style="color:#24292E">    throw err;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>The skeleton is a single <code>for</code> loop: each turn sends a request (carrying <code>history</code> + <code>tools</code>) → receives the stream → if complete <code>tool_calls</code> came back, execute them and <code>continue</code> into the next turn; otherwise treat it as the final answer and <code>return</code>.</p>
+<p>Two implementation details worth attention, both covered in the code:</p>
+<p><strong>Detail one: when streaming, <code>tool_calls</code> arrive as fragments (normal streaming handling).</strong> The same call’s <code>id</code>, <code>function.name</code>, and <code>function.arguments</code> are split across multiple chunks and reassembled by <code>index</code>; <code>name</code>/<code>arguments</code> are built by <strong>string concatenation</strong> (see the block that gathers <code>calls</code> in the loop above).</p>
+<p><strong>Detail two: some models don’t return a <code>tool_call_id</code>.</strong> When replaying history, a <code>tool</code> message must match the assistant’s <code>tool_call_id</code>, and a missing one makes the request fail with 400. So we fill it in before pushing to history: <code>if (!c.id) c.id = \</code>call_${i}`;<code>(see the</code>toolCalls.forEach` block above).</p>
+<h3 id="43-what-history-looks-like-after-one-tool-call">4.3 What history Looks Like After One Tool Call</h3>
+<p>Ask “what time is it now”; once the whole loop finishes, these 4 entries were appended to the tail of history (who wrote each one is crystal clear):</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day2/chat.ts (history fragment example)</span></span>
+<span class="line"><span style="color:#6A737D">// (1) Our input: the user's words verbatim (pushed when Chat receives input)</span></span>
+<span class="line"><span style="color:#24292E">{ </span><span style="color:#6F42C1">role</span><span style="color:#24292E">: </span><span style="color:#032F62">'user'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">content</span><span style="color:#24292E">: </span><span style="color:#032F62">'What time is it now?'</span><span style="color:#24292E"> },</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// (2) Model returns: decides not to answer directly and calls a tool instead (note content is null)</span></span>
+<span class="line"><span style="color:#24292E">{ </span><span style="color:#6F42C1">role</span><span style="color:#24292E">: </span><span style="color:#032F62">'assistant'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">content</span><span style="color:#24292E">: </span><span style="color:#005CC5">null</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#6F42C1">  tool_calls</span><span style="color:#24292E">: [{ id: </span><span style="color:#032F62">'call_0'</span><span style="color:#24292E">, type: </span><span style="color:#032F62">'function'</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">                 function: { name: </span><span style="color:#032F62">'get_current_time'</span><span style="color:#24292E">, arguments: </span><span style="color:#032F62">'{}'</span><span style="color:#24292E"> } }] },</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// (3) We send back: the tool's real output (the result of execTool, not model-generated)</span></span>
+<span class="line"><span style="color:#24292E">{ </span><span style="color:#6F42C1">role</span><span style="color:#24292E">: </span><span style="color:#032F62">'tool'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">tool_call_id</span><span style="color:#24292E">: </span><span style="color:#032F62">'call_0'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">content</span><span style="color:#24292E">: </span><span style="color:#032F62">'2026/8/26 15:42:11'</span><span style="color:#24292E"> },</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// (4) Model returns: the final answer composed from the tool result</span></span>
+<span class="line"><span style="color:#24292E">{ </span><span style="color:#6F42C1">role</span><span style="color:#24292E">: </span><span style="color:#032F62">'assistant'</span><span style="color:#24292E">, </span><span style="color:#6F42C1">content</span><span style="color:#24292E">: </span><span style="color:#032F62">'It is 3:42 PM on August 26, 2026.'</span><span style="color:#24292E"> },</span></span></code></pre>
+<h3 id="44-role-the-identity-of-every-entry-in-history">4.4 role: The Identity of Every Entry in history</h3>
+<p>Every message in <code>messages</code> carries a <code>role</code> field. OpenAI Chat Completions defines four in all, and Day 2 already uses three:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>role</th><th>Who writes it</th><th>Meaning</th><th>When it appears in this project</th></tr></thead><tbody><tr><td><code>system</code></td><td>Us</td><td>Instructions that set the model’s behavior and rules; highest priority</td><td>Not used yet; will be used when project instructions are injected</td></tr><tr><td><code>user</code></td><td>Us</td><td>The caller’s input verbatim</td><td>Enqueued on every user question (that’s (1) above)</td></tr><tr><td><code>assistant</code></td><td>The model</td><td>The model’s output: plain text, or an “I want to use a tool” declaration carrying <code>tool_calls</code></td><td>(2) (with tool calls), (4) (the final answer)</td></tr><tr><td><code>tool</code></td><td>The tool (relayed by us)</td><td>The execution result of a tool call; must match the assistant-initiated call via <code>tool_call_id</code></td><td>(3) (the tool’s real output)</td></tr></tbody></table>
+<p>Two roles are easy to confuse:</p>
+<ul>
+<li><code>system</code> provides high-priority instructions; it hasn’t been used on this day.</li>
+<li><code>tool</code> messages aren’t shown to the user; they are the “question and answer” between the model and a tool: the assistant initiates (with an <code>id</code>), and the <code>tool</code> message answers (bringing back the same <code>tool_call_id</code>). If the ids don’t line up, the API returns 400 outright — which is why detail two fills in the id.</li>
+</ul>
+<h3 id="45-colorts--reusing-day-1s-terminal-coloring">4.5 color.ts — Reusing Day 1’s Terminal Coloring</h3>
+<p>Day 2 reuses Day 1’s <code>color.ts</code> (<code>paint</code> / <code>out</code> / <code>err</code> + the color table <code>C</code>) directly, without writing a second copy. The only new coloring need is that <strong>tool calling progress lines must stand out</strong>: when the model calls a tool, chat.ts yields a <code>[Calling tool ...]</code> segment, and that line is colored yellow (<code>tool</code>) rather than the green (<code>model</code>) used for the model’s text.</p>
+<p>In index.ts, judging by the start of each line is enough — still the same <code>out</code>:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// day2/index.ts</span></span>
+<span class="line"><span style="color:#D73A49">for</span><span style="color:#D73A49"> await</span><span style="color:#24292E"> (</span><span style="color:#D73A49">const</span><span style="color:#005CC5"> delta</span><span style="color:#D73A49"> of</span><span style="color:#24292E"> chat.</span><span style="color:#6F42C1">streamReply</span><span style="color:#24292E">(line)) {</span></span>
+<span class="line"><span style="color:#6F42C1">    out</span><span style="color:#24292E">(delta.</span><span style="color:#6F42C1">startsWith</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">\n</span><span style="color:#032F62">[Calling tool'</span><span style="color:#24292E">) </span><span style="color:#D73A49">?</span><span style="color:#032F62"> 'tool'</span><span style="color:#D73A49"> :</span><span style="color:#032F62"> 'model'</span><span style="color:#24292E">, delta);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>The effect is the snippet shown at the start of this section: tool calling progress lines in yellow, the model’s text in green.</p>
+<h2 id="5-verification">5. Verification</h2>
+<ul>
+<li><code>npm run typecheck</code>: confirms the type check passes.</li>
+<li><code>npm run dev -- day2/index.ts</code>: start it and ask “what time is it now”.</li>
+<li>Confirm the terminal first shows the real result of <code>get_current_time</code>, and then the model’s answer based on that result.</li>
+</ul>
+<h2 id="6-what-we-didnt-do">6. What We Didn’t Do</h2>
+<p><code>get_current_time</code> never touches local data, so this day doesn’t handle execution permissions yet. It only validates the tool calling loop; for now the model can’t operate the local machine.</p>
+<h2 id="7-whats-next">7. What’s Next</h2>
+<p>The tool loop already connects the model with external functions. Next, we plug in tools that can operate the local environment, and start thinking about confirmation before execution and resource limits.</p></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">Found this helpful? Buy me a coffee ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><span class="block h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1 [&amp;&gt;svg]:h-full [&amp;&gt;svg]:w-full"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#1a1815" d="M1 1.5h7m1 0h1m1 0h1m2 0h3m1 0h1m1 0h1m2 0h7M1 2.5h1m5 0h1m1 0h8m1 0h1m1 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m3 0h3m3 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h2m2 0h2m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m2 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m3 0h2m3 0h2m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m1 0h1m2 0h1m2 0h1m1 0h2M1 9.5h1m2 0h8m1 0h6m3 0h1m2 0h1m1 0h3M1 10.5h2m1 0h1m1 0h1m1 0h1m2 0h1m3 0h1m4 0h2m1 0h5m1 0h1M1 11.5h5m1 0h1m3 0h1m3 0h1m3 0h1m1 0h1m2 0h1M1 12.5h1m2 0h2m4 0h1m1 0h1m2 0h2m1 0h1m1 0h1m2 0h3m2 0h2M3 13.5h1m3 0h1m2 0h2m2 0h2m4 0h2m1 0h2m4 0h1M1 14.5h1m2 0h2m2 0h1m1 0h2m1 0h1m6 0h1m2 0h2m4 0h1M1 15.5h4m1 0h2m1 0h2m2 0h1m1 0h2m4 0h2m1 0h1m4 0h1M1 16.5h1m1 0h1m5 0h3m1 0h3m1 0h2m2 0h6M1 17.5h1m1 0h2m1 0h3m1 0h1m2 0h1m2 0h1m1 0h2m1 0h2m3 0h4M1 18.5h2m1 0h1m4 0h2m1 0h1m7 0h1m2 0h4M1 19.5h3m3 0h1m4 0h4m1 0h1m2 0h1m1 0h3m1 0h3M1 20.5h2m1 0h1m1 0h1m2 0h2m3 0h1m1 0h2m1 0h2m2 0h2m1 0h1m1 0h1M1 21.5h2m2 0h8m1 0h1m2 0h1m1 0h1m1 0h9M9 22.5h1m2 0h3m2 0h2m2 0h1m3 0h2m1 0h1M1 23.5h7m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m1 0h1m1 0h4M1 24.5h1m5 0h1m1 0h1m3 0h2m2 0h1m1 0h3m3 0h3M1 25.5h1m1 0h3m1 0h1m1 0h2m3 0h1m1 0h2m1 0h1m1 0h6m2 0h1M1 26.5h1m1 0h3m1 0h1m1 0h1m1 0h5m1 0h1m3 0h2m2 0h1m2 0h1M1 27.5h1m1 0h3m1 0h1m2 0h5m3 0h1m2 0h1m1 0h1m1 0h1m2 0h2M1 28.5h1m5 0h1m4 0h1m3 0h1m2 0h2m1 0h3M1 29.5h7m1 0h3m3 0h1m2 0h1m8 0h2"/></svg>
+</span><figcaption class="text-sm text-muted">Alipay</figcaption></figure><figure class="flex flex-col items-center gap-2"><span class="block h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1 [&amp;&gt;svg]:h-full [&amp;&gt;svg]:w-full"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#1a1815" d="M1 1.5h7m3 0h1m3 0h3m2 0h2m1 0h7M1 2.5h1m5 0h1m3 0h6m1 0h1m4 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h2m2 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m4 0h1m1 0h2m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h5m1 0h1m3 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m1 0h3m1 0h4m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m1 0h1m1 0h1m5 0h1M1 9.5h1m1 0h5m3 0h1m1 0h4m1 0h1m1 0h2m1 0h5M3 10.5h1m1 0h2m1 0h3m1 0h1m2 0h1m1 0h3m1 0h2m1 0h2m1 0h1m1 0h1M1 11.5h2m4 0h2m2 0h2m1 0h1m1 0h1m1 0h2m4 0h1m2 0h2M2 12.5h2m6 0h3m2 0h1m1 0h1m1 0h2m2 0h3m2 0h1M1 13.5h3m2 0h5m2 0h1m1 0h2m1 0h1m1 0h2m5 0h2M5 14.5h1m3 0h1m1 0h3m3 0h3m1 0h2m1 0h4m1 0h1M2 15.5h4m1 0h3m3 0h2m1 0h1m2 0h1m2 0h1m1 0h4M2 16.5h1m1 0h2m6 0h1m3 0h1m3 0h4m1 0h1m2 0h1M1 17.5h2m2 0h4m2 0h1m2 0h5m1 0h1m3 0h1m2 0h3M1 18.5h1m1 0h1m1 0h1m3 0h3m1 0h1m1 0h1m3 0h9m1 0h1M1 19.5h1m2 0h1m1 0h3m7 0h1m4 0h1m1 0h1m1 0h3M1 20.5h1m1 0h2m1 0h1m3 0h4m1 0h1m6 0h1m2 0h2m2 0h1M1 21.5h1m3 0h3m4 0h1m1 0h1m2 0h2m2 0h5m1 0h1M9 22.5h1m1 0h3m1 0h1m1 0h1m2 0h2m3 0h2m2 0h1M1 23.5h7m2 0h4m1 0h2m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h2m2 0h1m1 0h1m3 0h1m2 0h2M1 25.5h1m1 0h3m1 0h1m1 0h1m6 0h3m2 0h9M1 26.5h1m1 0h3m1 0h1m1 0h4m1 0h1m3 0h1m5 0h1m3 0h2M1 27.5h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h2m2 0h2m1 0h2m1 0h1m1 0h2M1 28.5h1m5 0h1m2 0h2m2 0h2m3 0h1m6 0h1m1 0h1M1 29.5h7m1 0h4m1 0h1m1 0h1m3 0h1m1 0h4m1 0h1"/></svg>
+</span><figcaption class="text-sm text-muted">WeChat</figcaption></figure></div></section><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="Chapter navigation"><a href="/en/post/geekagent-day1.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← Previous chapter</span><span class="font-display font-medium transition-colors group-hover:text-accent">Build GeekAgent from Scratch — Day 1 REPL Foundation</span></a><a href="/en/post/geekagent-day3.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">Next chapter →</span><span class="font-display font-medium transition-colors group-hover:text-accent">Build GeekAgent from Scratch — Day 3 Bash Tool</span></a></nav><script>(function(){const bookId = "geekagent";
+const slug = "geekagent-day2";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">Comments</p><div id="gitalk-container"></div></section><script>(function(){const id = "/en/post/geekagent-day2.html";
+const title = "Build GeekAgent from Scratch — Day 2 Tool Calling Loop";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+const gitalkLang = "en";
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: gitalkLang,
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 Geektutu · Turning articles into books</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/en/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/en/about" class="transition-colors hover:text-accent">About</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="Total visits">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="Page views"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});var e=document.getElementById(`reading-bar`);function t(){if(!e)return;let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e.style.width=n+`%`}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();var n=document.querySelector(`.book-toc-scroll`),r=document.querySelector(`.book-toc [aria-current="page"]`);if(n&&r){let e=r.offsetTop-n.clientHeight/2+r.offsetHeight/2;n.scrollTop=Math.max(0,e)}var i=Array.from(document.querySelectorAll(`#section-toc a`)),a=i.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(e=>!!e);function o(){let e=null;for(let t of a)t.getBoundingClientRect().top<=120&&(e=t);i.forEach(e=>e.classList.remove(`active`)),e&&i.find(t=>t.getAttribute(`href`)===`#`+e.id)?.classList.add(`active`)}window.addEventListener(`scroll`,o,{passive:!0}),o();</script>
