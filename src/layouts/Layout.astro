@@ -144,6 +144,40 @@ const toLd = (ld: unknown) => JSON.stringify(ld).replace(/</g, '\\u003c');
         } catch (e) {}
       })();
     </script>
+    <!-- 语言偏好：手动切换过的语言优先（记录于 localStorage），否则按浏览器语言跳转；爬虫不跳转 -->
+    <script is:inline define:vars={{ lang, alternatePath }}>
+      (function () {
+        var KEY = 'lang';
+        // 委托监听切换按钮的点击，模块脚本加载前也能记录
+        document.addEventListener(
+          'click',
+          function (e) {
+            var a = e.target instanceof Element ? e.target.closest('a[data-lang-toggle]') : null;
+            if (a) {
+              try {
+                localStorage.setItem(KEY, a.getAttribute('data-lang-toggle') || '');
+              } catch (err) {}
+            }
+          },
+          true
+        );
+        // 当前页无另一语言版本时不跳转
+        if (!alternatePath) return;
+        var stored = null;
+        try {
+          stored = localStorage.getItem(KEY);
+        } catch (err) {}
+        if (stored === 'zh' || stored === 'en') {
+          if (stored !== lang) location.replace(alternatePath + location.search + location.hash);
+          return;
+        }
+        // 爬虫不跳转，避免影响 SEO
+        if (/bot|crawl|spider|slurp|baidu|yandex|duckduck/i.test(navigator.userAgent)) return;
+        var first = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+        var want = /^zh/i.test(first) ? 'zh' : 'en';
+        if (want !== lang) location.replace(alternatePath + location.search + location.hash);
+      })();
+    </script>
   </head>
   <body class="min-h-screen relative" data-pagefind-ignore={indexable ? undefined : 'all'}>
     <div class="paper-grain" aria-hidden="true"></div>

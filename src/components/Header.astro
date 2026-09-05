@@ -51,6 +51,7 @@ const nav = [
         <a
           href={alternate}
           hreflang={lang === 'en' ? 'zh-CN' : 'en'}
+          data-lang-toggle={lang === 'en' ? 'zh' : 'en'}
           aria-label={lang === 'en' ? '切换到中文' : 'Switch to English'}
           class="inline-flex h-9 items-center justify-center rounded-full border border-line px-3 text-sm text-muted transition-colors hover:text-accent hover:border-accent/40"
         >
