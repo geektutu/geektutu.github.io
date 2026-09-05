@@ -8,6 +8,10 @@ astro dev --background
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
 
+## Commits
+
+Commit messages must be written in English.
+
 ## Documentation
 
 Full documentation: https://docs.astro.build
