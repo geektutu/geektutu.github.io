@@ -3,9 +3,9 @@
  *   7days-golang          → 七天用Go从零实现系列
  *   interview-questions   → 极客面试
  *   high-performance-go   → Go 语言高性能编程
- * （tensorflow2-docs-zh 已并入「历史博客」history 书，见 import-history.mjs）
+ * （tensorflow2-docs-zh 已并入「历史博客」history 书，历史博客内容直接入库）
  *
- * 与 import-history.mjs 相同的产物约定：
+ * 产物约定：
  *   src/content/posts/<bookDir>/<slug>.md        正文（frontmatter 重写）
  *   src/content/posts/<bookDir>/<slug>/          文章图片目录
  *   src/content/books/<bookId>.md                书籍元数据 + outline
