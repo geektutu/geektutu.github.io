@@ -1,4 +1,6 @@
 ---
+import { getDict, type Lang } from '../lib/i18n';
+
 interface Heading {
   depth: number;
   slug: string;
@@ -6,14 +8,16 @@ interface Heading {
 }
 interface Props {
   headings: Heading[];
+  lang: Lang;
 }
-const { headings } = Astro.props;
+const { headings, lang } = Astro.props;
+const t = getDict(lang);
 const items = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
 ---
 
 {items.length > 1 && (
-  <nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="本章目录">
-    <p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">本章目录</p>
+  <nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label={t.chapter.toc}>
+    <p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">{t.chapter.toc}</p>
     <ul id="section-toc" class="space-y-1.5 text-sm">
       {items.map((h) => (
         <li style={{ 'padding-left': `${(h.depth - 2) * 0.9}rem` }}>

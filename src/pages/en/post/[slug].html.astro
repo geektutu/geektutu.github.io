@@ -1,26 +1,26 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import Layout from '../../../layouts/Layout.astro';
 import { getCollection, render, type CollectionEntry } from 'astro:content';
-import ChapterToc from '../../components/ChapterToc.astro';
-import ChapterNav from '../../components/ChapterNav.astro';
-import ChapterHeader from '../../components/ChapterHeader.astro';
-import ReadingProgress from '../../components/ReadingProgress.astro';
-import SectionToc from '../../components/SectionToc.astro';
-import SaveLastRead from '../../components/SaveLastRead.astro';
-import Gitalk from '../../components/Gitalk.astro';
-import Tip from '../../components/Tip.astro';
-import { getBookChapters, getAdjacentChapters, gitalkId, postHref, bookHref, readingTime, type Post } from '../../lib/books';
-import { getDict, contentLang } from '../../lib/i18n';
+import ChapterToc from '../../../components/ChapterToc.astro';
+import ChapterNav from '../../../components/ChapterNav.astro';
+import ChapterHeader from '../../../components/ChapterHeader.astro';
+import ReadingProgress from '../../../components/ReadingProgress.astro';
+import SectionToc from '../../../components/SectionToc.astro';
+import SaveLastRead from '../../../components/SaveLastRead.astro';
+import Gitalk from '../../../components/Gitalk.astro';
+import Tip from '../../../components/Tip.astro';
+import { getBookChapters, getAdjacentChapters, gitalkId, postHref, bookHref, readingTime, type Post } from '../../../lib/books';
+import { getDict, contentLang } from '../../../lib/i18n';
 
-const lang = 'zh' as const;
+const lang = 'en' as const;
 const t = getDict(lang);
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const posts = await getCollection('posts-en', ({ data }) => !data.draft);
   return posts.map((p) => ({ params: { slug: p.id }, props: { post: p } }));
 }
 
-const { post: rawPost } = Astro.props as { post: CollectionEntry<'posts'> };
+const { post: rawPost } = Astro.props as { post: CollectionEntry<'posts-en'> };
 const post = { ...rawPost, lang } as Post;
 const { Content, headings } = await render(post);
 const date = post.data.date.toISOString().slice(0, 10);
@@ -28,13 +28,13 @@ const updated = post.data.updated ? post.data.updated.toISOString().slice(0, 10)
 const rt = readingTime(post.body, lang);
 const canonical = postHref(lang, post.id);
 
-// 若属书，则加载书与章节目录、上下章
+// 若属书，则加载书与章节目录、上下章（英文书不存在时按独立文章渲染）
 let book: { id: string; title: string; repo?: string } | null = null;
 let chapters: Awaited<ReturnType<typeof getBookChapters>> = [];
 let adjacent: ReturnType<typeof getAdjacentChapters> = {};
 
 if (post.data.book) {
-  const books = await getCollection('books');
+  const books = await getCollection('books-en');
   const b = books.find((x) => x.data.id === post.data.book);
   if (b) {
     book = { id: b.data.id, title: b.data.title, repo: b.data.repo };
@@ -66,12 +66,12 @@ const postLd = {
   mainEntityOfPage: { '@type': 'WebPage', '@id': new URL(canonical, site).href },
   isPartOf: { '@type': 'Blog', '@id': `${site.href}#blog`, name: t.siteName, url: site.href },
 };
-// 面包屑：首页 → 书 → 章节（独立文章为 首页 → 章节）
+// 面包屑：Home → Book → Chapter（独立文章为 Home → Chapter）
 const breadcrumbLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: t.nav.home, item: site.href },
+    { '@type': 'ListItem', position: 1, name: t.nav.home, item: new URL('/en/', site).href },
     ...(isBook
       ? [
           {
@@ -88,12 +88,11 @@ const breadcrumbLd = {
 const toLd = (ld: unknown) => JSON.stringify(ld).replace(/</g, '\\u003c');
 // 正文顶部的仓库提示：单篇文章 repo 优先于所属书的 repo
 const repo = post.data.repo ?? book?.repo;
-// Gitalk 用 id 拼 issue 标签（旧 hexo 站 id = window.location.pathname，形如 /post/<slug>.html），
-// 沿用该格式才能拉到历史评论
+// Gitalk issue id：语言前缀区分评论
 const commentId = gitalkId(lang, post.id);
-// hreflang：仅在存在英文译文时声明 alternate
-const enSlugs = new Set((await getCollection('posts-en', ({ data }) => !data.draft)).map((p) => p.id));
-const alternate = enSlugs.has(post.id) ? `/en/post/${post.id}.html` : null;
+// hreflang：仅在存在中文原文时声明 alternate
+const zhSlugs = new Set((await getCollection('posts', ({ data }) => !data.draft)).map((p) => p.id));
+const alternate = zhSlugs.has(post.id) ? `/post/${post.id}.html` : null;
 ---
 
 <Layout

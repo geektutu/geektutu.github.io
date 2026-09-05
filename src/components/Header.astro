@@ -1,31 +1,38 @@
 ---
+import type { Lang } from '../lib/i18n';
+import { getDict } from '../lib/i18n';
+
 interface Props {
   active?: 'home' | 'books' | 'tags' | 'search' | 'about';
+  lang: Lang;
+  /** 另一语言对应页面的路径；null 表示该页无译文，不渲染切换按钮 */
+  alternate?: string | null;
 }
-const { active } = Astro.props;
+const { active, lang, alternate } = Astro.props;
+const t = getDict(lang);
 
 const nav = [
-  { href: '/', label: '首页', key: 'home' },
-  { href: '/books', label: '书', key: 'books' },
-  { href: '/tags', label: '标签', key: 'tags' },
-  { href: '/search', label: '搜索', key: 'search' },
-  { href: '/about', label: '关于', key: 'about' },
+  { href: `${lang === 'en' ? '/en' : ''}/`, label: t.nav.home, key: 'home' },
+  { href: `${lang === 'en' ? '/en' : ''}/books`, label: t.nav.books, key: 'books' },
+  { href: `${lang === 'en' ? '/en' : ''}/tags`, label: t.nav.tags, key: 'tags' },
+  { href: `${lang === 'en' ? '/en' : ''}/search`, label: t.nav.search, key: 'search' },
+  { href: `${lang === 'en' ? '/en' : ''}/about`, label: t.nav.about, key: 'about' },
 ] as const;
 ---
 
 <header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print">
   <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-    <a href="/" class="group flex items-center gap-2.5">
+    <a href={`${lang === 'en' ? '/en' : ''}/`} class="group flex items-center gap-2.5">
       <span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line">
         <img src="/icon.png" alt="" width={32} height={32} class="h-full w-full object-cover" />
       </span>
       <span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">
-        极客兔兔
+        {t.siteName}
       </span>
     </a>
 
     <div class="flex items-center gap-2">
-      <nav class="hidden items-center gap-2 sm:flex" aria-label="主导航">
+      <nav class="hidden items-center gap-2 sm:flex" aria-label={lang === 'en' ? 'Main navigation' : '主导航'}>
         {nav.map((item) => (
           <a
             href={item.href}
@@ -40,10 +47,20 @@ const nav = [
           </a>
         ))}
       </nav>
+      {alternate && (
+        <a
+          href={alternate}
+          hreflang={lang === 'en' ? 'zh-CN' : 'en'}
+          aria-label={lang === 'en' ? '切换到中文' : 'Switch to English'}
+          class="inline-flex h-9 items-center justify-center rounded-full border border-line px-3 text-sm text-muted transition-colors hover:text-accent hover:border-accent/40"
+        >
+          {t.langToggle}
+        </a>
+      )}
       <button
         id="theme-toggle"
         type="button"
-        aria-label="切换深色模式"
+        aria-label={lang === 'en' ? 'Toggle dark mode' : '切换深色模式'}
         class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"
       >
         <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>

@@ -1,9 +1,9 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { getBooks, getPublishedPosts } from '../lib/books';
-import { getDict } from '../lib/i18n';
+import Layout from '../../layouts/Layout.astro';
+import { getBooks, getPublishedPosts } from '../../lib/books';
+import { getDict } from '../../lib/i18n';
 
-const lang = 'zh' as const;
+const lang = 'en' as const;
 const t = getDict(lang);
 const books = await getBooks(lang);
 const posts = await getPublishedPosts(lang);
@@ -14,7 +14,6 @@ const personLd = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: 'Geektutu',
-  alternateName: '极客兔兔',
   url: 'https://github.com/geektutu',
   sameAs: ['https://github.com/geektutu'],
 };
@@ -55,7 +54,7 @@ const toLd = (ld: unknown) => JSON.stringify(ld).replace(/</g, '\\u003c');
     <div class="mt-10">
       <h2 class="mb-4 font-display text-xl font-semibold">{t.about.subscribe}</h2>
       <ul class="space-y-2 text-muted">
-        <li><a href="/feed.xml" class="text-accent underline underline-offset-2">{t.about.rss}</a></li>
+        <li><a href="/en/feed.xml" class="text-accent underline underline-offset-2">{t.about.rss}</a></li>
         <li><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="text-accent underline underline-offset-2">GitHub</a></li>
       </ul>
     </div>

@@ -1,4 +1,14 @@
 ---
+import type { Lang } from '../lib/i18n';
+import { getDict } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = getDict(lang);
+const prefix = lang === 'en' ? '/en' : '';
+const feedHref = `${prefix}/feed.xml`;
 const year = new Date().getFullYear();
 const beianIcp = import.meta.env.PUBLIC_BEIAN_ICP;
 const beianPolice = import.meta.env.PUBLIC_BEIAN_POLICE;
@@ -8,11 +18,11 @@ const showBeian = Boolean(beianIcp || beianPolice);
 <footer class="border-t border-line no-print">
   <div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left">
     <p class="text-sm text-muted">
-      © {year} 极客兔兔 · 把技术文章写成书
+      © {year} {t.siteName} · {t.tagline}
     </p>
     <div class="flex items-center gap-4 text-sm text-faint">
-      <a href="/feed.xml" class="transition-colors hover:text-accent">RSS</a>
-      <a href="/about" class="transition-colors hover:text-accent">关于</a>
+      <a href={feedHref} class="transition-colors hover:text-accent">RSS</a>
+      <a href={`${prefix}/about`} class="transition-colors hover:text-accent">{t.nav.about}</a>
       <a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a>
     </div>
   </div>
@@ -31,8 +41,8 @@ const showBeian = Boolean(beianIcp || beianPolice);
     </div>
   )}
   <p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums">
-    <span id="busuanzi_container_site_pv" title="总访问量">👁 <span id="busuanzi_value_site_pv"></span></span>
-    <span id="busuanzi_container_page_pv" title="本页阅读量"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span>
+    <span id="busuanzi_container_site_pv" title={t.misc.statsVisits}>👁 <span id="busuanzi_value_site_pv"></span></span>
+    <span id="busuanzi_container_page_pv" title={t.misc.statsPageViews}><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span>
   </p>
 </footer>
 

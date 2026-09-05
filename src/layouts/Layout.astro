@@ -3,12 +3,16 @@ import 'katex/dist/katex.min.css';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { getDict, htmlLang, ogLocale, contentLang, hreflang, counterpartPath, langPrefix, type Lang } from '../lib/i18n';
 
 interface Props {
+  lang?: Lang;
   title?: string;
   description?: string;
   active?: 'home' | 'books' | 'tags' | 'search' | 'about';
   indexable?: boolean;
+  /** 另一语言对应页面的路径：undefined 按机械映射推导（/x ↔ /en/x），null 表示无对应页 */
+  alternate?: string | null;
   /** OG 类型：文章页传 article，其余默认 website */
   ogType?: 'website' | 'article';
   /** 社交分享图：站内路径或绝对 URL，缺省用全站默认图 */
@@ -21,10 +25,12 @@ interface Props {
 }
 
 const {
-  title = '极客兔兔',
-  description = '把技术文章组织成书的个人技术博客',
+  lang = 'zh',
+  title,
+  description,
   active,
   indexable = true,
+  alternate,
   ogType = 'website',
   ogImage = '/og-default.png',
   publishedTime,
@@ -32,17 +38,31 @@ const {
   tags = [],
 } = Astro.props;
 
-const siteName = '极客兔兔';
+const t = getDict(lang);
+const siteName = t.siteName;
 const site = Astro.site ?? new URL('https://geektutu.com');
-const siteTitle = title === siteName ? title : `${title} · ${siteName}`;
+const siteTitle = !title || title === siteName ? siteName : `${title} · ${siteName}`;
+const desc = description ?? t.defaultDescription;
 
 // canonical：构建时文件式路由带尾斜杠（/post/x.html/），还原为 /post/x.html；目录式路由保留尾斜杠
-const rawPath = Astro.url.pathname;
-const fileLike = /\.[a-z0-9]+$/i.test(rawPath.replace(/\/+$/, ''));
-const canonicalPath =
-  rawPath === '/' ? '/' : fileLike ? rawPath.replace(/\/+$/, '') : rawPath.endsWith('/') ? rawPath : `${rawPath}/`;
+const normalizePath = (p: string) => {
+  if (p === '/' || p === '') return '/';
+  const fileLike = /\.[a-z0-9]+$/i.test(p.replace(/\/+$/, ''));
+  return fileLike ? p.replace(/\/+$/, '') : p.endsWith('/') ? p : `${p}/`;
+};
+const canonicalPath = normalizePath(Astro.url.pathname);
 const canonicalURL = new URL(canonicalPath, site);
 const imageURL = new URL(ogImage, site).href;
+
+// 另一语言对应页：显式传入优先（文章/书页知道译文是否存在），否则按 slug 一致机械映射
+const alternatePath =
+  alternate === null ? null : alternate !== undefined ? normalizePath(alternate) : counterpartPath(canonicalPath, lang);
+const alternateURL = alternatePath ? new URL(alternatePath, site) : null;
+// x-default 指向默认语言（中文）版本
+const zhURL = lang === 'en' ? alternateURL : canonicalURL;
+
+// 双语 RSS
+const feedURLs = { zh: new URL('feed.xml', site).href, en: new URL('/en/feed.xml', site).href };
 
 // JSON-LD：WebSite + 站内搜索（配合 /search/?q= 预填）
 const websiteLd = {
@@ -50,13 +70,13 @@ const websiteLd = {
   '@type': 'WebSite',
   name: siteName,
   alternateName: 'Geektutu',
-  url: site.href,
-  inLanguage: 'zh-CN',
+  url: lang === 'en' ? new URL('/en/', site).href : site.href,
+  inLanguage: contentLang[lang],
   potentialAction: {
     '@type': 'SearchAction',
     target: {
       '@type': 'EntryPoint',
-      urlTemplate: `${new URL('search/', site).href}?q={search_term_string}`,
+      urlTemplate: `${new URL(`${langPrefix[lang]}/search/`, site).href}?q={search_term_string}`,
     },
     'query-input': 'required name=search_term_string',
   },
@@ -67,36 +87,45 @@ const toLd = (ld: unknown) => JSON.stringify(ld).replace(/</g, '\\u003c');
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={htmlLang[lang]}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{siteTitle}</title>
-    <meta name="description" content={description} />
+    <meta name="description" content={desc} />
     <link rel="canonical" href={canonicalURL.href} />
     {!indexable && <meta name="robots" content="noindex, follow" />}
-    <link rel="alternate" type="application/rss+xml" title={siteName} href={new URL('feed.xml', site).href} />
+    {indexable && alternateURL && (
+      <>
+        <link rel="alternate" hreflang={hreflang[lang]} href={canonicalURL.href} />
+        <link rel="alternate" hreflang={hreflang[lang === 'en' ? 'zh' : 'en']} href={alternateURL.href} />
+        <link rel="alternate" hreflang="x-default" href={zhURL!.href} />
+      </>
+    )}
+    <link rel="alternate" type="application/rss+xml" title={siteName} hreflang={hreflang.zh} href={feedURLs.zh} />
+    <link rel="alternate" type="application/rss+xml" title={siteName} hreflang={hreflang.en} href={feedURLs.en} />
     <link rel="sitemap" type="application/xml" href={new URL('sitemap-index.xml', site).href} />
 
     <!-- Open Graph -->
     <meta property="og:site_name" content={siteName} />
     <meta property="og:type" content={ogType} />
     <meta property="og:title" content={siteTitle} />
-    <meta property="og:description" content={description} />
+    <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonicalURL.href} />
     <meta property="og:image" content={imageURL} />
     <meta property="og:image:alt" content={siteTitle} />
     {ogImage === '/og-default.png' && <meta property="og:image:width" content="1200" />}
     {ogImage === '/og-default.png' && <meta property="og:image:height" content="630" />}
-    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale" content={ogLocale[lang]} />
+    {alternateURL && <meta property="og:locale:alternate" content={ogLocale[lang === 'en' ? 'zh' : 'en']} />}
     {ogType === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
     {ogType === 'article' && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
-    {ogType === 'article' && tags.map((t) => <meta property="article:tag" content={t} />)}
+    {ogType === 'article' && tags.map((tg) => <meta property="article:tag" content={tg} />)}
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={siteTitle} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={imageURL} />
 
     <!-- 结构化数据：全站 WebSite，子页面通过 head slot 追加 -->
@@ -119,9 +148,9 @@ const toLd = (ld: unknown) => JSON.stringify(ld).replace(/</g, '\\u003c');
   <body class="min-h-screen relative" data-pagefind-ignore={indexable ? undefined : 'all'}>
     <div class="paper-grain" aria-hidden="true"></div>
     <div class="relative z-10 flex min-h-screen flex-col">
-      <Header active={active} />
+      <Header active={active} lang={lang} alternate={alternateURL?.pathname ?? null} />
       <main class="flex-1"><slot /></main>
-      <Footer />
+      <Footer lang={lang} />
     </div>
   </body>
 </html>

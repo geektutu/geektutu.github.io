@@ -1,20 +1,23 @@
 ---
-import type { ChapterItem } from '../lib/books';
+import { postHref, type ChapterItem } from '../lib/books';
+import { getDict } from '../lib/i18n';
 
 interface Props {
   prev?: ChapterItem;
   next?: ChapterItem;
+  lang: import('../lib/i18n').Lang;
 }
-const { prev, next } = Astro.props;
+const { prev, next, lang } = Astro.props;
+const t = getDict(lang);
 ---
 
-<nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="章节切换">
+<nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label={lang === 'en' ? 'Chapter navigation' : '章节切换'}>
   {prev?.post ? (
     <a
-      href={`/post/${prev.slug}.html`}
+      href={postHref(prev.lang, prev.slug)}
       class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
     >
-      <span class="text-xs text-faint">← 上一章</span>
+      <span class="text-xs text-faint">{t.chapter.prev}</span>
       <span class="font-display font-medium transition-colors group-hover:text-accent">{prev.post.data.title}</span>
     </a>
   ) : (
@@ -22,10 +25,10 @@ const { prev, next } = Astro.props;
   )}
   {next?.post ? (
     <a
-      href={`/post/${next.slug}.html`}
+      href={postHref(next.lang, next.slug)}
       class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
     >
-      <span class="text-xs text-faint">下一章 →</span>
+      <span class="text-xs text-faint">{t.chapter.next}</span>
       <span class="font-display font-medium transition-colors group-hover:text-accent">{next.post.data.title}</span>
     </a>
   ) : (

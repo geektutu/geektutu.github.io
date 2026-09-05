@@ -1,10 +1,14 @@
 ---
+import { getDict, type Lang } from '../lib/i18n';
+
 interface Props {
   id: string;
   title: string;
+  lang: Lang;
 }
 
-const { id, title } = Astro.props;
+const { id, title, lang } = Astro.props;
+const t = getDict(lang);
 
 const clientID = import.meta.env.PUBLIC_GITALK_CLIENT_ID;
 const clientSecret = import.meta.env.PUBLIC_GITALK_CLIENT_SECRET;
@@ -20,7 +24,7 @@ const enabled = Boolean(clientID && clientSecret && repo && owner && admin.lengt
 
 {enabled && (
   <section class="no-print mt-12 border-t border-line pt-10">
-    <p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">评论</p>
+    <p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">{t.chapter.comments}</p>
     <div id="gitalk-container"></div>
   </section>
 )}
@@ -28,7 +32,7 @@ const enabled = Boolean(clientID && clientSecret && repo && owner && admin.lengt
 {enabled && (
   <script
     is:inline
-    define:vars={{ id, title, clientID, clientSecret, owner, repo, admin }}
+    define:vars={{ id, title, clientID, clientSecret, owner, repo, admin, gitalkLang: lang === 'en' ? 'en' : 'zh-CN' }}
   >
     // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
     const container = document.getElementById('gitalk-container');
@@ -43,7 +47,7 @@ const enabled = Boolean(clientID && clientSecret && repo && owner && admin.lengt
         admin,
         id,
         title,
-        language: 'zh-CN',
+        language: gitalkLang,
         distractionFreeMode: false,
       });
       gitalk.render('gitalk-container');

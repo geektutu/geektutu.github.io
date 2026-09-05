@@ -1,27 +1,26 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import Layout from '../../../layouts/Layout.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { getBookChapters, bookHref, postHref, type Book } from '../../lib/books';
-import { getDict, contentLang } from '../../lib/i18n';
-import BookCover from '../../components/BookCover.astro';
+import { getBookChapters, bookHref, postHref, type Book } from '../../../lib/books';
+import { getDict, contentLang } from '../../../lib/i18n';
+import BookCover from '../../../components/BookCover.astro';
 
-const lang = 'zh' as const;
+const lang = 'en' as const;
 const t = getDict(lang);
 
 export async function getStaticPaths() {
-  const books = await getCollection('books');
+  const books = await getCollection('books-en');
   return books.map((b) => ({ params: { id: b.data.id }, props: { book: b } }));
 }
 
-const { book: rawBook } = Astro.props as { book: CollectionEntry<'books'> };
+const { book: rawBook } = Astro.props as { book: CollectionEntry<'books-en'> };
 const book = { ...rawBook, lang } as Book;
 const chapters = await getBookChapters(book.data.id, lang);
 const published = chapters.filter((c) => c.post);
 const repo = book.data.repo;
 
-// hreflang：仅在存在英文版书时声明 alternate
-const enBookIds = new Set((await getCollection('books-en')).map((b) => b.data.id));
-const alternate = enBookIds.has(book.data.id) ? `/en/books/${book.data.id}/` : null;
+// hreflang：中文版总是存在（英文书是中文书的翻译）
+const alternate = `/books/${book.data.id}/`;
 
 // SEO/GEO：Book + ItemList（章节）+ 面包屑结构化数据
 const site = Astro.site ?? new URL('https://geektutu.com');
@@ -52,7 +51,7 @@ const bookLd = {
     {
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: t.nav.home, item: site.href },
+        { '@type': 'ListItem', position: 1, name: t.nav.home, item: new URL('/en/', site).href },
         { '@type': 'ListItem', position: 2, name: book.data.title },
       ],
     },
@@ -76,7 +75,7 @@ for (const c of chapters) {
 <Layout lang={lang} title={book.data.title} description={book.data.description} active="books" alternate={alternate}>
   <script type="application/ld+json" is:inline set:html={toLd(bookLd)} slot="head" />
   <section class="mx-auto max-w-4xl px-5 py-14">
-    <!-- 封面 + 简介 -->
+    <!-- Cover + intro -->
     <div class="animate-rise grid gap-8 sm:grid-cols-[220px_1fr] sm:items-start">
       <div class="overflow-hidden rounded-2xl border border-line shadow-lg">
         <BookCover title={book.data.title} author={t.siteName} />
@@ -85,29 +84,31 @@ for (const c of chapters) {
         <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">Book</p>
         <h1 class="sr-only">{book.data.title}</h1>
         <p class="text-lg leading-relaxed text-muted">{book.data.description}</p>
-        <div class="mt-6 flex flex-wrap gap-3">
-          <a href={postHref(lang, chapters[0]?.slug ?? '')} class="rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90">
-            {t.card.startReading}
-          </a>
-          {repo && (
-            <a
-              href={repo}
-              target="_blank"
-              rel="noopener"
-              aria-label={t.book.repoAria(repo)}
-              class="inline-flex items-center gap-1 rounded-full border border-line px-6 py-2.5 font-mono text-sm text-muted transition-colors hover:border-accent/40 hover:text-accent"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
-              </svg>
-              Github
+        {published.length > 0 && (
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a href={postHref(lang, published[0]!.slug)} class="rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90">
+              {t.card.startReading}
             </a>
-          )}
-        </div>
+            {repo && (
+              <a
+                href={repo}
+                target="_blank"
+                rel="noopener"
+                aria-label={t.book.repoAria(repo)}
+                class="inline-flex items-center gap-1 rounded-full border border-line px-6 py-2.5 font-mono text-sm text-muted transition-colors hover:border-accent/40 hover:text-accent"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                </svg>
+                Github
+              </a>
+            )}
+          </div>
+        )}
       </div>
     </div>
 
-    <!-- 章节目录 -->
+    <!-- Contents -->
     <div class="mt-14">
       <div class="mb-6 flex items-baseline justify-between border-b border-line pb-3">
         <h2 class="font-display text-2xl font-semibold tracking-tight">{t.book.toc}</h2>

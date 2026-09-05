@@ -1,9 +1,9 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import { getPublishedPosts, tagHref } from '../../lib/books';
-import { getDict } from '../../lib/i18n';
+import Layout from '../../../layouts/Layout.astro';
+import { getPublishedPosts, tagHref } from '../../../lib/books';
+import { getDict } from '../../../lib/i18n';
 
-const lang = 'zh' as const;
+const lang = 'en' as const;
 const t = getDict(lang);
 const posts = await getPublishedPosts(lang);
 const tagCount = new Map<string, number>();
@@ -16,7 +16,7 @@ const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1]);
 const maxCount = Math.max(1, ...tags.map(([, c]) => c));
 ---
 
-<Layout lang={lang} title={t.tags.title} description={t.tags.description} active="tags" indexable={false} alternate="/en/tags">
+<Layout lang={lang} title={t.tags.title} description={t.tags.description} active="tags" indexable={false}>
   <section class="mx-auto max-w-3xl px-5 py-14">
     <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">Tags</p>
     <h1 class="mb-8 font-display text-4xl font-semibold tracking-tight">{t.tags.title}</h1>

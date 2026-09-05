@@ -1,10 +1,10 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import BookCard from '../../components/BookCard.astro';
-import { getBooks } from '../../lib/books';
-import { getDict } from '../../lib/i18n';
+import Layout from '../../../layouts/Layout.astro';
+import BookCard from '../../../components/BookCard.astro';
+import { getBooks } from '../../../lib/books';
+import { getDict } from '../../../lib/i18n';
 
-const lang = 'zh' as const;
+const lang = 'en' as const;
 const t = getDict(lang);
 const books = await getBooks(lang);
 ---

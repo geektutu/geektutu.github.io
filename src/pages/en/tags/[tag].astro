@@ -1,14 +1,14 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import PostCard from '../../components/PostCard.astro';
-import { getPublishedPosts, tagHref } from '../../lib/books';
-import { getDict } from '../../lib/i18n';
+import Layout from '../../../layouts/Layout.astro';
+import PostCard from '../../../components/PostCard.astro';
+import { getPublishedPosts, tagHref } from '../../../lib/books';
+import { getDict } from '../../../lib/i18n';
 
-const lang = 'zh' as const;
+const lang = 'en' as const;
 const t = getDict(lang);
 
 export async function getStaticPaths() {
-  const posts = await getPublishedPosts('zh');
+  const posts = await getPublishedPosts('en');
   const tags = new Set<string>();
   for (const p of posts) for (const tg of p.data.tags) tags.add(tg);
   return [...tags].map((tag) => ({ params: { tag } }));
@@ -16,13 +16,9 @@ export async function getStaticPaths() {
 
 const { tag } = Astro.params;
 const posts = (await getPublishedPosts(lang)).filter((p) => p.data.tags.includes(tag!));
-
-// hreflang/语言切换：仅当英文站存在该标签页时提供对应版本
-const enTags = new Set((await getPublishedPosts('en')).flatMap((p) => p.data.tags));
-const alternate = enTags.has(tag!) ? `/en/tags/${tag}` : null;
 ---
 
-<Layout lang={lang} title={`#${tag}`} description={t.tags.under(tag!)} active="tags" indexable={false} alternate={alternate}>
+<Layout lang={lang} title={`#${tag}`} description={t.tags.under(tag!)} active="tags" indexable={false}>
   <section class="mx-auto max-w-3xl px-5 py-14">
     <div class="mb-8 flex items-center gap-3">
       <span class="rounded-full bg-accent-soft px-4 py-1 text-sm font-medium text-accent">#{tag}</span>

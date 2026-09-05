@@ -1,5 +1,12 @@
 ---
 import QRCode from 'qrcode';
+import { getDict, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = getDict(lang);
 
 const alipay = import.meta.env.PUBLIC_TIP_ALIPAY;
 const wechat = import.meta.env.PUBLIC_TIP_WECHAT;
@@ -18,7 +25,7 @@ const [alipaySvg, wechatSvg] = await Promise.all([
 
 {enabled && (
   <section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center">
-    <p class="font-display text-lg font-semibold text-ink">如果文章对你有帮助，欢迎赞赏支持 ☕</p>
+    <p class="font-display text-lg font-semibold text-ink">{t.tip.title}</p>
     <div class="flex flex-wrap items-start justify-center gap-8">
       {alipaySvg && (
         <figure class="flex flex-col items-center gap-2">
@@ -26,7 +33,7 @@ const [alipaySvg, wechatSvg] = await Promise.all([
             class="block h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1 [&>svg]:h-full [&>svg]:w-full"
             set:html={alipaySvg}
           />
-          <figcaption class="text-sm text-muted">支付宝</figcaption>
+          <figcaption class="text-sm text-muted">{t.tip.alipay}</figcaption>
         </figure>
       )}
       {wechatSvg && (
@@ -35,7 +42,7 @@ const [alipaySvg, wechatSvg] = await Promise.all([
             class="block h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1 [&>svg]:h-full [&>svg]:w-full"
             set:html={wechatSvg}
           />
-          <figcaption class="text-sm text-muted">微信</figcaption>
+          <figcaption class="text-sm text-muted">{t.tip.wechat}</figcaption>
         </figure>
       )}
     </div>

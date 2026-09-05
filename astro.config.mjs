@@ -39,6 +39,15 @@ const postDates = collectPostDates();
 export default defineConfig({
     site: 'https://geektutu.com',
     trailingSlash: 'ignore',
+    // 中英双语：中文为默认语言（无前缀），英文页面位于 /en/ 下，
+    // 双语共用相同 slug（/post/x.html ↔ /en/post/x.html）
+    i18n: {
+        defaultLocale: 'zh',
+        locales: ['zh', 'en'],
+        routing: {
+            prefixDefaultLocale: false,
+        },
+    },
     vite: {
         plugins: [tailwindcss()],
     },

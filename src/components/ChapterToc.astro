@@ -1,13 +1,17 @@
 ---
 import type { ChapterItem } from '../lib/books';
+import { bookHref } from '../lib/books';
+import { getDict, type Lang } from '../lib/i18n';
 
 interface Props {
   bookTitle: string;
   bookId: string;
   chapters: ChapterItem[];
   currentSlug: string;
+  lang: Lang;
 }
-const { bookTitle, bookId, chapters, currentSlug } = Astro.props;
+const { bookTitle, bookId, chapters, currentSlug, lang } = Astro.props;
+const t = getDict(lang);
 
 // 按 part 分段（保持大纲顺序）
 const byPart: { part: string; items: ChapterItem[] }[] = [];
@@ -22,9 +26,9 @@ for (const c of chapters) {
 }
 ---
 
-<nav class="book-toc px-5 pb-6 pt-5" aria-label="章节目录">
+<nav class="book-toc px-5 pb-6 pt-5" aria-label={t.book.toc}>
   <!-- 书名 -->
-  <a href={`/books/${bookId}`} class="group block">
+  <a href={bookHref(lang, bookId)} class="group block">
     <p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p>
     <p
       class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent"
@@ -49,7 +53,7 @@ for (const c of chapters) {
         )}
         <ul>
           {group.items.map((item) => {
-            const href = item.post ? `/post/${item.slug}.html` : null;
+            const href = item.post ? `${lang === 'en' ? '/en' : ''}/post/${item.slug}.html` : null;
             const active = item.slug === currentSlug;
             return (
               <li>
@@ -69,9 +73,9 @@ for (const c of chapters) {
                 ) : (
                   <span
                     class="block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-faint/70 italic"
-                    title="待发布"
+                    title={t.book.pending}
                   >
-                    {item.slug}（待写）
+                    {t.book.pendingWrite(item.slug)}
                   </span>
                 )}
               </li>

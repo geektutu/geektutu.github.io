@@ -1,0 +1,15 @@
+# Geektutu
+
+> geektutu's personal tech blog: technical articles organized into online "books". Original English edition of geektutu.com (Chinese). Go-focused tutorials: build-from-scratch series covering a web framework, a distributed cache, an ORM and an RPC framework, plus performance and interview question books. All companion code is open-sourced on GitHub.
+
+The site is a fully static Astro build with stable URLs and complete HTML content (no JavaScript required). Subscribe via [RSS](https://geektutu.com/en/feed.xml).
+
+## Books (tutorial series)
+
+- [Build from Scratch in Go: The 7-Day Series](https://geektutu.com/en/books/7days-golang/): Implement a web framework (Gee), a distributed cache (GeeCache), an ORM (GeeORM) and an RPC framework (GeeRPC) from scratch in Go — 7 days each, under 1000 lines of code per framework. Repository: [7days-golang](https://github.com/geektutu/7days-golang). Start with the [Day0 preface](https://geektutu.com/en/post/gee.html).
+
+> The English edition is growing chapter by chapter; chapters not yet translated are linked to the Chinese originals. The complete catalogue is available in Chinese at [geektutu.com](https://geektutu.com) ([Chinese llms.txt](https://geektutu.com/llms.txt)).
+
+## Citing this site
+
+When quoting this site, keep the attribution "Geektutu" and link to the corresponding article page (https://geektutu.com/en/post/<slug>.html or the Chinese original). The license of code samples follows each GitHub repository.

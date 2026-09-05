@@ -1,17 +1,20 @@
 ---
-import type { Post } from '../lib/books';
+import { postHref, tagHref, type Post } from '../lib/books';
+import { getDict, type Lang } from '../lib/i18n';
 
 interface Props {
   post: Post;
   date: string;
   updated?: string;
   readingTime: number;
+  lang: Lang;
   bookTitle?: string;
   bookHref?: string;
   /** 配套仓库地址，渲染为带 GitHub 图标的标签 */
   repo?: string;
 }
-const { post, date, updated, readingTime, bookTitle, bookHref, repo } = Astro.props;
+const { post, date, updated, readingTime, lang, bookTitle, bookHref, repo } = Astro.props;
+const t = getDict(lang);
 const repoName = repo?.split('/').pop();
 ---
 
@@ -27,17 +30,17 @@ const repoName = repo?.split('/').pop();
     {updated && updated !== date && (
       <>
         <span aria-hidden="true">·</span>
-        <span>更新于 {updated}</span>
+        <span>{t.chapter.updated(updated)}</span>
       </>
     )}
     <span aria-hidden="true">·</span>
-    <span>约 {readingTime} 分钟</span>
+    <span>{t.chapter.readingTime(readingTime)}</span>
     {repo && repoName && (
       <a
         href={repo}
         target="_blank"
         rel="noopener"
-        aria-label={`GitHub 仓库：${repo}`}
+        aria-label={t.book.repoAria(repo)}
         class="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-0.5 font-mono text-xs text-muted transition-colors hover:text-accent"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -49,7 +52,7 @@ const repoName = repo?.split('/').pop();
     {post.data.tags.length > 0 && (
       <span class="flex flex-wrap gap-2">
         {post.data.tags.map((tag) => (
-          <a href={`/tags/${tag}`} class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">
+          <a href={tagHref(lang, tag)} class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">
             #{tag}
           </a>
         ))}

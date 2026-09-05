@@ -1,12 +1,12 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import BookCard from '../components/BookCard.astro';
-import PostCard from '../components/PostCard.astro';
-import Pagination from '../components/Pagination.astro';
-import { getBooks, getPublishedPosts } from '../lib/books';
-import { getDict } from '../lib/i18n';
+import Layout from '../../layouts/Layout.astro';
+import BookCard from '../../components/BookCard.astro';
+import PostCard from '../../components/PostCard.astro';
+import Pagination from '../../components/Pagination.astro';
+import { getBooks, getPublishedPosts } from '../../lib/books';
+import { getDict } from '../../lib/i18n';
 
-const lang = 'zh' as const;
+const lang = 'en' as const;
 const t = getDict(lang);
 const POSTS_PER_PAGE = 6;
 const books = await getBooks(lang);
@@ -17,20 +17,20 @@ const featured = books.filter((b) => b.data.featured);
 ---
 
 <Layout lang={lang} active="home" description={t.defaultDescription}>
-  <!-- 页首：仅保留标题，不占用首屏高度 -->
+  <!-- Hero -->
   <section class="mx-auto max-w-6xl px-5 pt-12">
     <p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-accent">{t.home.kicker}</p>
     <h1 class="font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-      {t.home.titleLead}<span class="italic text-accent">{t.home.titleEm}</span>
+      {t.home.titleLead} <span class="italic text-accent">{t.home.titleEm}</span>
     </h1>
   </section>
 
-  <!-- 精选书 -->
+  <!-- Featured books -->
   {featured.length > 0 && (
     <section class="mx-auto max-w-6xl px-5 pt-10 pb-4">
       <div class="mb-6 flex items-end justify-between">
         <h2 class="font-display text-2xl font-semibold tracking-tight">{t.home.featured}</h2>
-        <a href="/books" class="text-sm text-muted transition-colors hover:text-accent">{t.home.allBooks}</a>
+        <a href="/en/books" class="text-sm text-muted transition-colors hover:text-accent">{t.home.allBooks}</a>
       </div>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {featured.map((book, i) => (
@@ -42,7 +42,7 @@ const featured = books.filter((b) => b.data.featured);
     </section>
   )}
 
-  <!-- 最新文章 -->
+  <!-- Latest posts -->
   <section class="mx-auto max-w-6xl px-5 py-12">
     <div class="mb-6 flex items-end justify-between">
       <h2 class="font-display text-2xl font-semibold tracking-tight">{t.home.latest}</h2>

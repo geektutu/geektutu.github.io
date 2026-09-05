@@ -11,8 +11,10 @@ interface Props {
   title: string;
   /** 卡片横版 4/3，详情页竖版 4/5 */
   ratio?: '4/3' | '4/5';
+  /** 落款作者名，缺省中文品牌名 */
+  author?: string;
 }
-const { title, ratio = '4/5' } = Astro.props;
+const { title, ratio = '4/5', author = '极客兔兔' } = Astro.props;
 
 // 按书名哈希稳定挑选配色，保证同一本书永远同款、不同书大概率不同款
 const palettes = ['sand', 'sage', 'sky', 'clay', 'mauve'];
@@ -38,7 +40,7 @@ const size = len <= 8 ? 'text-3xl' : len <= 14 ? 'text-2xl' : 'text-xl';
   </p>
   <div class="byline absolute bottom-5 z-10 flex items-center gap-3">
     <span class="hairline" aria-hidden="true"></span>
-    <span class="author text-[0.65rem] font-medium uppercase tracking-[0.35em]">极客兔兔</span>
+    <span class="author text-[0.65rem] font-medium uppercase tracking-[0.35em]">{author}</span>
     <span class="hairline" aria-hidden="true"></span>
   </div>
 </div>

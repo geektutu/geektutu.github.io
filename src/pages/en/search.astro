@@ -1,8 +1,8 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { getDict } from '../lib/i18n';
+import Layout from '../../layouts/Layout.astro';
+import { getDict } from '../../lib/i18n';
 
-const lang = 'zh' as const;
+const lang = 'en' as const;
 const t = getDict(lang);
 ---
 
@@ -72,11 +72,12 @@ const t = getDict(lang);
 </style>
 
 <script is:inline type="module">
-  // 文案常量（is:inline 脚本不经 Vite 处理，en 版页面使用英文常量）
-  const indexMissing = '搜索索引尚未生成，请先运行 npm run build。';
-  const statusSearching = '搜索中…';
-  const statusNotFound = (term) => `未找到与 “${term}” 相关的内容。`;
-  const statusFound = (n) => `找到 ${n} 条结果`;
+  // Copy constants (is:inline scripts are not processed by Vite)
+  const indexMissing = 'Search index not built yet — run `npm run build` first.';
+  const statusSearching = 'Searching…';
+  const statusNotFound = (term) => `No results for “${term}”.`;
+  const statusFound = (n) => `${n} results found`;
+
   const input = document.getElementById('search-input');
   const status = document.getElementById('search-status');
   const results = document.getElementById('results');
@@ -85,7 +86,7 @@ const t = getDict(lang);
   async function loadPagefind() {
     if (!pagefind) {
       try {
-        // is:inline 脚本不经 Vite 处理，原生动态导入 /public 下的 pagefind 模块
+        // is:inline scripts bypass Vite; import the pagefind module from /public natively
         pagefind = await import('/pagefind/pagefind.js');
       } catch (e) {
         status.textContent = indexMissing;
@@ -134,7 +135,7 @@ const t = getDict(lang);
     if (e.key === 'Enter') run();
   });
 
-  // 支持 /search/?q=xxx 预填（配合 WebSite SearchAction 结构化数据）
+  // Support /en/search/?q=xxx prefill (paired with WebSite SearchAction structured data)
   const q = new URLSearchParams(location.search).get('q')?.trim();
   if (q) {
     input.value = q;

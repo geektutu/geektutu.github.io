@@ -1,8 +1,8 @@
 import rss from '@astrojs/rss';
-import { getPublishedPosts } from '../lib/books';
-import { getDict } from '../lib/i18n';
+import { getPublishedPosts } from '../../lib/books';
+import { getDict } from '../../lib/i18n';
 
-const lang = 'zh' as const;
+const lang = 'en' as const;
 
 export async function GET(context: { site: string }) {
   const t = getDict(lang);
@@ -11,11 +11,12 @@ export async function GET(context: { site: string }) {
     title: t.siteName,
     description: t.defaultDescription,
     site: context.site,
+    // 英文文章位于 /en/ 前缀下
     items: posts.map((post) => ({
       title: post.data.title,
       description: post.data.description,
       pubDate: post.data.date,
-      link: `/post/${post.id}.html`,
+      link: `/en/post/${post.id}.html`,
     })),
   });
 }

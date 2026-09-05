@@ -1,15 +1,15 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import PostCard from '../../components/PostCard.astro';
-import Pagination from '../../components/Pagination.astro';
-import { getPublishedPosts } from '../../lib/books';
-import { getDict } from '../../lib/i18n';
+import Layout from '../../../layouts/Layout.astro';
+import PostCard from '../../../components/PostCard.astro';
+import Pagination from '../../../components/Pagination.astro';
+import { getPublishedPosts } from '../../../lib/books';
+import { getDict } from '../../../lib/i18n';
 
-const lang = 'zh' as const;
+const lang = 'en' as const;
 const t = getDict(lang);
 
 export async function getStaticPaths() {
-  const posts = await getPublishedPosts('zh');
+  const posts = await getPublishedPosts('en');
   const per = 6;
   const totalPages = Math.max(1, Math.ceil(posts.length / per));
   return Array.from({ length: totalPages - 1 }, (_, i) => ({
@@ -22,13 +22,9 @@ const { page, totalPages } = Astro.props;
 const allPosts = await getPublishedPosts(lang);
 const per = 6;
 const posts = allPosts.slice((page - 1) * per, page * per);
-
-// hreflang/语言切换：英文站总页数可能小于中文，超出范围不提供对应版本
-const enTotalPages = Math.max(1, Math.ceil((await getPublishedPosts('en')).length / per));
-const alternate = page <= enTotalPages ? `/en/page/${page}` : null;
 ---
 
-<Layout lang={lang} title={t.page.title(page)} description={t.page.description(page)} alternate={alternate}>
+<Layout lang={lang} title={t.page.title(page)} description={t.page.description(page)}>
   <section class="mx-auto max-w-6xl px-5 py-14">
     <h1 class="mb-8 font-display text-3xl font-semibold tracking-tight">{t.page.heading(page)}</h1>
     <div class="grid gap-5 md:grid-cols-2">
