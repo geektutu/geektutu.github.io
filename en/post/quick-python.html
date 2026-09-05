@@ -1,0 +1,946 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>A Gentle Introduction to Python · Geektutu</title><meta name="description" content="Learn Python 3 with a single article — installation, basic types (strings, ints, lists, dicts), control flow (if, for, while), composite types (classes, methods), functional programming, object-oriented programming, error handling (try/except/finally), pip and third-party packages, and how to write unit tests."><link rel="canonical" href="https://geektutu.com/en/post/quick-python.html"><link rel="alternate" hreflang="en" href="https://geektutu.com/en/post/quick-python.html"><link rel="alternate" hreflang="zh-CN" href="https://geektutu.com/post/quick-python.html"><link rel="alternate" hreflang="x-default" href="https://geektutu.com/post/quick-python.html"><link rel="alternate" type="application/rss+xml" title="Geektutu" hreflang="zh-CN" href="https://geektutu.com/feed.xml"><link rel="alternate" type="application/rss+xml" title="Geektutu" hreflang="en" href="https://geektutu.com/en/feed.xml"><link rel="sitemap" type="application/xml" href="https://geektutu.com/sitemap-index.xml"><!-- Open Graph --><meta property="og:site_name" content="Geektutu"><meta property="og:type" content="article"><meta property="og:title" content="A Gentle Introduction to Python · Geektutu"><meta property="og:description" content="Learn Python 3 with a single article — installation, basic types (strings, ints, lists, dicts), control flow (if, for, while), composite types (classes, methods), functional programming, object-oriented programming, error handling (try/except/finally), pip and third-party packages, and how to write unit tests."><meta property="og:url" content="https://geektutu.com/en/post/quick-python.html"><meta property="og:image" content="https://geektutu.com/_astro/python.BFwLMv2O.jpg"><meta property="og:image:alt" content="A Gentle Introduction to Python · Geektutu"><meta property="og:locale" content="en_US"><meta property="og:locale:alternate" content="zh_CN"><meta property="article:published_time" content="2020-10-17T12:00:00.000Z"><meta property="article:modified_time" content="2020-10-17T12:00:00.000Z"><meta property="article:tag" content="Python"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A Gentle Introduction to Python · Geektutu"><meta name="twitter:description" content="Learn Python 3 with a single article — installation, basic types (strings, ints, lists, dicts), control flow (if, for, while), composite types (classes, methods), functional programming, object-oriented programming, error handling (try/except/finally), pip and third-party packages, and how to write unit tests."><meta name="twitter:image" content="https://geektutu.com/_astro/python.BFwLMv2O.jpg"><!-- 结构化数据：全站 WebSite，子页面通过 head slot 追加 --><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Geektutu","alternateName":"Geektutu","url":"https://geektutu.com/en/","inLanguage":"en","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://geektutu.com/en/search/?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"A Gentle Introduction to Python","description":"Learn Python 3 with a single article — installation, basic types (strings, ints, lists, dicts), control flow (if, for, while), composite types (classes, methods), functional programming, object-oriented programming, error handling (try/except/finally), pip and third-party packages, and how to write unit tests.","image":["https://geektutu.com/_astro/python.BFwLMv2O.jpg"],"datePublished":"2020-10-17T12:00:00.000Z","dateModified":"2020-10-17T12:00:00.000Z","author":{"@type":"Person","name":"Geektutu","url":"https://github.com/geektutu"},"keywords":"Python","inLanguage":"en","mainEntityOfPage":{"@type":"WebPage","@id":"https://geektutu.com/en/post/quick-python.html"},"isPartOf":{"@type":"Blog","@id":"https://geektutu.com/#blog","name":"Geektutu","url":"https://geektutu.com/"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://geektutu.com/en/"},{"@type":"ListItem","position":2,"name":"Quick Guide","item":"https://geektutu.com/en/books/history"},{"@type":"ListItem","position":3,"name":"A Gentle Introduction to Python"}]}</script><link rel="icon" type="image/png" href="/icon.png"><link rel="preload" href="/fonts/literata-latin-subset.woff2" as="font" type="font/woff2" crossorigin><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.3bYFP7Qy.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/en/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">Geektutu</span></a><div class="flex items-center gap-2"><nav class="hidden items-center gap-2 sm:flex" aria-label="Main navigation"><a href="/en/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Home</a><a href="/en/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Books</a><a href="/en/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Tags</a><a href="/en/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Search</a><a href="/en/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">About</a></nav><a href="/post/quick-python.html" hreflang="zh-CN" aria-label="切换到中文" class="inline-flex h-9 items-center justify-center rounded-full border border-line px-3 text-sm text-muted transition-colors hover:text-accent hover:border-accent/40">中文</a><button id="theme-toggle" type="button" aria-label="Toggle dark mode" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="Contents"><!-- 书名 --><a href="/en/books/history" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">Quick Guide</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Quick Start · Go</span></div><ul><li><a href="/en/post/quick-golang.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Gentle Introduction to Go</a></li><li><a href="/en/post/quick-go-gin.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Gin in a Nutshell</a></li><li><a href="/en/post/quick-go2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Quick Guide to Go 2</a></li><li><a href="/en/post/quick-go-protobuf.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Quick Guide to Protocol Buffers in Go</a></li><li><a href="/en/post/quick-go-rpc.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Quick Guide to Go RPC &amp; TLS</a></li><li><a href="/en/post/quick-go-wasm.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Quick Guide to Go WebAssembly (Wasm)</a></li><li><a href="/en/post/quick-go-test.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Test: Unit Testing in Go</a></li><li><a href="/en/post/quick-gomock.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Quick Guide to gomock</a></li><li><a href="/en/post/quick-go-mmap.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Quick Guide to mmap in Go</a></li><li><a href="/en/post/quick-go-context.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Context: A Quick Guide to Concurrency Control</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Quick Start · Python</span></div><ul><li><a href="/en/post/quick-python.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">A Gentle Introduction to Python</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Quick Start · Rust</span></div><ul><li><a href="/en/post/quick-rust.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Gentle Introduction to Rust</a></li></ul></section></nav></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/en/books/history" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> Quick Guide</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">A Gentle Introduction to Python</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2020-10-17">2020-10-17</time><span aria-hidden="true">·</span><span>33 min read</span><span class="flex flex-wrap gap-2"><a href="/en/tags/Python" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Python</a></span></div></header><div class="mt-6 rounded-2xl border border-line bg-paper-soft px-5 py-4"><p class="text-[0.7rem] font-medium uppercase tracking-widest text-faint">TL;DR</p><p class="mt-1.5 text-[0.95rem] leading-relaxed text-muted">Learn Python 3 with a single article — installation, basic types (strings, ints, lists, dicts), control flow (if, for, while), composite types (classes, methods), functional programming, object-oriented programming, error handling (try/except/finally), pip and third-party packages, and how to write unit tests.</p></div><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="On this page"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">On this page</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#0-installation" class="toc-link block text-muted" data-toc-depth="2">0 Installation</a></li><li style="padding-left:0rem"><a href="#1-hello-world" class="toc-link block text-muted" data-toc-depth="2">1 Hello World</a></li><li style="padding-left:0rem"><a href="#2-basic-syntax" class="toc-link block text-muted" data-toc-depth="2">2 Basic Syntax</a></li><li style="padding-left:0rem"><a href="#3-operators-and-expressions" class="toc-link block text-muted" data-toc-depth="2">3 Operators and Expressions</a></li><li style="padding-left:0.9rem"><a href="#31-operators" class="toc-link block text-muted" data-toc-depth="3">3.1 Operators</a></li><li style="padding-left:0.9rem"><a href="#32-expressions" class="toc-link block text-muted" data-toc-depth="3">3.2 Expressions</a></li><li style="padding-left:0rem"><a href="#4-control-flow" class="toc-link block text-muted" data-toc-depth="2">4 Control Flow</a></li><li style="padding-left:0.9rem"><a href="#41-the-if-statement" class="toc-link block text-muted" data-toc-depth="3">4.1 The if Statement</a></li><li style="padding-left:0.9rem"><a href="#42-the-for-statement" class="toc-link block text-muted" data-toc-depth="3">4.2 The for Statement</a></li><li style="padding-left:0.9rem"><a href="#43-the-while-statement" class="toc-link block text-muted" data-toc-depth="3">4.3 The while Statement</a></li><li style="padding-left:0rem"><a href="#5-functions" class="toc-link block text-muted" data-toc-depth="2">5 Functions</a></li><li style="padding-left:0.9rem"><a href="#51-local-and-global-variables" class="toc-link block text-muted" data-toc-depth="3">5.1 Local and Global Variables</a></li><li style="padding-left:0.9rem"><a href="#52-optional-parameters-and-default-values" class="toc-link block text-muted" data-toc-depth="3">5.2 Optional Parameters and Default Values</a></li><li style="padding-left:0.9rem"><a href="#53-variable-length-arguments" class="toc-link block text-muted" data-toc-depth="3">5.3 Variable-Length Arguments</a></li><li style="padding-left:0.9rem"><a href="#54-docstrings-__doc__" class="toc-link block text-muted" data-toc-depth="3">5.4 Docstrings __doc__</a></li><li style="padding-left:0rem"><a href="#6-data-structures" class="toc-link block text-muted" data-toc-depth="2">6 Data Structures</a></li><li style="padding-left:0.9rem"><a href="#61-string-string" class="toc-link block text-muted" data-toc-depth="3">6.1 String (string)</a></li><li style="padding-left:0.9rem"><a href="#62-list-list" class="toc-link block text-muted" data-toc-depth="3">6.2 List (list)</a></li><li style="padding-left:0.9rem"><a href="#62-tuple-tuple" class="toc-link block text-muted" data-toc-depth="3">6.2 Tuple (tuple)</a></li><li style="padding-left:0.9rem"><a href="#64-dictionary-dict" class="toc-link block text-muted" data-toc-depth="3">6.4 Dictionary (dict)</a></li><li style="padding-left:0.9rem"><a href="#64-set-set" class="toc-link block text-muted" data-toc-depth="3">6.4 Set (set)</a></li><li style="padding-left:0rem"><a href="#7-input-and-output" class="toc-link block text-muted" data-toc-depth="2">7 Input and Output</a></li><li style="padding-left:0rem"><a href="#8-exceptions" class="toc-link block text-muted" data-toc-depth="2">8 Exceptions</a></li><li style="padding-left:0rem"><a href="#9-modules" class="toc-link block text-muted" data-toc-depth="2">9 Modules</a></li><li style="padding-left:0.9rem"><a href="#91-using-standard-library-modules" class="toc-link block text-muted" data-toc-depth="3">9.1 Using Standard Library Modules</a></li><li style="padding-left:0.9rem"><a href="#92-using-your-own-modules" class="toc-link block text-muted" data-toc-depth="3">9.2 Using Your Own Modules</a></li><li style="padding-left:0.9rem"><a href="#93-using-third-party-modules" class="toc-link block text-muted" data-toc-depth="3">9.3 Using Third-Party Modules</a></li><li style="padding-left:0rem"><a href="#10-object-oriented-programming" class="toc-link block text-muted" data-toc-depth="2">10 Object-Oriented Programming</a></li><li style="padding-left:0.9rem"><a href="#101-classes-and-objects" class="toc-link block text-muted" data-toc-depth="3">10.1 Classes and Objects</a></li><li style="padding-left:0.9rem"><a href="#102-class-methods-and-class-variables" class="toc-link block text-muted" data-toc-depth="3">10.2 Class Methods and Class Variables</a></li><li style="padding-left:0.9rem"><a href="#103-static-methods" class="toc-link block text-muted" data-toc-depth="3">10.3 Static Methods</a></li><li style="padding-left:0.9rem"><a href="#104-inheritance" class="toc-link block text-muted" data-toc-depth="3">10.4 Inheritance</a></li><li style="padding-left:0rem"><a href="#11-unit-testing" class="toc-link block text-muted" data-toc-depth="2">11 Unit Testing</a></li><li style="padding-left:0.9rem"><a href="#111-setup-and-teardown" class="toc-link block text-muted" data-toc-depth="3">11.1 setUp and tearDown</a></li><li style="padding-left:0rem"><a href="#notes" class="toc-link block text-muted" data-toc-depth="2">Notes</a></li></ul></nav><div class="mt-6 markdown"><p><img alt="A gentle introduction to Python" loading="lazy" decoding="async" sizes="(min-width: 558px) 558px, 100vw" data-astro-image="constrained" data-astro-image-pos="center" width="558" height="279" src="/_astro/python.BFwLMv2O_Z1PTvPx.webp" srcset="/_astro/python.BFwLMv2O_Z1PTvPx.webp 558w"></p>
+<blockquote>
+<p>Python is a programming language that lets you work more quickly and integrate your systems more effectively. — <a href="https://www.python.org">python.org</a></p>
+</blockquote>
+<h2 id="0-installation">0 Installation</h2>
+<p>You can download and install Python directly from the official site at <a href="https://www.python.org/downloads/">python.org/downloads</a> — the latest version is 3.9.0. The installation process is the same as for any ordinary Windows program. After installing, add the installation path to your environment variables.</p>
+<p>If you are on a Linux distribution such as Ubuntu, or on macOS, the operating system already ships with Python, so there is nothing to install. If your system only has Python 2, you can install Python 3 on Debian and Ubuntu like this:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">sudo</span><span style="color:#032F62"> apt-get</span><span style="color:#032F62"> update</span><span style="color:#24292E"> &#x26;&#x26; </span><span style="color:#6F42C1">sudo</span><span style="color:#032F62"> apt-get</span><span style="color:#032F62"> install</span><span style="color:#032F62"> python3</span></span></code></pre>
+<p>On macOS, install it as follows:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">brew</span><span style="color:#032F62"> install</span><span style="color:#032F62"> python3</span></span></code></pre>
+<p>If the installation succeeded, run <code>python -V</code> or <code>python3 -V</code> on the command line and you will see:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> python3</span><span style="color:#005CC5"> -V</span></span>
+<span class="line"><span style="color:#6F42C1">Python</span><span style="color:#005CC5"> 3.7.5</span></span></code></pre>
+<h2 id="1-hello-world">1 Hello World</h2>
+<p>Python can be run in two ways: interactively or from a source file. Type <code>python3</code> on the command line and press Enter to enter the Python interpreter’s interactive mode:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> python3</span></span>
+<span class="line"><span style="color:#6F42C1">Python</span><span style="color:#005CC5"> 3.7.5</span><span style="color:#24292E"> (default, </span><span style="color:#032F62">Nov</span><span style="color:#005CC5">  7</span><span style="color:#032F62"> 2019,</span><span style="color:#032F62"> 10:50:52</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">[GCC 8.3.0] on linux</span></span>
+<span class="line"><span style="color:#6F42C1">Type</span><span style="color:#032F62"> "help",</span><span style="color:#032F62"> "copyright",</span><span style="color:#032F62"> "credits"</span><span style="color:#032F62"> or</span><span style="color:#032F62"> "license"</span><span style="color:#032F62"> for</span><span style="color:#032F62"> more</span><span style="color:#032F62"> information.</span></span>
+<span class="line"><span style="color:#24292E">>>> </span></span></code></pre>
+<p>Next, type <code>print("hello world")</code> and press Enter:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#24292E">>>> </span><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#6F42C1">"hello world"</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6F42C1">hello</span><span style="color:#032F62"> world</span></span>
+<span class="line"><span style="color:#24292E">>>> </span></span></code></pre>
+<p>That’s our first Python program — saying hello to the world. <code>print()</code> is a built-in Python function that prints information to standard output.</p>
+<p>In interactive mode, the result is printed on screen as soon as you enter a line of code and press Enter. So we can use Python as a simple calculator, for example:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#24292E">>>> </span><span style="color:#6F42C1">1</span><span style="color:#032F62"> +</span><span style="color:#005CC5"> 2</span><span style="color:#005CC5"> *</span><span style="color:#005CC5"> 100</span></span>
+<span class="line"><span style="color:#6F42C1">201</span></span>
+<span class="line"><span style="color:#24292E">>>> </span><span style="color:#6F42C1">1</span><span style="color:#032F62"> +</span><span style="color:#005CC5"> 2</span><span style="color:#005CC5"> **</span><span style="color:#005CC5"> 3</span></span>
+<span class="line"><span style="color:#6F42C1">9</span></span></code></pre>
+<p><code>**</code> is Python’s exponentiation operator; here it means 2 raised to the power of 3.</p>
+<p>Now create a folder named test on your desktop, and inside it create a file <code>main.py</code> containing:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">"1 + 2 ="</span><span style="color:#24292E">, </span><span style="color:#005CC5">1</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">)</span></span></code></pre>
+<p>After saving, switch to the test folder on the command line and run <code>python main.py</code>. You will see:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> python3</span><span style="color:#032F62"> main.py</span></span>
+<span class="line"><span style="color:#6F42C1">1</span><span style="color:#032F62"> +</span><span style="color:#005CC5"> 2</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> 3</span></span></code></pre>
+<p>In practice we usually write Python programs in an IDE such as <a href="https://code.visualstudio.com/">VSCode</a> or <a href="https://www.jetbrains.com/pycharm/download">PyCharm</a>. An IDE integrates features like syntax highlighting, code hints, and a terminal, which greatly improves both learning and development efficiency.</p>
+<h2 id="2-basic-syntax">2 Basic Syntax</h2>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">ok </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> True</span><span style="color:#6A737D"> # a boolean value, either True or False</span></span>
+<span class="line"><span style="color:#24292E">a </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 2</span></span>
+<span class="line"><span style="color:#24292E">b </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 3.56</span></span>
+<span class="line"><span style="color:#24292E">c </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "hello world"</span></span>
+<span class="line"><span style="color:#24292E">d </span><span style="color:#D73A49">=</span><span style="color:#24292E"> a </span><span style="color:#D73A49">*</span><span style="color:#24292E"> b </span><span style="color:#6A737D"># the product of a and b</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">"c ="</span><span style="color:#24292E">, c)</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">{0}</span><span style="color:#032F62"> + </span><span style="color:#005CC5">{1}</span><span style="color:#032F62"> = </span><span style="color:#005CC5">{2}</span><span style="color:#032F62">'</span><span style="color:#24292E">.format(a, b, d))</span></span></code></pre>
+<p>Running this program:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">python3</span><span style="color:#032F62"> main.py</span></span>
+<span class="line"><span style="color:#6F42C1">c</span><span style="color:#032F62"> =</span><span style="color:#032F62"> hello</span><span style="color:#032F62"> world</span></span>
+<span class="line"><span style="color:#6F42C1">2</span><span style="color:#032F62"> +</span><span style="color:#005CC5"> 3.56</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> 7.12</span></span></code></pre>
+<ul>
+<li>A single-line comment starts with the <code>#</code> symbol.</li>
+<li>A variable name is usually made up of digits, letters, and underscores, but it can only start with a letter or an underscore.</li>
+<li><code>ok = True</code> assigns the literal boolean value True to the variable ok.</li>
+<li><code>a = 2</code> assigns the literal integer 2 to the variable a.</li>
+<li><code>b = 3.56</code> assigns the literal floating-point number 3.56 to the variable b.</li>
+<li><code>c = "hello world"</code> assigns the string hello world to the variable c.</li>
+</ul>
+<p>Single-line strings are usually written with double quotes <code>"</code>, but single quotes <code>'</code> work too. Multi-line strings typically use three single quotes or three double quotes. For example:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">a </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "I'm geektutu"</span></span>
+<span class="line"><span style="color:#24292E">b </span><span style="color:#D73A49">=</span><span style="color:#032F62"> 'c = "hello world"'</span></span>
+<span class="line"><span style="color:#24292E">d </span><span style="color:#D73A49">=</span><span style="color:#032F62"> """This is a multi-line string;</span></span>
+<span class="line"><span style="color:#032F62">this is the second line;</span></span>
+<span class="line"><span style="color:#032F62">and this is the third line.</span></span>
+<span class="line"><span style="color:#032F62">"""</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(a)</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(b)</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(d)</span></span></code></pre>
+<p>The output is:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> python3</span><span style="color:#032F62"> main.py</span></span>
+<span class="line"><span style="color:#6F42C1">I</span><span style="color:#6F42C1">'m geektutu</span></span>
+<span class="line"><span style="color:#6F42C1">c = "hello world"</span></span>
+<span class="line"><span style="color:#6F42C1">This is a multi-line string;</span></span>
+<span class="line"><span style="color:#6F42C1">this is the second line;</span></span>
+<span class="line"><span style="color:#6F42C1">and this is the third line.</span></span>
+<span class="line"></span></code></pre>
+<p><code>format</code> can format strings: <code>{0}</code> is replaced by the first argument passed to format, <code>{1}</code> by the second, and so on.</p>
+<p>format supports other usage patterns as well — omitting the index, or using key-value pairs:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">name, age </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "Ming"</span><span style="color:#24292E">, </span><span style="color:#005CC5">13</span><span style="color:#6A737D"> # several variables can be declared on one line</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">{}</span><span style="color:#032F62"> is </span><span style="color:#005CC5">{}</span><span style="color:#032F62"> years old this year"</span><span style="color:#24292E">.format(name, age)) </span><span style="color:#6A737D"># used in order, the index in {} can be omitted</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">{name}</span><span style="color:#032F62"> will be </span><span style="color:#005CC5">{age}</span><span style="color:#032F62"> years old next year"</span><span style="color:#24292E">.format(</span><span style="color:#E36209">name</span><span style="color:#D73A49">=</span><span style="color:#24292E">name, </span><span style="color:#E36209">age</span><span style="color:#D73A49">=</span><span style="color:#24292E">age</span><span style="color:#D73A49">+</span><span style="color:#005CC5">1</span><span style="color:#24292E">)) </span><span style="color:#6A737D"># using key-value pairs</span></span></code></pre>
+<p>The output:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> python3</span><span style="color:#032F62"> main.py</span></span>
+<span class="line"><span style="color:#6F42C1">Ming</span><span style="color:#032F62"> is</span><span style="color:#005CC5"> 13</span><span style="color:#032F62"> years</span><span style="color:#032F62"> old</span><span style="color:#032F62"> this</span><span style="color:#032F62"> year</span></span>
+<span class="line"><span style="color:#6F42C1">Ming</span><span style="color:#032F62"> will</span><span style="color:#032F62"> be</span><span style="color:#005CC5"> 14</span><span style="color:#032F62"> years</span><span style="color:#032F62"> old</span><span style="color:#032F62"> next</span><span style="color:#032F62"> year</span></span></code></pre>
+<p>If the code is written incorrectly, Python will report an error when it runs. For example:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">age </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 13</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">"This year { years old</span><span style="color:#005CC5">\n</span><span style="color:#032F62">next year {} years old"</span><span style="color:#24292E">.format(age, age</span><span style="color:#D73A49">+</span><span style="color:#005CC5">1</span><span style="color:#24292E">)) </span><span style="color:#6A737D"># \n prints a newline</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">python3</span><span style="color:#032F62"> main.py</span></span>
+<span class="line"><span style="color:#6F42C1">Traceback</span><span style="color:#24292E"> (most </span><span style="color:#032F62">recent</span><span style="color:#032F62"> call</span><span style="color:#032F62"> last</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#6F42C1">  File</span><span style="color:#032F62"> "main.py",</span><span style="color:#032F62"> line</span><span style="color:#032F62"> 2,</span><span style="color:#032F62"> in</span><span style="color:#D73A49"> &#x3C;</span><span style="color:#032F62">modul</span><span style="color:#24292E">e</span><span style="color:#D73A49">></span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#6F42C1">"This year { years old\nnext year {} years old"</span><span style="color:#6F42C1">.format(age,</span><span style="color:#032F62"> age+1</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#6F42C1">ValueError:</span><span style="color:#032F62"> unexpected</span><span style="color:#032F62"> '{'</span><span style="color:#032F62"> in</span><span style="color:#032F62"> field</span><span style="color:#032F62"> name</span></span></code></pre>
+<p>When an error occurs, a stack trace is printed:</p>
+<ul>
+<li><code>File "main.py", line 2</code> means the error happened on line 2 of <code>main.py</code>.</li>
+<li><code>ValueError: unexpected '{' in field name</code> means the error is caused by a misused <code>{</code> brace. Here we did not use a matching pair of braces as a placeholder, which triggered the error.</li>
+</ul>
+<h2 id="3-operators-and-expressions">3 Operators and Expressions</h2>
+<h3 id="31-operators">3.1 Operators</h3>
+<p>The familiar arithmetic operations:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 1</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 2</span><span style="color:#6A737D"> # addition</span></span>
+<span class="line"><span style="color:#005CC5">3</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 4</span><span style="color:#D73A49"> -</span><span style="color:#005CC5"> 6</span><span style="color:#6A737D"> # subtraction</span></span>
+<span class="line"><span style="color:#D73A49">-</span><span style="color:#005CC5">2</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 2</span><span style="color:#D73A49"> *</span><span style="color:#005CC5"> 3</span><span style="color:#6A737D"> # multiplication</span></span>
+<span class="line"><span style="color:#005CC5">6</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 6</span><span style="color:#D73A49"> /</span><span style="color:#005CC5"> 4</span><span style="color:#6A737D"> # division</span></span>
+<span class="line"><span style="color:#005CC5">1.5</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 6</span><span style="color:#D73A49"> //</span><span style="color:#005CC5"> 4</span><span style="color:#6A737D"> # division, rounded down</span></span>
+<span class="line"><span style="color:#005CC5">1</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 6</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 2</span><span style="color:#D73A49"> *</span><span style="color:#24292E"> (</span><span style="color:#005CC5">1</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 3</span><span style="color:#24292E">) </span><span style="color:#6A737D"># the order of evaluation is the same as in regular math: parentheses first, then multiplication/division, then addition/subtraction</span></span>
+<span class="line"><span style="color:#005CC5">14</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 2</span><span style="color:#D73A49"> **</span><span style="color:#005CC5"> 4</span><span style="color:#6A737D"> # exponentiation, 2 to the power of 4</span></span>
+<span class="line"><span style="color:#005CC5">16</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 6</span><span style="color:#D73A49"> %</span><span style="color:#005CC5"> 4</span><span style="color:#6A737D"> # modulo / remainder</span></span>
+<span class="line"><span style="color:#005CC5">2</span></span></code></pre>
+<p>Comparison operators:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 12</span><span style="color:#D73A49"> &#x3C;</span><span style="color:#005CC5"> 18</span><span style="color:#6A737D"> # less than</span></span>
+<span class="line"><span style="color:#005CC5">True</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 12</span><span style="color:#D73A49"> &#x3C;=</span><span style="color:#005CC5"> 18</span><span style="color:#6A737D"> # less than or equal to</span></span>
+<span class="line"><span style="color:#005CC5">True</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 1.2</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 3.4</span><span style="color:#6A737D"> # greater than</span></span>
+<span class="line"><span style="color:#005CC5">False</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 1.2</span><span style="color:#D73A49"> >=</span><span style="color:#005CC5"> 3.4</span><span style="color:#6A737D"> # greater than or equal to</span></span>
+<span class="line"><span style="color:#005CC5">False</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 12</span><span style="color:#D73A49"> ==</span><span style="color:#005CC5"> 18</span><span style="color:#6A737D"> # equal to</span></span>
+<span class="line"><span style="color:#005CC5">False</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 12</span><span style="color:#D73A49"> !=</span><span style="color:#005CC5"> 18</span><span style="color:#6A737D"> # not equal to</span></span>
+<span class="line"><span style="color:#005CC5">True</span></span></code></pre>
+<p>Logical operators:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 12</span><span style="color:#D73A49"> >=</span><span style="color:#005CC5"> 8</span><span style="color:#D73A49"> and</span><span style="color:#005CC5"> 5</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 6</span><span style="color:#6A737D"> # and: boolean AND, true only if both sides are true</span></span>
+<span class="line"><span style="color:#005CC5">False</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#005CC5"> 12</span><span style="color:#D73A49"> >=</span><span style="color:#005CC5"> 8</span><span style="color:#D73A49"> or</span><span style="color:#005CC5"> 5</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 6</span><span style="color:#6A737D"> # or: boolean OR, false only if both sides are false</span></span>
+<span class="line"><span style="color:#005CC5">True</span></span>
+<span class="line"><span style="color:#D73A49">>>></span><span style="color:#D73A49"> not</span><span style="color:#005CC5"> 5</span><span style="color:#D73A49"> ></span><span style="color:#005CC5"> 6</span><span style="color:#6A737D"> # not: boolean negation</span></span>
+<span class="line"><span style="color:#005CC5">True</span></span></code></pre>
+<p>Bitwise operators such as <code>&#x3C;&#x3C;</code> (left shift), <code>>></code> (right shift), <code>&#x26;</code> (bitwise AND), <code>|</code> (bitwise OR), <code>^</code> (bitwise XOR), and <code>~</code> (bitwise NOT) are also supported.</p>
+<p>The assignment operator <code>=</code> assigns the value on its right side to the left side, which must be a variable.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">a </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 2</span></span>
+<span class="line"><span style="color:#24292E">a </span><span style="color:#D73A49">=</span><span style="color:#24292E"> a </span><span style="color:#D73A49">*</span><span style="color:#24292E"> (</span><span style="color:#005CC5">3</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 4</span><span style="color:#24292E">) </span><span style="color:#6A737D"># assigns the value of a * (3 + 4), 14, to a.</span></span></code></pre>
+<p>When you compute with a variable and assign the result back to the same variable, you can write it in shorthand:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">a </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 2</span></span>
+<span class="line"><span style="color:#24292E">a </span><span style="color:#D73A49">*=</span><span style="color:#005CC5"> 3</span><span style="color:#D73A49"> +</span><span style="color:#005CC5"> 4</span></span></code></pre>
+<h3 id="32-expressions">3.2 Expressions</h3>
+<p>In Python, a combination of values, variables, and operators is called an expression, and the program statements we write usually contain several expressions. For example, <code>3 + 4</code> above forms a simple expression. Values and variables are also known as operands, and operators as operations.</p>
+<h2 id="4-control-flow">4 Control Flow</h2>
+<p>Python statements run from top to bottom. What if, along the way, we want to run different logic depending on some conditions? That is what control flow statements are for. Python has three control flow statements: <code>if</code>, <code>for</code>, and <code>while</code>.</p>
+<h3 id="41-the-if-statement">4.1 The if Statement</h3>
+<p><code>if</code> checks whether a condition is true and executes the block if it is. It is usually combined with <code>else</code> and <code>elif</code> (else if). For example:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">age </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 13</span></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#24292E"> age </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 18</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">'adult'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#24292E"> age </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 18</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">'child'</span><span style="color:#24292E">)</span></span></code></pre>
+<p>Python uses indentation to delimit code blocks; the convention is 4 spaces. You can see the 4 spaces before <code>print()</code>.</p>
+<p>The code above can be simplified to:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">age </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 13</span></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#24292E"> age </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 18</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">'adult'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">else</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">'child'</span><span style="color:#24292E">)</span></span></code></pre>
+<p>When you have multiple condition branches, <code>elif</code> comes in handy:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">age </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 45</span></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#24292E"> age </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 18</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">'child'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">elif</span><span style="color:#24292E"> age </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 60</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">'middle-aged'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">else</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">'senior'</span><span style="color:#24292E">)</span></span></code></pre>
+<h3 id="42-the-for-statement">4.2 The for Statement</h3>
+<p>Some code blocks need to run multiple times. In that case we can use the <code>for</code> loop statement, for example to print the numbers 1 to 5:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># main.py</span></span>
+<span class="line"><span style="color:#D73A49">for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">in</span><span style="color:#005CC5"> range</span><span style="color:#24292E">(</span><span style="color:#005CC5">5</span><span style="color:#24292E">): </span><span style="color:#6A737D"># 0, 1, 2, 3, 4 — starts at 0, excludes 5</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(i </span><span style="color:#D73A49">+</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">, </span><span style="color:#E36209">end</span><span style="color:#D73A49">=</span><span style="color:#032F62">' '</span><span style="color:#24292E">)</span></span></code></pre>
+<p>The output is:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">python3</span><span style="color:#032F62"> main.py</span></span>
+<span class="line"><span style="color:#6F42C1">1</span><span style="color:#005CC5"> 2</span><span style="color:#005CC5"> 3</span><span style="color:#005CC5"> 4</span><span style="color:#005CC5"> 5</span></span></code></pre>
+<ul>
+<li>The <code>print()</code> function ends with a newline character by default. If we want a space instead, we only need to set the end argument to a space.</li>
+<li><code>range()</code> is also a built-in function, used to generate a sequence of numbers, and is commonly used in for loops. With a single argument N, it generates the sequence of integers <code>[0, N)</code> — starting from 0 and excluding N. What if we don’t want to start from 0? <code>range()</code> also accepts multiple arguments, for example:</li>
+</ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">in</span><span style="color:#005CC5"> range</span><span style="color:#24292E">(</span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">5</span><span style="color:#24292E">): </span><span style="color:#6A737D"># [2, 5)</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">{0}</span><span style="color:#032F62"> * </span><span style="color:#005CC5">{0}</span><span style="color:#032F62"> = </span><span style="color:#005CC5">{1}</span><span style="color:#032F62">"</span><span style="color:#24292E">.format(i, i </span><span style="color:#D73A49">**</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># The output is as follows</span></span>
+<span class="line"><span style="color:#6A737D"># 2 * 2 = 4</span></span>
+<span class="line"><span style="color:#6A737D"># 3 * 3 = 9</span></span>
+<span class="line"><span style="color:#6A737D"># 4 * 4 = 16</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">in</span><span style="color:#005CC5"> range</span><span style="color:#24292E">(</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">10</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">): </span><span style="color:#6A737D"># the third argument is the step; starts at 1 and adds 2 each time</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(i, </span><span style="color:#E36209">end</span><span style="color:#D73A49">=</span><span style="color:#032F62">' '</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6A737D"># 1 3 5 7 9</span></span>
+<span class="line"><span style="color:#D73A49">for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">in</span><span style="color:#005CC5"> range</span><span style="color:#24292E">(</span><span style="color:#005CC5">10</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#D73A49">-</span><span style="color:#005CC5">2</span><span style="color:#24292E">): </span><span style="color:#6A737D"># step -2, starts at 10 and adds -2 each time</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(i, </span><span style="color:#E36209">end</span><span style="color:#D73A49">=</span><span style="color:#032F62">' '</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6A737D"># 10 8 6 4</span></span></code></pre>
+<p>And what if, inside a for loop, you want to exit the loop when some condition is met? Usually <code>for</code> is also combined with <code>break</code> and <code>continue</code>:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">in</span><span style="color:#005CC5"> range</span><span style="color:#24292E">(</span><span style="color:#005CC5">100</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> i </span><span style="color:#D73A49">&#x3C;=</span><span style="color:#005CC5"> 3</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">        continue</span><span style="color:#6A737D"> # i &#x3C;= 3: keep looping without executing the statements below</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> i </span><span style="color:#D73A49">>=</span><span style="color:#005CC5"> 10</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">        break</span><span style="color:#6A737D">    # i >= 10: stop the loop</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(i, </span><span style="color:#E36209">end</span><span style="color:#D73A49">=</span><span style="color:#032F62">' '</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6A737D"># 4 5 6 7 8 9</span></span></code></pre>
+<ul>
+<li>The <code>continue</code> statement skips the rest of the current iteration and continues with the next iteration of the loop.</li>
+<li>The <code>break</code> statement terminates the loop.</li>
+<li>Therefore, when <code>i &#x3C;= 3</code> the print statement is skipped, and when <code>i >= 10</code> the loop is terminated, so this program prints the numbers 4 5 6 7 8 9.</li>
+</ul>
+<h3 id="43-the-while-statement">4.3 The while Statement</h3>
+<p>Like the <code>for</code> loop, <code>while</code> is typically used for looping. <code>while</code> is followed by a condition: while the condition is true, the while block executes; once it is false, the loop terminates. In general, a while loop can replace a for loop. We just printed the numbers 1 to 5 with a for loop; here is the same thing rewritten with while:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">i </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#D73A49">while</span><span style="color:#24292E"> i </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 5</span><span style="color:#24292E">: </span><span style="color:#6A737D"># on the 1st iteration i == 0, so the condition holds; on the 6th iteration i == 5, so it fails</span></span>
+<span class="line"><span style="color:#24292E">    i </span><span style="color:#D73A49">+=</span><span style="color:#005CC5"> 1</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(i, </span><span style="color:#E36209">end</span><span style="color:#D73A49">=</span><span style="color:#032F62">','</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6A737D"># 1,2,3,4,5,</span></span></code></pre>
+<p>Likewise, the <code>continue</code> and <code>break</code> statements can also be used inside <code>while</code>. For example, let’s implement a simple feature: each time the user enters a number, print its square, until 0 is entered.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">while</span><span style="color:#005CC5"> True</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">    num </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> input</span><span style="color:#24292E">(</span><span style="color:#032F62">'Enter a number: '</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    num </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> int</span><span style="color:#24292E">(num)</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> num </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'Done'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">        break</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">"</span><span style="color:#005CC5">{}</span><span style="color:#032F62">^2 = </span><span style="color:#005CC5">{}</span><span style="color:#032F62">"</span><span style="color:#24292E">.format(num, num </span><span style="color:#D73A49">**</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">))</span></span></code></pre>
+<p>The output:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">python3</span><span style="color:#032F62"> main.py</span></span>
+<span class="line"><span style="color:#6F42C1">Enter</span><span style="color:#032F62"> a</span><span style="color:#032F62"> number:</span><span style="color:#005CC5"> 12</span></span>
+<span class="line"><span style="color:#6F42C1">12^2</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> 144</span></span>
+<span class="line"><span style="color:#6F42C1">Enter</span><span style="color:#032F62"> a</span><span style="color:#032F62"> number:</span><span style="color:#005CC5"> 18</span></span>
+<span class="line"><span style="color:#6F42C1">18^2</span><span style="color:#032F62"> =</span><span style="color:#005CC5"> 324</span></span>
+<span class="line"><span style="color:#6F42C1">Enter</span><span style="color:#032F62"> a</span><span style="color:#032F62"> number:</span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#6F42C1">Done</span></span></code></pre>
+<ul>
+<li><code>while True</code> enters an infinite loop, which can only be ended with a <code>break</code> statement.</li>
+<li><code>input()</code> is a built-in function that reads user input and returns a string. input accepts a string that is shown as the input prompt.</li>
+<li><code>num = int(num)</code> converts num to an integer, because a string cannot be squared — only numbers can.</li>
+</ul>
+<h2 id="5-functions">5 Functions</h2>
+<p>In the previous examples we have already used common built-in functions like <code>print</code>, <code>range</code>, and <code>input</code>, so functions are nothing new to us. What exactly is a function? A function is a reusable block of code. You can give it a name (the function name), define the parameters it takes (formal parameters), and return a result (the return value). A function definition generally looks like this: the keyword <code>def</code> marks the function, followed by the function name. Function names follow the same rules as variables — usually composed of digits, letters, and underscores, starting with a letter or an underscore. After the function name come a pair of parentheses and a colon <code>:</code>, in which a parameter list can be defined (or no parameters at all). What follows is a block of statements forming the function body.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> function_name</span><span style="color:#24292E">(param1, param2, ...):</span></span>
+<span class="line"><span style="color:#24292E">    body </span><span style="color:#6A737D"># the function body is also indicated by indentation</span></span></code></pre>
+<p>For example, let’s implement a function <code>area</code> that computes the area of a rectangle. It takes two arguments, the length <code>length</code> and the width <code>width</code>, and returns one value, the area.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> area</span><span style="color:#24292E">(length, width):</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> length </span><span style="color:#D73A49">*</span><span style="color:#24292E"> width</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">'area1: '</span><span style="color:#24292E">, area(</span><span style="color:#005CC5">10</span><span style="color:#24292E">, </span><span style="color:#005CC5">8</span><span style="color:#24292E">)) </span><span style="color:#6A737D"># 80, first call</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">'area2: '</span><span style="color:#24292E">, area(</span><span style="color:#005CC5">6</span><span style="color:#24292E">, </span><span style="color:#005CC5">8</span><span style="color:#24292E">)) </span><span style="color:#6A737D"># 48, second call</span></span></code></pre>
+<ul>
+<li><code>return</code> is a Python keyword used inside a function body; it exits the function immediately and stops execution.</li>
+<li><code>return</code> can be followed by one or more values to return, or by nothing at all.</li>
+<li>When there is no return value, <code>return</code> is in fact equivalent to <code>return None</code>. <code>None</code> is a keyword that represents nothingness.</li>
+<li>If a function has no <code>return</code> statement, the system automatically adds <code>return None</code> at the end of the function.</li>
+</ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> calc</span><span style="color:#24292E">(a, b):</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> a </span><span style="color:#D73A49">//</span><span style="color:#24292E"> b, a </span><span style="color:#D73A49">%</span><span style="color:#24292E"> b </span><span style="color:#6A737D"># multiple return values — actually a tuple, introduced in a later chapter</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(calc(</span><span style="color:#005CC5">8</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">)) </span><span style="color:#6A737D"># (2, 2)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">x, y </span><span style="color:#D73A49">=</span><span style="color:#24292E"> calc(</span><span style="color:#005CC5">8</span><span style="color:#24292E">, </span><span style="color:#005CC5">5</span><span style="color:#24292E">) </span><span style="color:#6A737D"># the two return values are assigned to the variables x and y respectively</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(x, y) </span><span style="color:#6A737D"># 1, 3</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> log</span><span style="color:#24292E">(mode):</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> mode </span><span style="color:#D73A49">==</span><span style="color:#032F62"> 'debug'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'debug mode'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">        return</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">'release mode'</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(log(</span><span style="color:#032F62">'release'</span><span style="color:#24292E">)) </span></span>
+<span class="line"><span style="color:#6A737D"># release mode</span></span>
+<span class="line"><span style="color:#6A737D"># None</span></span></code></pre>
+<h3 id="51-local-and-global-variables">5.1 Local and Global Variables</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">x </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 10</span><span style="color:#6A737D"> # x is a global variable, usable in other functions</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> print_global</span><span style="color:#24292E">():</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(x)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> print_local</span><span style="color:#24292E">():</span></span>
+<span class="line"><span style="color:#24292E">    x </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 100</span><span style="color:#6A737D"> # x is a local variable; it does not affect the global x</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(x)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">print_global() </span><span style="color:#6A737D"># 10</span></span>
+<span class="line"><span style="color:#24292E">print_local() </span><span style="color:#6A737D"># 100</span></span>
+<span class="line"><span style="color:#24292E">print_global() </span><span style="color:#6A737D"># 10</span></span></code></pre>
+<p>We defined a global variable x, and inside <code>print_local</code> defined a local variable with the same name as the global variable, assigning 100 to it. What is modified here is the local variable; it is only valid inside this function, and the global variable is unaffected. That is why both calls to <code>print_global</code> print 10.</p>
+<p>The benefit of local variables is that they limit a variable’s scope and reduce interference between functions. Global variables can be shared across functions, but as a rule of thumb, only read-only values should be global variables, such as the value of pi <code>π</code>. What if we do want to modify a global variable? We can use the <code>global</code> keyword:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">x </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 10</span><span style="color:#6A737D"> # x is a global variable, usable in other functions</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> print_global</span><span style="color:#24292E">():</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(x)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> print_local</span><span style="color:#24292E">():</span></span>
+<span class="line"><span style="color:#D73A49">    global</span><span style="color:#24292E"> x</span></span>
+<span class="line"><span style="color:#24292E">    x </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 100</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(x)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">print_global() </span><span style="color:#6A737D"># 10</span></span>
+<span class="line"><span style="color:#24292E">print_local() </span><span style="color:#6A737D"># 100</span></span>
+<span class="line"><span style="color:#24292E">print_global() </span><span style="color:#6A737D"># 100</span></span></code></pre>
+<p>Inside <code>print_local</code>, <code>global x</code> tells Python that x is a global variable rather than a local one. Therefore <code>x = 100</code> modifies the value of the global variable x, and the second <code>print_global()</code> prints 100.</p>
+<h3 id="52-optional-parameters-and-default-values">5.2 Optional Parameters and Default Values</h3>
+<p>If a function has multiple parameters, can some of them be given default values, so that the caller may choose whether to pass them? The answer is yes. Python allows parameters to have default values; to the caller this looks just like function overloading in C++.</p>
+<blockquote>
+<p>An overloaded function is a special case of functions. For convenience, C++ allows several functions with the same name and similar functionality to be declared in the same scope, but their formal parameters (the number, types, or order of the arguments) must differ. In other words, the same function name is used to accomplish different tasks — that is function overloading.</p>
+</blockquote>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> greet</span><span style="color:#24292E">(msg, times</span><span style="color:#D73A49">=</span><span style="color:#005CC5">1</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> i </span><span style="color:#D73A49">in</span><span style="color:#005CC5"> range</span><span style="color:#24292E">(times):</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(msg)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">greet(</span><span style="color:#032F62">'Hi, Jack'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">greet(</span><span style="color:#032F62">'Hello, Mr Dai'</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">)</span></span></code></pre>
+<p>The output:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">Hi,</span><span style="color:#032F62"> Jack</span></span>
+<span class="line"><span style="color:#6F42C1">Hi,</span><span style="color:#032F62"> Tom</span></span>
+<span class="line"><span style="color:#6F42C1">Hi,</span><span style="color:#032F62"> Tom</span></span>
+<span class="line"><span style="color:#6F42C1">Hi,</span><span style="color:#032F62"> Tom</span></span></code></pre>
+<ul>
+<li>The <code>greet</code> function prints msg, once by default, controlled by the times parameter.</li>
+<li>Parameters with default values can only appear at the end of the parameter list, not before parameters without default values. For example, <code>def greet(times=1, msg)</code> is not allowed.</li>
+<li>There can be zero or more parameters with default values.</li>
+</ul>
+<p>In Python, argument passing can be even more flexible. Besides passing arguments in order, you can also pass them as key-value pairs:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">greet(</span><span style="color:#032F62">'Hi, Jack'</span><span style="color:#24292E">, </span><span style="color:#E36209">times</span><span style="color:#D73A49">=</span><span style="color:#005CC5">2</span><span style="color:#24292E">) </span><span style="color:#6A737D"># mixed style</span></span>
+<span class="line"><span style="color:#24292E">greet(</span><span style="color:#E36209">msg</span><span style="color:#D73A49">=</span><span style="color:#032F62">'Hi, Tom'</span><span style="color:#24292E">, </span><span style="color:#E36209">times</span><span style="color:#D73A49">=</span><span style="color:#005CC5">3</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">greet(</span><span style="color:#E36209">times</span><span style="color:#D73A49">=</span><span style="color:#005CC5">3</span><span style="color:#24292E">, </span><span style="color:#E36209">msg</span><span style="color:#D73A49">=</span><span style="color:#032F62">'Hi, Tom'</span><span style="color:#24292E">) </span><span style="color:#6A737D"># when everything is passed as key-value pairs, the order does not matter</span></span></code></pre>
+<p>Key-value arguments are especially useful when the parameter list is long and most parameters have defaults. You don’t need to care about the order of the parameters — just pass the few you want to set.</p>
+<h3 id="53-variable-length-arguments">5.3 Variable-Length Arguments</h3>
+<p>Python also supports variable-length arguments. If the number of arguments is unknown when defining a function, variable-length arguments are the right tool. There are two kinds: tuple-style (a tuple can be thought of as an immutable ordered collection) and dictionary-style (dict). Tuple-style variable arguments are written <code>*name</code>, and the actual arguments passed in are collected into a tuple. For example:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># a sum function that accepts any number of numbers</span></span>
+<span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> sum_n</span><span style="color:#24292E">(</span><span style="color:#D73A49">*</span><span style="color:#24292E">nums):</span></span>
+<span class="line"><span style="color:#24292E">    s </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> num </span><span style="color:#D73A49">in</span><span style="color:#24292E"> nums:</span></span>
+<span class="line"><span style="color:#24292E">        s </span><span style="color:#D73A49">+=</span><span style="color:#24292E"> num</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> s</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(sum_n(</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">)) </span><span style="color:#6A737D"># 6</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(sum_n(</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">, </span><span style="color:#005CC5">4</span><span style="color:#24292E">, </span><span style="color:#005CC5">5</span><span style="color:#24292E">)) </span><span style="color:#6A737D"># 15</span></span></code></pre>
+<p>Dictionary-style (key-value style) variable arguments are written <code>**name</code>, and the actual arguments passed in are collected into a dictionary (dict). For example:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> print_student</span><span style="color:#24292E">(</span><span style="color:#D73A49">**</span><span style="color:#24292E">students):</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> name, age </span><span style="color:#D73A49">in</span><span style="color:#24292E"> students.items():</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">{}</span><span style="color:#032F62"> is </span><span style="color:#005CC5">{}</span><span style="color:#032F62"> years old'</span><span style="color:#24292E">.format(name, age))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">print_student(</span><span style="color:#E36209">ming</span><span style="color:#D73A49">=</span><span style="color:#005CC5">8</span><span style="color:#24292E">, </span><span style="color:#E36209">hong</span><span style="color:#D73A49">=</span><span style="color:#005CC5">7</span><span style="color:#24292E">)</span></span></code></pre>
+<p>The output:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">ming</span><span style="color:#032F62"> is</span><span style="color:#005CC5"> 8</span><span style="color:#032F62"> years</span><span style="color:#032F62"> old</span></span>
+<span class="line"><span style="color:#6F42C1">hong</span><span style="color:#032F62"> is</span><span style="color:#005CC5"> 7</span><span style="color:#032F62"> years</span><span style="color:#032F62"> old</span></span></code></pre>
+<blockquote>
+<p>Tuples and dicts are both built-in Python data structures, covered in the next chapter.</p>
+</blockquote>
+<h3 id="54-docstrings-__doc__">5.4 Docstrings <code>__doc__</code></h3>
+<p>Writing documentation for every function is a good programming habit. In Python, every function has a built-in attribute <code>__doc__</code> that stores the function’s documentation, called <code>DocStrings</code> in Python. So how do you define this attribute?</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> print_student</span><span style="color:#24292E">(</span><span style="color:#D73A49">**</span><span style="color:#24292E">students):</span></span>
+<span class="line"><span style="color:#032F62">    '''Prints name and age for every student.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#032F62">    key is name, and value is age.'''</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> name, age </span><span style="color:#D73A49">in</span><span style="color:#24292E"> students.items():</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'</span><span style="color:#005CC5">{}</span><span style="color:#032F62"> is </span><span style="color:#005CC5">{}</span><span style="color:#032F62"> years old'</span><span style="color:#24292E">.format(name, age))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">print_student(</span><span style="color:#E36209">ming</span><span style="color:#D73A49">=</span><span style="color:#005CC5">8</span><span style="color:#24292E">, </span><span style="color:#E36209">hong</span><span style="color:#D73A49">=</span><span style="color:#005CC5">7</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(print_student.</span><span style="color:#005CC5">__doc__</span><span style="color:#24292E">) </span><span style="color:#6A737D"># print the value of __doc__</span></span>
+<span class="line"><span style="color:#005CC5">help</span><span style="color:#24292E">(print_student)</span></span></code></pre>
+<ul>
+<li>The function body starts with three single quotes <code>'''</code>, which mark the beginning of the DocStrings.</li>
+<li>The first line describes what the function does and starts with a capital letter. The second line is blank, and the third line is the detailed description, which may include an introduction to each of the function’s parameters.</li>
+</ul>
+<p>The output:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">ming</span><span style="color:#032F62"> is</span><span style="color:#005CC5"> 8</span><span style="color:#032F62"> years</span><span style="color:#032F62"> old</span></span>
+<span class="line"><span style="color:#6F42C1">hong</span><span style="color:#032F62"> is</span><span style="color:#005CC5"> 7</span><span style="color:#032F62"> years</span><span style="color:#032F62"> old</span></span>
+<span class="line"><span style="color:#6F42C1">Prints</span><span style="color:#032F62"> name</span><span style="color:#032F62"> and</span><span style="color:#032F62"> age</span><span style="color:#032F62"> for</span><span style="color:#032F62"> every</span><span style="color:#032F62"> student.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">    key</span><span style="color:#032F62"> is</span><span style="color:#032F62"> name,</span><span style="color:#032F62"> and</span><span style="color:#032F62"> value</span><span style="color:#032F62"> is</span><span style="color:#032F62"> age.</span></span></code></pre>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">Help</span><span style="color:#032F62"> on</span><span style="color:#032F62"> function</span><span style="color:#032F62"> print_student</span><span style="color:#032F62"> in</span><span style="color:#032F62"> module</span><span style="color:#032F62"> __main__:</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">print_student(**students</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#6F42C1">    Prints</span><span style="color:#032F62"> name</span><span style="color:#032F62"> and</span><span style="color:#032F62"> age</span><span style="color:#032F62"> for</span><span style="color:#032F62"> every</span><span style="color:#032F62"> student.</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#6F42C1">    key</span><span style="color:#032F62"> is</span><span style="color:#032F62"> name,</span><span style="color:#032F62"> and</span><span style="color:#032F62"> value</span><span style="color:#032F62"> is</span><span style="color:#032F62"> age.</span></span></code></pre>
+<ul>
+<li>The <code>help()</code> function is also a Python built-in. It provides a nicer way to view a function’s DocStrings and is typically used in interactive mode.</li>
+</ul>
+<h2 id="6-data-structures">6 Data Structures</h2>
+<p>Python ships with several commonly used data structures: the list, the tuple, the dict, and the set. Almost every program uses these.</p>
+<h3 id="61-string-string">6.1 String (string)</h3>
+<p>Strings are arguably the most commonly used data type. A string can be written with <code>"</code>, <code>'</code>, <code>"""</code>, or <code>'''</code>; triple quotes are usually used for multi-line strings. A string is a sequence of characters, and in Python sequences support subscript indexing, for loops, slicing, and other operations — the lists and tuples mentioned later are sequences too. Strings are an immutable data type and do not support modification.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">s </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "I'm geektutu"</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#005CC5">len</span><span style="color:#24292E">(s)) </span><span style="color:#6A737D"># 12</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(s[</span><span style="color:#005CC5">0</span><span style="color:#24292E">], s[</span><span style="color:#D73A49">-</span><span style="color:#005CC5">1</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># I u</span></span></code></pre>
+<p>The <code>[]</code> operator indexes into a sequence by position, starting from 0. Negative indexes are supported: -1 refers to the last element, and so on. Besides indexing, <code>[]</code> can also be used for slicing. For example:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">s </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "I'm geektutu"</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(s[:</span><span style="color:#D73A49">-</span><span style="color:#005CC5">3</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># I'm geekt, equivalent to s[0:-3]</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(s[</span><span style="color:#005CC5">4</span><span style="color:#24292E">:]) </span><span style="color:#6A737D"># geektutu, equivalent to print(s[4:len(s)])</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(s[</span><span style="color:#005CC5">4</span><span style="color:#24292E">::</span><span style="color:#005CC5">2</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># gett</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(s[::</span><span style="color:#D73A49">-</span><span style="color:#005CC5">1</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># tutkeeg m'I</span></span></code></pre>
+<p>Slicing quickly extracts a portion of a sequence. Its form is <code>[start:end:step]</code>, similar to range: the start is included, the end is not.</p>
+<ul>
+<li><code>start</code> defaults to 0, and when it is 0 it can be omitted.</li>
+<li><code>end</code> defaults to the length of the sequence, and when it is the length it can be omitted.</li>
+<li><code>step</code> defaults to 1, and when it is 1 it can be omitted.</li>
+</ul>
+<h3 id="62-list-list">6.2 List (list)</h3>
+<p><code>list</code> is a data structure representing an ordered collection of items. It keeps its order, allows duplicates, supports insertion, deletion, lookup, and modification, and is a mutable data type.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">persons </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> list</span><span style="color:#24292E">() </span><span style="color:#6A737D"># declare an empty list</span></span>
+<span class="line"><span style="color:#24292E">persons </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [] </span><span style="color:#6A737D"># declare an empty list</span></span>
+<span class="line"><span style="color:#24292E">persons </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [</span><span style="color:#032F62">'Tom'</span><span style="color:#24292E">, </span><span style="color:#032F62">'Jack'</span><span style="color:#24292E">, </span><span style="color:#032F62">'Jack'</span><span style="color:#24292E">, </span><span style="color:#032F62">'Sam'</span><span style="color:#24292E">] </span><span style="color:#6A737D"># declare a non-empty list</span></span>
+<span class="line"><span style="color:#24292E">persons.append(</span><span style="color:#032F62">'KangKang'</span><span style="color:#24292E">) </span><span style="color:#6A737D"># add an element</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(persons[</span><span style="color:#005CC5">1</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># Jack — prints the element at index 1, counting from 0</span></span>
+<span class="line"><span style="color:#24292E">persons.remove(</span><span style="color:#032F62">'Jack'</span><span style="color:#24292E">) </span><span style="color:#6A737D"># remove Jack, only the first occurrence</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(persons)  </span><span style="color:#6A737D"># ['Tom', 'Jack', 'Sam', 'KangKang']</span></span>
+<span class="line"><span style="color:#D73A49">del</span><span style="color:#24292E"> persons[</span><span style="color:#D73A49">-</span><span style="color:#005CC5">2</span><span style="color:#24292E">] </span><span style="color:#6A737D"># delete the second-to-last element, Sam</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(persons) </span><span style="color:#6A737D"># ['Tom', 'Jack', 'KangKang']</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">persons.sort() </span><span style="color:#6A737D"># sort</span></span>
+<span class="line"><span style="color:#6A737D"># iterate over the list</span></span>
+<span class="line"><span style="color:#D73A49">for</span><span style="color:#24292E"> name </span><span style="color:#D73A49">in</span><span style="color:#24292E"> persons:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(name, </span><span style="color:#E36209">end</span><span style="color:#D73A49">=</span><span style="color:#032F62">' '</span><span style="color:#24292E">) </span><span style="color:#6A737D"># Jack KangKang Tom</span></span></code></pre>
+<ul>
+<li><code>append</code> adds an element, <code>remove</code> deletes an element by value, and <code>del</code> deletes an element by index.</li>
+<li><code>sort()</code> sorts the list.</li>
+</ul>
+<p>Like strings, lists are sequences, so they support slicing too.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">numbers </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [</span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">4</span><span style="color:#24292E">, </span><span style="color:#005CC5">6</span><span style="color:#24292E">, </span><span style="color:#005CC5">8</span><span style="color:#24292E">, </span><span style="color:#005CC5">10</span><span style="color:#24292E">]</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#005CC5">len</span><span style="color:#24292E">(numbers)) </span><span style="color:#6A737D"># length 5</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(numbers[:</span><span style="color:#005CC5">3</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># 2 4 6</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(numbers[</span><span style="color:#005CC5">0</span><span style="color:#24292E">:</span><span style="color:#005CC5">3</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># 2 4 6</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(numbers[</span><span style="color:#005CC5">1</span><span style="color:#24292E">:</span><span style="color:#D73A49">-</span><span style="color:#005CC5">1</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># 4 6 8</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(numbers[</span><span style="color:#005CC5">1</span><span style="color:#24292E">:]) </span><span style="color:#6A737D"># 4 6 8 10</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(numbers[</span><span style="color:#005CC5">1</span><span style="color:#24292E">:</span><span style="color:#005CC5">5</span><span style="color:#24292E">:</span><span style="color:#005CC5">2</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># 4 8</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(numbers[</span><span style="color:#005CC5">1</span><span style="color:#24292E">::</span><span style="color:#005CC5">2</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># 4 8</span></span></code></pre>
+<p>The values in a list can be of any type, a single list may contain values of different types, and nested lists are allowed as well.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">a </span><span style="color:#D73A49">=</span><span style="color:#24292E"> [</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">1.3</span><span style="color:#24292E">, </span><span style="color:#032F62">"Student"</span><span style="color:#24292E">, [</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">]]</span></span></code></pre>
+<p>To check whether a value is in a list, use <code>in</code>:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">"Student"</span><span style="color:#D73A49"> in</span><span style="color:#24292E"> a) </span><span style="color:#6A737D"># True</span></span></code></pre>
+<p>A very common combination for processing lists and strings is <code>split</code> and <code>join</code>:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">s </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "1,5,2,4,3"</span></span>
+<span class="line"><span style="color:#24292E">parts </span><span style="color:#D73A49">=</span><span style="color:#24292E"> s.split(</span><span style="color:#032F62">','</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(parts) </span><span style="color:#6A737D"># ['1', '5', '2', '4', '3']</span></span>
+<span class="line"><span style="color:#24292E">parts.sort()</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">':'</span><span style="color:#24292E">.join(parts)) </span><span style="color:#6A737D"># 1:2:3:4:5</span></span></code></pre>
+<ul>
+<li><code>split</code> splits a string into a list using a given separator.</li>
+<li><code>join</code> merges a list of strings together using a given separator.</li>
+</ul>
+<blockquote>
+<p>For more operations on lists, see the <a href="https://docs.python.org/3/tutorial/datastructures.html">list — official Python documentation</a>.</p>
+</blockquote>
+<h3 id="62-tuple-tuple">6.2 Tuple (tuple)</h3>
+<p>A tuple is also an ordered collection, written with parentheses. Many of its features are the same as a list’s; the difference is that a tuple is immutable — items cannot be added, removed, or modified.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">students </span><span style="color:#D73A49">=</span><span style="color:#24292E"> (</span><span style="color:#032F62">'Tom'</span><span style="color:#24292E">, </span><span style="color:#005CC5">18</span><span style="color:#24292E">, </span><span style="color:#032F62">'Jack'</span><span style="color:#24292E">, </span><span style="color:#005CC5">20</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#005CC5">len</span><span style="color:#24292E">(students))  </span><span style="color:#6A737D"># 4</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(students[</span><span style="color:#005CC5">1</span><span style="color:#24292E">:</span><span style="color:#005CC5">3</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># slicing: (18, 'Jack')</span></span></code></pre>
+<p>If you try to modify a tuple, you get the following error:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">students[0]</span><span style="color:#032F62"> =</span><span style="color:#032F62"> 'KangKang'</span></span>
+<span class="line"><span style="color:#6F42C1">Traceback</span><span style="color:#24292E"> (most </span><span style="color:#032F62">recent</span><span style="color:#032F62"> call</span><span style="color:#032F62"> last</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#6F42C1">  File</span><span style="color:#032F62"> "main.py",</span><span style="color:#032F62"> line</span><span style="color:#032F62"> 4,</span><span style="color:#032F62"> in</span><span style="color:#D73A49"> &#x3C;</span><span style="color:#032F62">modul</span><span style="color:#24292E">e</span><span style="color:#D73A49">></span></span>
+<span class="line"><span style="color:#6F42C1">    students[0]</span><span style="color:#032F62"> =</span><span style="color:#032F62"> 'KangKang'</span></span>
+<span class="line"><span style="color:#6F42C1">TypeError:</span><span style="color:#032F62"> 'tuple'</span><span style="color:#032F62"> object</span><span style="color:#032F62"> does</span><span style="color:#032F62"> not</span><span style="color:#032F62"> support</span><span style="color:#032F62"> item</span><span style="color:#032F62"> assignment</span></span></code></pre>
+<blockquote>
+<p>For more operations on tuples, see the <a href="https://docs.python.org/3/tutorial/datastructures.html#tuples-and-sequences">tuple — official Python documentation</a>.</p>
+</blockquote>
+<h3 id="64-dictionary-dict">6.4 Dictionary (dict)</h3>
+<p>A dictionary consists of a number of key-value pairs and can quickly find the value corresponding to a given key. Within a dictionary, keys cannot be duplicated. The dictionary is a mutable data type and supports insertion, deletion, lookup, and modification.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">students </span><span style="color:#D73A49">=</span><span style="color:#24292E"> {} </span><span style="color:#6A737D"># declare an empty dict</span></span>
+<span class="line"><span style="color:#24292E">students </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> dict</span><span style="color:#24292E">() </span><span style="color:#6A737D"># declare an empty dict</span></span>
+<span class="line"><span style="color:#24292E">students </span><span style="color:#D73A49">=</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#032F62">    'Tom'</span><span style="color:#24292E">: </span><span style="color:#005CC5">18</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">    'Jack'</span><span style="color:#24292E">: </span><span style="color:#005CC5">20</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#032F62">    'Same'</span><span style="color:#24292E">: </span><span style="color:#005CC5">19</span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">students[</span><span style="color:#032F62">'KangKang'</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 17</span><span style="color:#6A737D"> # add</span></span>
+<span class="line"><span style="color:#24292E">students[</span><span style="color:#032F62">'Tom'</span><span style="color:#24292E">] </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 20</span><span style="color:#6A737D"> # update</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(students[</span><span style="color:#032F62">'Tom'</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># 20, indexed by key</span></span>
+<span class="line"><span style="color:#D73A49">del</span><span style="color:#24292E"> students[</span><span style="color:#032F62">'Jack'</span><span style="color:#24292E">] </span><span style="color:#6A737D"># delete</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># iterate</span></span>
+<span class="line"><span style="color:#D73A49">for</span><span style="color:#24292E"> name, age </span><span style="color:#D73A49">in</span><span style="color:#24292E"> students.items():</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(name, age)</span></span>
+<span class="line"><span style="color:#6A737D"># Tom 20</span></span>
+<span class="line"><span style="color:#6A737D"># Same 19</span></span>
+<span class="line"><span style="color:#6A737D"># KangKang 17</span></span></code></pre>
+<ul>
+<li>
+<p><code>items()</code> retrieves the keys and values together. Beyond that, the dict also provides methods that fetch only the keys <code>keys()</code> or only the values <code>values()</code>. A dict is unordered, so the order of these three methods’ results is not guaranteed.</p>
+</li>
+<li>
+<p>To check whether a dict contains a key, use <code>in</code> as well, e.g. <code>if 'Tom' in students</code>.</p>
+</li>
+<li>
+<p>To get the number of key-value pairs in a dict, use <code>len</code>, e.g. <code>len(students)</code>.</p>
+</li>
+</ul>
+<blockquote>
+<p>For more operations on dictionaries, see the <a href="https://docs.python.org/3/tutorial/datastructures.html#dictionaries">dict — official Python documentation</a>.</p>
+</blockquote>
+<h3 id="64-set-set">6.4 Set (set)</h3>
+<p>Sets in Python are like sets in mathematics: they are unordered and contain no duplicates.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">s </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> set</span><span style="color:#24292E">() </span><span style="color:#6A737D"># define an empty set</span></span>
+<span class="line"><span style="color:#24292E">s1 </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> set</span><span style="color:#24292E">([</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">]) </span><span style="color:#6A737D"># a non-empty set</span></span>
+<span class="line"><span style="color:#24292E">s1.add(</span><span style="color:#005CC5">2</span><span style="color:#24292E">) </span><span style="color:#6A737D"># add an element; duplicates are ignored</span></span>
+<span class="line"><span style="color:#24292E">s1.add(</span><span style="color:#005CC5">10</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">s1.remove(</span><span style="color:#005CC5">3</span><span style="color:#24292E">) </span><span style="color:#6A737D"># delete</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(s1) </span><span style="color:#6A737D"># {10, 1, 2}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">s2 </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> set</span><span style="color:#24292E">([</span><span style="color:#005CC5">5</span><span style="color:#24292E">, </span><span style="color:#005CC5">6</span><span style="color:#24292E">, </span><span style="color:#005CC5">10</span><span style="color:#24292E">])</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(s1 </span><span style="color:#D73A49">|</span><span style="color:#24292E"> s2) </span><span style="color:#6A737D"># union {1, 2, 5, 6, 10}</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(s1 </span><span style="color:#D73A49">&#x26;</span><span style="color:#24292E"> s2) </span><span style="color:#6A737D"># intersection {10}</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(s1 </span><span style="color:#D73A49">-</span><span style="color:#24292E"> s2) </span><span style="color:#6A737D"># difference {1, 2}</span></span></code></pre>
+<ul>
+<li><code>set([1, 2, 2, 2, 3])</code> converts a list to a set, removing duplicates automatically; likewise, <code>list()</code> converts a set back to a list.</li>
+</ul>
+<blockquote>
+<p>For more operations on sets, see the <a href="https://docs.python.org/3/tutorial/datastructures.html#sets">set — official Python documentation</a>.</p>
+</blockquote>
+<h2 id="7-input-and-output">7 Input and Output</h2>
+<p>In the previous examples we built simple features with the standard input/output functions <code>input</code> and <code>output</code>. Python is often used for data mining and analysis, where text processing is the most basic capability, and reading and writing files in Python is very simple.</p>
+<p>Here is a very simple example: write the string s to the file <code>1.txt</code>.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">s </span><span style="color:#D73A49">=</span><span style="color:#032F62"> '''Line 1</span></span>
+<span class="line"><span style="color:#032F62">Line 2</span></span>
+<span class="line"><span style="color:#032F62">Line 3'''</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">f </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> open</span><span style="color:#24292E">(</span><span style="color:#032F62">'1.txt'</span><span style="color:#24292E">, </span><span style="color:#032F62">'w'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">f.write(s)</span></span>
+<span class="line"><span style="color:#24292E">f.close()</span></span></code></pre>
+<ul>
+<li><code>open</code> is Python’s built-in function for reading files. The first argument is the file path and the second is the open mode: <code>w</code> stands for write mode and <code>r</code> for read-only mode. When a file is opened in <code>w</code> mode its contents are cleared; if you need to append, you must open the file in <code>w+</code> mode.</li>
+<li>If the file is opened successfully, <code>open</code> returns a file handle, which we can use to operate on the file.</li>
+<li>When the operations are done, the file must be closed.</li>
+</ul>
+<p>Python also offers another, safer and simpler way: <code>with as</code>.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#24292E">s </span><span style="color:#D73A49">=</span><span style="color:#032F62"> '''Line 1</span></span>
+<span class="line"><span style="color:#032F62">Line 2</span></span>
+<span class="line"><span style="color:#032F62">Line 3'''</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">with</span><span style="color:#005CC5"> open</span><span style="color:#24292E">(</span><span style="color:#032F62">'1.txt'</span><span style="color:#24292E">, </span><span style="color:#032F62">'w'</span><span style="color:#24292E">) </span><span style="color:#D73A49">as</span><span style="color:#24292E"> f:</span></span>
+<span class="line"><span style="color:#24292E">    f.write(s)</span></span></code></pre>
+<p>The <code>with</code> statement performs resource cleanup once the code block inside <code>with</code> finishes — for a file, that means closing it.</p>
+<p>Read the file and count the characters:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">with</span><span style="color:#005CC5"> open</span><span style="color:#24292E">(</span><span style="color:#032F62">'1.txt'</span><span style="color:#24292E">, </span><span style="color:#032F62">'r'</span><span style="color:#24292E">) </span><span style="color:#D73A49">as</span><span style="color:#24292E"> f:</span></span>
+<span class="line"><span style="color:#24292E">    s </span><span style="color:#D73A49">=</span><span style="color:#24292E"> f.read()</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#005CC5">len</span><span style="color:#24292E">(s)) </span><span style="color:#6A737D"># 20</span></span></code></pre>
+<p>We can also use <code>readlines()</code> to read all the lines of a file:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">with</span><span style="color:#005CC5"> open</span><span style="color:#24292E">(</span><span style="color:#032F62">'1.txt'</span><span style="color:#24292E">, </span><span style="color:#032F62">'r'</span><span style="color:#24292E">) </span><span style="color:#D73A49">as</span><span style="color:#24292E"> f:</span></span>
+<span class="line"><span style="color:#24292E">    s </span><span style="color:#D73A49">=</span><span style="color:#24292E"> f.readlines()</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> line </span><span style="color:#D73A49">in</span><span style="color:#24292E"> s:</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(line, </span><span style="color:#E36209">end</span><span style="color:#D73A49">=</span><span style="color:#032F62">''</span><span style="color:#24292E">)</span></span></code></pre>
+<p>There is an even more efficient way — iterate over the file handle <code>f</code> directly:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">with</span><span style="color:#005CC5"> open</span><span style="color:#24292E">(</span><span style="color:#032F62">'1.txt'</span><span style="color:#24292E">, </span><span style="color:#032F62">'r'</span><span style="color:#24292E">) </span><span style="color:#D73A49">as</span><span style="color:#24292E"> f:</span></span>
+<span class="line"><span style="color:#D73A49">    for</span><span style="color:#24292E"> line </span><span style="color:#D73A49">in</span><span style="color:#24292E"> f:</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(line, </span><span style="color:#E36209">end</span><span style="color:#D73A49">=</span><span style="color:#032F62">''</span><span style="color:#24292E">)</span></span></code></pre>
+<h2 id="8-exceptions">8 Exceptions</h2>
+<p>No matter how carefully we write our code, exceptions are bound to happen. If we don’t handle them at all, the program exits immediately. Python provides the <code>try except finally</code> mechanism, giving developers a chance to handle exceptions.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># main.py</span></span>
+<span class="line"><span style="color:#D73A49">with</span><span style="color:#005CC5"> open</span><span style="color:#24292E">(</span><span style="color:#032F62">'2.txt'</span><span style="color:#24292E">, </span><span style="color:#032F62">'r'</span><span style="color:#24292E">) </span><span style="color:#D73A49">as</span><span style="color:#24292E"> f:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(f.read())</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">'done'</span><span style="color:#24292E">)</span></span></code></pre>
+<p>If we run the program above, we get the following error:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">Traceback</span><span style="color:#24292E"> (most </span><span style="color:#032F62">recent</span><span style="color:#032F62"> call</span><span style="color:#032F62"> last</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#6F42C1">  File</span><span style="color:#032F62"> "main.py",</span><span style="color:#032F62"> line</span><span style="color:#032F62"> 2,</span><span style="color:#032F62"> in</span><span style="color:#D73A49"> &#x3C;</span><span style="color:#032F62">modul</span><span style="color:#24292E">e</span><span style="color:#D73A49">></span></span>
+<span class="line"><span style="color:#6F42C1">    with</span><span style="color:#032F62"> open</span><span style="color:#24292E">(</span><span style="color:#6F42C1">'2.txt'</span><span style="color:#6F42C1">,</span><span style="color:#032F62"> 'r'</span><span style="color:#24292E">) </span><span style="color:#032F62">as</span><span style="color:#032F62"> f:</span></span>
+<span class="line"><span style="color:#6F42C1">FileNotFoundError:</span><span style="color:#24292E"> [Errno </span><span style="color:#032F62">2]</span><span style="color:#032F62"> No</span><span style="color:#032F62"> such</span><span style="color:#032F62"> file</span><span style="color:#032F62"> or</span><span style="color:#032F62"> directory:</span><span style="color:#032F62"> '2.txt'</span></span></code></pre>
+<p>The program exits at line 2 because <code>2.txt</code> does not exist. How do we catch this error and handle it?</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># main.py</span></span>
+<span class="line"><span style="color:#D73A49">try</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">    with</span><span style="color:#005CC5"> open</span><span style="color:#24292E">(</span><span style="color:#032F62">'2.txt'</span><span style="color:#24292E">, </span><span style="color:#032F62">'r'</span><span style="color:#24292E">) </span><span style="color:#D73A49">as</span><span style="color:#24292E"> f:</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(f.read())</span></span>
+<span class="line"><span style="color:#D73A49">except</span><span style="color:#005CC5"> Exception</span><span style="color:#D73A49"> as</span><span style="color:#24292E"> e:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(e)</span></span>
+<span class="line"><span style="color:#D73A49">finally</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">'done'</span><span style="color:#24292E">)</span></span></code></pre>
+<p>The program now finishes normally:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#24292E">[Errno 2] No such file or directory: </span><span style="color:#032F62">'2.txt'</span></span>
+<span class="line"><span style="color:#D73A49">done</span></span></code></pre>
+<ul>
+<li>The <code>try</code> block contains the code that may raise an exception; if an exception occurs, execution jumps to the <code>except</code> block.</li>
+<li>The code in <code>finally</code> runs whether or not an exception occurred; <code>finally</code> is optional.</li>
+</ul>
+<p>We can also handle the exception in <code>except</code> and then re-raise it, leaving it to the caller to deal with.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># main.py</span></span>
+<span class="line"><span style="color:#D73A49">try</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">    with</span><span style="color:#005CC5"> open</span><span style="color:#24292E">(</span><span style="color:#032F62">'2.txt'</span><span style="color:#24292E">, </span><span style="color:#032F62">'r'</span><span style="color:#24292E">) </span><span style="color:#D73A49">as</span><span style="color:#24292E"> f:</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(f.read())</span></span>
+<span class="line"><span style="color:#D73A49">except</span><span style="color:#005CC5"> Exception</span><span style="color:#D73A49"> as</span><span style="color:#24292E"> e:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(e)</span></span>
+<span class="line"><span style="color:#D73A49">    raise</span><span style="color:#24292E"> e</span></span>
+<span class="line"><span style="color:#D73A49">finally</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">'done'</span><span style="color:#24292E">)</span></span></code></pre>
+<p>The output:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#24292E">[Errno 2] No such file or directory: </span><span style="color:#032F62">'2.txt'</span></span>
+<span class="line"><span style="color:#D73A49">done</span></span>
+<span class="line"><span style="color:#6F42C1">Traceback</span><span style="color:#24292E"> (most </span><span style="color:#032F62">recent</span><span style="color:#032F62"> call</span><span style="color:#032F62"> last</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#6F42C1">  File</span><span style="color:#032F62"> "main.py",</span><span style="color:#032F62"> line</span><span style="color:#032F62"> 7,</span><span style="color:#032F62"> in</span><span style="color:#D73A49"> &#x3C;</span><span style="color:#032F62">modul</span><span style="color:#24292E">e</span><span style="color:#D73A49">></span></span>
+<span class="line"><span style="color:#6F42C1">    raise</span><span style="color:#032F62"> e</span></span>
+<span class="line"><span style="color:#6F42C1">  File</span><span style="color:#032F62"> "main.py",</span><span style="color:#032F62"> line</span><span style="color:#032F62"> 3,</span><span style="color:#032F62"> in</span><span style="color:#D73A49"> &#x3C;</span><span style="color:#032F62">modul</span><span style="color:#24292E">e</span><span style="color:#D73A49">></span></span>
+<span class="line"><span style="color:#6F42C1">    with</span><span style="color:#032F62"> open</span><span style="color:#24292E">(</span><span style="color:#6F42C1">'2.txt'</span><span style="color:#6F42C1">,</span><span style="color:#032F62"> 'r'</span><span style="color:#24292E">) </span><span style="color:#032F62">as</span><span style="color:#032F62"> f:</span></span>
+<span class="line"><span style="color:#6F42C1">FileNotFoundError:</span><span style="color:#24292E"> [Errno </span><span style="color:#032F62">2]</span><span style="color:#032F62"> No</span><span style="color:#032F62"> such</span><span style="color:#032F62"> file</span><span style="color:#032F62"> or</span><span style="color:#032F62"> directory:</span><span style="color:#032F62"> '2.txt'</span></span></code></pre>
+<h2 id="9-modules">9 Modules</h2>
+<h3 id="91-using-standard-library-modules">9.1 Using Standard Library Modules</h3>
+<p>The Python standard library includes a large number of modules offering a rich set of features. Take the math library <code>math</code>, for example:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> math</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(math.</span><span style="color:#005CC5">__name__</span><span style="color:#24292E">) </span><span style="color:#6A737D"># module name: math</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(math.ceil(</span><span style="color:#005CC5">4.3</span><span style="color:#24292E">)) </span><span style="color:#6A737D"># 5, rounds up</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(math.floor(</span><span style="color:#005CC5">4.8</span><span style="color:#24292E">)) </span><span style="color:#6A737D"># 4, rounds down</span></span></code></pre>
+<ul>
+<li><code>import</code> imports the standard library <code>math</code>, and we call its <code>ceil</code> and <code>floor</code> functions.</li>
+<li>Every module has a built-in attribute <code>__name__</code> holding the module’s name. If the module is being run standalone, its name is <code>__main__</code>.</li>
+</ul>
+<p>For example, running <code>main.py</code>:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># main.py</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#005CC5">__name__</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#005CC5"> __name__</span><span style="color:#D73A49"> ==</span><span style="color:#032F62"> '__main__'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">  	print</span><span style="color:#24292E">(</span><span style="color:#032F62">'running the module standalone'</span><span style="color:#24292E">)</span></span></code></pre>
+<p>produces:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">__main__</span></span>
+<span class="line"><span style="color:#6F42C1">running</span><span style="color:#032F62"> the</span><span style="color:#032F62"> module</span><span style="color:#032F62"> standalone</span></span></code></pre>
+<p>If an imported module name clashes with something, you can use <code>as</code> to give the module an alias:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> math </span><span style="color:#D73A49">as</span><span style="color:#24292E"> math2</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(math2.</span><span style="color:#005CC5">__name__</span><span style="color:#24292E">) </span><span style="color:#6A737D"># module name: math</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(math2.ceil(</span><span style="color:#005CC5">4.3</span><span style="color:#24292E">)) </span><span style="color:#6A737D"># 5, rounds up</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(math2.floor(</span><span style="color:#005CC5">4.8</span><span style="color:#24292E">)) </span><span style="color:#6A737D"># 4, rounds down</span></span></code></pre>
+<p>Sometimes the imported module’s path is deeply nested; you can use <code>from xxx import xxx</code> to shorten the import path:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> os</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(os.path.join(</span><span style="color:#032F62">'/tmp'</span><span style="color:#24292E">, </span><span style="color:#032F62">'a'</span><span style="color:#24292E">, </span><span style="color:#032F62">'b'</span><span style="color:#24292E">))</span></span>
+<span class="line"><span style="color:#6A737D"># can be replaced with</span></span>
+<span class="line"><span style="color:#D73A49">from</span><span style="color:#24292E"> os </span><span style="color:#D73A49">import</span><span style="color:#24292E"> path</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(path.join(</span><span style="color:#032F62">'/tmp'</span><span style="color:#24292E">, </span><span style="color:#032F62">'a'</span><span style="color:#24292E">, </span><span style="color:#032F62">'b'</span><span style="color:#24292E">))</span></span></code></pre>
+<h3 id="92-using-your-own-modules">9.2 Using Your Own Modules</h3>
+<p>Create a new file <code>calc.py</code> and implement the following function in it:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> area</span><span style="color:#24292E">(length, width):</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> length </span><span style="color:#D73A49">*</span><span style="color:#24292E"> width</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E">(</span><span style="color:#032F62">'this is calc module'</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#005CC5"> __name__</span><span style="color:#D73A49"> ==</span><span style="color:#032F62"> '__main__'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">    assert</span><span style="color:#24292E">(area(</span><span style="color:#005CC5">3</span><span style="color:#24292E">, </span><span style="color:#005CC5">4</span><span style="color:#24292E">) </span><span style="color:#D73A49">==</span><span style="color:#005CC5"> 12</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(</span><span style="color:#032F62">'test done'</span><span style="color:#24292E">)</span></span></code></pre>
+<p>Run <code>python calc.py</code> and it prints:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">this</span><span style="color:#032F62"> is</span><span style="color:#032F62"> calc</span><span style="color:#032F62"> module</span></span>
+<span class="line"><span style="color:#005CC5">test</span><span style="color:#032F62"> done</span></span></code></pre>
+<p>In <code>main.py</code> we can import the module <code>calc</code> and use it. In Python, any <code>.py</code> file can be treated as a module:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> calc</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#005CC5"> __name__</span><span style="color:#D73A49"> ==</span><span style="color:#032F62"> '__main__'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(calc.</span><span style="color:#005CC5">__name__</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(calc.area(</span><span style="color:#005CC5">5</span><span style="color:#24292E">, </span><span style="color:#005CC5">10</span><span style="color:#24292E">))</span></span></code></pre>
+<p>Run <code>python main.py</code> and it prints:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">this</span><span style="color:#032F62"> is</span><span style="color:#032F62"> calc</span><span style="color:#032F62"> module</span></span>
+<span class="line"><span style="color:#6F42C1">calc</span></span>
+<span class="line"><span style="color:#6F42C1">50</span></span></code></pre>
+<p>When a module is imported, its code is executed, which is why <code>this is calc module</code> is printed, but <code>test done</code> is not.</p>
+<p>When <code>calc.py</code> is imported as a module, the <code>__name__</code> attribute equals the file name, i.e. <code>calc</code>, so the <code>if</code> branch is not entered. When it is executed standalone, <code>__name__</code> is <code>__main__</code>, so the <code>if</code> branch is entered and <code>test done</code> is printed.</p>
+<p>We can take advantage of this: run some code — such as simple test logic — when the module is executed standalone, without affecting its behavior when imported.</p>
+<h3 id="93-using-third-party-modules">9.3 Using Third-Party Modules</h3>
+<p>Python has a very rich ecosystem of third-party modules, such as the famous web scraping framework <code>scrapy</code>, the math foundation library <code>numpy</code>, and the data-processing powerhouse <code>pandas</code>. To use a third-party module, just install it with the <code>pip</code> command.</p>
+<p>For example, to install numpy:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">pip3</span><span style="color:#032F62"> install</span><span style="color:#032F62"> numpy</span></span></code></pre>
+<p>If your machine has both Python 2 and Python 3 installed, use the following to install for a specific Python version:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">python3</span><span style="color:#005CC5"> -m</span><span style="color:#032F62"> pip</span><span style="color:#032F62"> install</span><span style="color:#032F62"> numpy</span></span></code></pre>
+<p>If downloads are too slow (e.g. from mainland China), you can specify a mirror with the <code>-i</code> option:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">pip3</span><span style="color:#032F62"> install</span><span style="color:#032F62"> numpy</span><span style="color:#005CC5"> -i</span><span style="color:#032F62"> https://pypi.tuna.tsinghua.edu.cn/simple</span></span></code></pre>
+<p>Once installed, <code>numpy</code> can be used just like the standard library:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> numpy </span><span style="color:#D73A49">as</span><span style="color:#24292E"> np</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">a </span><span style="color:#D73A49">=</span><span style="color:#24292E"> np.array([[</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">], [</span><span style="color:#005CC5">4</span><span style="color:#24292E">, </span><span style="color:#005CC5">5</span><span style="color:#24292E">, </span><span style="color:#005CC5">6</span><span style="color:#24292E">]])</span></span>
+<span class="line"><span style="color:#24292E">b </span><span style="color:#D73A49">=</span><span style="color:#24292E"> np.array([[</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">5</span><span style="color:#24292E">, </span><span style="color:#005CC5">8</span><span style="color:#24292E">], [</span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">5</span><span style="color:#24292E">, </span><span style="color:#005CC5">6</span><span style="color:#24292E">]])</span></span>
+<span class="line"><span style="color:#005CC5">print</span><span style="color:#24292E"> (a </span><span style="color:#D73A49">-</span><span style="color:#24292E"> b) </span><span style="color:#6A737D"># subtract the two matrices</span></span>
+<span class="line"><span style="color:#6A737D"># [[ 0 -3 -5]</span></span>
+<span class="line"><span style="color:#6A737D">#  [ 2  0  0]]</span></span></code></pre>
+<h2 id="10-object-oriented-programming">10 Object-Oriented Programming</h2>
+<p>Python is a language that supports both procedural and object-oriented programming.</p>
+<blockquote>
+<p>Object-oriented, as opposed to procedural, is a method that organizes related data and methods into a single whole and models systems at a higher level, closer to the natural way things work.</p>
+</blockquote>
+<p>The three key characteristics of object-oriented programming:</p>
+<ul>
+<li>Encapsulation: hide an object’s attributes and implementation details, exposing only public ways to access it.</li>
+<li>Inheritance: a subclass inherits methods from its parent class, so the subclass shares the parent’s behavior.</li>
+<li>Polymorphism: the same operation applied to different objects can be interpreted differently and produce different results.</li>
+</ul>
+<h3 id="101-classes-and-objects">10.1 Classes and Objects</h3>
+<p>In Python, the keyword <code>class</code> declares a class, which usually inherits from the base class <code>object</code>:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">class</span><span style="color:#6F42C1"> Student</span><span style="color:#24292E">(</span><span style="color:#005CC5">object</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#005CC5"> __init__</span><span style="color:#24292E">(self, name, age):</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.name </span><span style="color:#D73A49">=</span><span style="color:#24292E"> name</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.age </span><span style="color:#D73A49">=</span><span style="color:#24292E"> age</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> hello</span><span style="color:#24292E">(self):</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'Hi, I am </span><span style="color:#005CC5">{}</span><span style="color:#032F62">, </span><span style="color:#005CC5">{}</span><span style="color:#032F62"> years old this year'</span><span style="color:#24292E">.format(</span><span style="color:#005CC5">self</span><span style="color:#24292E">.name, </span><span style="color:#005CC5">self</span><span style="color:#24292E">.age))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#005CC5"> __name__</span><span style="color:#D73A49"> ==</span><span style="color:#032F62"> '__main__'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">    jack </span><span style="color:#D73A49">=</span><span style="color:#24292E"> Student(</span><span style="color:#032F62">'Jack'</span><span style="color:#24292E">, </span><span style="color:#005CC5">18</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    jack.hello()</span></span></code></pre>
+<ul>
+<li>Methods declared inside a class are instance methods by default; the first parameter, <code>self</code>, represents the instance itself and is omitted when calling.</li>
+<li><code>__init__</code> is the class’s constructor. Its first parameter is <code>self</code>, and the remaining parameters are declared as needed. Calling <code>ClassName(args)</code> creates an instance of the class. <code>name</code> and <code>age</code> are instance variables — they belong to the instance and are not shared with other instances.</li>
+<li>Other methods are declared much like ordinary functions; the only difference is that an instance method can access the instance’s attributes and call its other methods through the <code>self</code> parameter.</li>
+</ul>
+<h3 id="102-class-methods-and-class-variables">10.2 Class Methods and Class Variables</h3>
+<p>Instance methods and instance variables are attached to object instances. The counterparts are class methods and class variables, which are shared by all instances of the class and can be accessed either as <code>ClassName.method</code> or <code>instance.method</code>.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">class</span><span style="color:#6F42C1"> Student</span><span style="color:#24292E">(</span><span style="color:#005CC5">object</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#24292E">    school </span><span style="color:#D73A49">=</span><span style="color:#032F62"> 'Oriental Primary School'</span><span style="color:#6A737D"> # class variable</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#005CC5"> __init__</span><span style="color:#24292E">(self, name, age):</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.name </span><span style="color:#D73A49">=</span><span style="color:#24292E"> name </span><span style="color:#6A737D"># instance variable</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.age </span><span style="color:#D73A49">=</span><span style="color:#24292E"> age   </span><span style="color:#6A737D"># instance variable</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> hello</span><span style="color:#24292E">(self):</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'Hi, I am </span><span style="color:#005CC5">{}</span><span style="color:#032F62">, </span><span style="color:#005CC5">{}</span><span style="color:#032F62"> years old this year'</span><span style="color:#24292E">.format(</span><span style="color:#005CC5">self</span><span style="color:#24292E">.name, </span><span style="color:#005CC5">self</span><span style="color:#24292E">.age))</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#6F42C1">    @</span><span style="color:#005CC5">classmethod</span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> print_school</span><span style="color:#24292E">(cls): </span><span style="color:#6A737D"># class method</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#005CC5">cls</span><span style="color:#24292E">.school)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#005CC5"> __name__</span><span style="color:#D73A49"> ==</span><span style="color:#032F62"> '__main__'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">    jack </span><span style="color:#D73A49">=</span><span style="color:#24292E"> Student(</span><span style="color:#032F62">'Jack'</span><span style="color:#24292E">, </span><span style="color:#005CC5">18</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    tom </span><span style="color:#D73A49">=</span><span style="color:#24292E"> Student(</span><span style="color:#032F62">'Tom'</span><span style="color:#24292E">, </span><span style="color:#005CC5">20</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    jack.print_school()</span></span>
+<span class="line"><span style="color:#24292E">    tom.print_school()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">    Student.school </span><span style="color:#D73A49">=</span><span style="color:#032F62"> 'Dongming Primary School'</span><span style="color:#6A737D"> # modify the class variable</span></span>
+<span class="line"><span style="color:#24292E">    jack.print_school() </span><span style="color:#6A737D"># Dongming Primary School</span></span>
+<span class="line"><span style="color:#24292E">    tom.print_school()  </span><span style="color:#6A737D"># Dongming Primary School</span></span></code></pre>
+<ul>
+<li>Instance variables are declared inside the constructor <code>__init__</code>; class variables are declared outside it.</li>
+<li>Methods declared inside a class are instance methods by default; use <code>@classmethod</code> to declare a class method, whose first parameter <code>cls</code> represents the class itself.</li>
+</ul>
+<h3 id="103-static-methods">10.3 Static Methods</h3>
+<p>There is another kind of method that accesses neither instance variables and methods nor class variables and methods — it is merely a helper function. For example, an instance method may have grown so long that you want to extract part of it into a separate method to improve readability. This helper is only useful to this class, not to others. In that case, we usually declare it as a static method.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">class</span><span style="color:#6F42C1"> Student</span><span style="color:#24292E">(</span><span style="color:#005CC5">object</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#005CC5"> __init__</span><span style="color:#24292E">(self, name, age):</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.name </span><span style="color:#D73A49">=</span><span style="color:#24292E"> name </span><span style="color:#6A737D"># instance variable</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.age </span><span style="color:#D73A49">=</span><span style="color:#24292E"> age   </span><span style="color:#6A737D"># instance variable</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> hello</span><span style="color:#24292E">(self):</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'Hi, I am </span><span style="color:#005CC5">{}</span><span style="color:#032F62">, </span><span style="color:#005CC5">{}</span><span style="color:#032F62"> years old this year'</span><span style="color:#24292E">.format(</span><span style="color:#005CC5">self</span><span style="color:#24292E">.name, </span><span style="color:#005CC5">self</span><span style="color:#24292E">.age))</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#6F42C1">    @</span><span style="color:#005CC5">staticmethod</span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> help_func</span><span style="color:#24292E">():</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'I am a static method'</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#005CC5"> __name__</span><span style="color:#D73A49"> ==</span><span style="color:#032F62"> '__main__'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">    jack </span><span style="color:#D73A49">=</span><span style="color:#24292E"> Student(</span><span style="color:#032F62">'Jack'</span><span style="color:#24292E">, </span><span style="color:#005CC5">18</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    Student.help_func()</span></span>
+<span class="line"><span style="color:#24292E">    jack.help_func()</span></span></code></pre>
+<ul>
+<li>A static method is declared with <code>@staticmethod</code> and is no different from an ordinary global function. It can be called as <code>ClassName.method</code> or <code>instance.method</code>. Unlike instance and class methods, it has no <code>self</code> or <code>cls</code> parameter.</li>
+</ul>
+<h3 id="104-inheritance">10.4 Inheritance</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">class</span><span style="color:#6F42C1"> Rectangle</span><span style="color:#24292E">(</span><span style="color:#005CC5">object</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#005CC5"> __init__</span><span style="color:#24292E">(self, length, width):</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.length </span><span style="color:#D73A49">=</span><span style="color:#24292E"> length</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.width </span><span style="color:#D73A49">=</span><span style="color:#24292E"> width</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> area</span><span style="color:#24292E">(self):</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#005CC5"> self</span><span style="color:#24292E">.length </span><span style="color:#D73A49">*</span><span style="color:#005CC5"> self</span><span style="color:#24292E">.width</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">class</span><span style="color:#6F42C1"> Square</span><span style="color:#24292E">(</span><span style="color:#6F42C1">Rectangle</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#005CC5"> __init__</span><span style="color:#24292E">(self, length):</span></span>
+<span class="line"><span style="color:#005CC5">        super</span><span style="color:#24292E">(Square, </span><span style="color:#005CC5">self</span><span style="color:#24292E">).</span><span style="color:#005CC5">__init__</span><span style="color:#24292E">(length, length)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#005CC5"> __name__</span><span style="color:#D73A49"> ==</span><span style="color:#032F62"> '__main__'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">    s </span><span style="color:#D73A49">=</span><span style="color:#24292E"> Square(</span><span style="color:#005CC5">4</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#005CC5">    print</span><span style="color:#24292E">(s.area())</span></span></code></pre>
+<ul>
+<li><code>Square</code> inherits from <code>Rectangle</code>, so it has all of <code>Rectangle</code>’s attributes and methods.</li>
+<li><code>Square</code> can override parent-class methods as needed; here <code>Square</code> overrides the parent’s constructor, changing the parameter list from 2 arguments to 1.</li>
+<li>A subclass can call a parent-class method via <code>super(ChildClassName, self).method</code>.</li>
+</ul>
+<h2 id="11-unit-testing">11 Unit Testing</h2>
+<p>Writing unit tests for every module is an excellent habit, and Python ships with a built-in unit testing library, <code>unittest</code>.</p>
+<p>Create a new file <code>calc.py</code> implementing two functions, area and volume:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> area</span><span style="color:#24292E">(length, width):</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> length </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> or</span><span style="color:#24292E"> width </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> length </span><span style="color:#D73A49">*</span><span style="color:#24292E"> width</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">def</span><span style="color:#6F42C1"> volume</span><span style="color:#24292E">(length, width, height):</span></span>
+<span class="line"><span style="color:#D73A49">    if</span><span style="color:#24292E"> length </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> or</span><span style="color:#24292E"> width </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 0</span><span style="color:#D73A49"> or</span><span style="color:#24292E"> height </span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#D73A49">        return</span><span style="color:#005CC5"> 0</span></span>
+<span class="line"><span style="color:#D73A49">    return</span><span style="color:#24292E"> length </span><span style="color:#D73A49">*</span><span style="color:#24292E"> width </span><span style="color:#D73A49">*</span><span style="color:#24292E"> height</span></span></code></pre>
+<p>Create the file <code>calc_test.py</code> and add test cases:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> unittest</span></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> calc</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">class</span><span style="color:#6F42C1"> TestCalc</span><span style="color:#24292E">(</span><span style="color:#6F42C1">unittest</span><span style="color:#24292E">.</span><span style="color:#6F42C1">TestCase</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> test_area</span><span style="color:#24292E">(self):</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.assertEqual(calc.area(</span><span style="color:#005CC5">10</span><span style="color:#24292E">, </span><span style="color:#D73A49">-</span><span style="color:#005CC5">1</span><span style="color:#24292E">), </span><span style="color:#005CC5">0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.assertEqual(calc.area(</span><span style="color:#005CC5">10</span><span style="color:#24292E">, </span><span style="color:#005CC5">8</span><span style="color:#24292E">), </span><span style="color:#005CC5">80</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> test_volume</span><span style="color:#24292E">(self):</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.assertEqual(calc.volume(</span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#D73A49">-</span><span style="color:#005CC5">1</span><span style="color:#24292E">, </span><span style="color:#005CC5">4</span><span style="color:#24292E">), </span><span style="color:#005CC5">0</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#005CC5">        self</span><span style="color:#24292E">.assertEqual(calc.volume(</span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">3</span><span style="color:#24292E">, </span><span style="color:#005CC5">4</span><span style="color:#24292E">), </span><span style="color:#005CC5">24</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#005CC5"> __name__</span><span style="color:#D73A49"> ==</span><span style="color:#032F62"> '__main__'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">    unittest.main()</span></span></code></pre>
+<ul>
+<li>Adding test cases is very simple: define a class that inherits from <code>unittest.TestCase</code>, then define one or more methods whose names start with <code>test_</code>. Every <code>test_</code>-prefixed method counts as one test case — this is the unittest framework’s convention.</li>
+<li>Inside a test case, you can use assertions such as <code>assertEqual</code> and <code>assertTrue</code> to check expected output.</li>
+<li><code>unittest.main()</code> loads and runs all the cases defined in the module.</li>
+</ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> python3</span><span style="color:#032F62"> calc_test.py</span><span style="color:#24292E"> </span></span>
+<span class="line"><span style="color:#005CC5">..</span></span>
+<span class="line"><span style="color:#6F42C1">----------------------------------------------------------------------</span></span>
+<span class="line"><span style="color:#6F42C1">Ran</span><span style="color:#005CC5"> 2</span><span style="color:#032F62"> tests</span><span style="color:#032F62"> in</span><span style="color:#032F62"> 0.000s</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">OK</span></span></code></pre>
+<p>The following forms let you test a specific module, a specific test class, or even a single test case:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">python</span><span style="color:#005CC5"> -m</span><span style="color:#032F62"> unittest</span><span style="color:#032F62"> test_module1</span><span style="color:#032F62"> test_module2</span></span>
+<span class="line"><span style="color:#6F42C1">python</span><span style="color:#005CC5"> -m</span><span style="color:#032F62"> unittest</span><span style="color:#032F62"> test_module.TestClass</span></span>
+<span class="line"><span style="color:#6F42C1">python</span><span style="color:#005CC5"> -m</span><span style="color:#032F62"> unittest</span><span style="color:#032F62"> test_module.TestClass.test_method</span></span></code></pre>
+<p><code>python3 calc_test.py</code> is equivalent to <code>python3 -m unittest calc_test</code>. If you only want to run the <code>test_volume</code> method, call it like this:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">python3</span><span style="color:#005CC5"> -m</span><span style="color:#032F62"> unittest</span><span style="color:#032F62"> calc_test.TestCalc.test_volume</span></span></code></pre>
+<h3 id="111-setup-and-teardown">11.1 setUp and tearDown</h3>
+<p>Sometimes each test case needs the same preparation before it runs and the same cleanup after — opening and closing a file, for instance. Calling them in every case would be extremely tedious. Like other testing frameworks, unittest provides <code>setUp</code> and <code>tearDown</code> to run some instructions before and after each test case. unittest also provides two class-level methods, <code>setUpClass</code> and <code>tearDownClass</code>, to run instructions before and after all the test cases in a test class.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> unittest</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">class</span><span style="color:#6F42C1"> TestCalc</span><span style="color:#24292E">(</span><span style="color:#6F42C1">unittest</span><span style="color:#24292E">.</span><span style="color:#6F42C1">TestCase</span><span style="color:#24292E">):</span></span>
+<span class="line"><span style="color:#6F42C1">    @</span><span style="color:#005CC5">classmethod</span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> setUpClass</span><span style="color:#24292E">(cls):</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'before all tests'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#6F42C1">    @</span><span style="color:#005CC5">classmethod</span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> tearDownClass</span><span style="color:#24292E">(cls):</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'after all tests'</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> setUp</span><span style="color:#24292E">(self):</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'before each test'</span><span style="color:#24292E">)</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> tearDown</span><span style="color:#24292E">(self):</span></span>
+<span class="line"><span style="color:#005CC5">        print</span><span style="color:#24292E">(</span><span style="color:#032F62">'after each test'</span><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> test_1</span><span style="color:#24292E">(self):</span></span>
+<span class="line"><span style="color:#D73A49">        pass</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">    def</span><span style="color:#6F42C1"> test_2</span><span style="color:#24292E">(self):</span></span>
+<span class="line"><span style="color:#D73A49">        pass</span></span>
+<span class="line"><span style="color:#24292E">    </span></span>
+<span class="line"><span style="color:#D73A49">if</span><span style="color:#005CC5"> __name__</span><span style="color:#D73A49"> ==</span><span style="color:#032F62"> '__main__'</span><span style="color:#24292E">:</span></span>
+<span class="line"><span style="color:#24292E">    unittest.main()</span></span></code></pre>
+<p>The output is as follows:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> python3</span><span style="color:#005CC5"> -m</span><span style="color:#032F62"> unittest</span><span style="color:#032F62"> calc_test</span></span>
+<span class="line"><span style="color:#6F42C1">before</span><span style="color:#032F62"> all</span><span style="color:#032F62"> tests</span></span>
+<span class="line"><span style="color:#6F42C1">before</span><span style="color:#032F62"> each</span><span style="color:#032F62"> test</span></span>
+<span class="line"><span style="color:#6F42C1">after</span><span style="color:#032F62"> each</span><span style="color:#032F62"> test</span></span>
+<span class="line"><span style="color:#6F42C1">.before</span><span style="color:#032F62"> each</span><span style="color:#032F62"> test</span></span>
+<span class="line"><span style="color:#6F42C1">after</span><span style="color:#032F62"> each</span><span style="color:#032F62"> test</span></span>
+<span class="line"><span style="color:#6F42C1">.after</span><span style="color:#032F62"> all</span><span style="color:#032F62"> tests</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">----------------------------------------------------------------------</span></span>
+<span class="line"><span style="color:#6F42C1">Ran</span><span style="color:#005CC5"> 2</span><span style="color:#032F62"> tests</span><span style="color:#032F62"> in</span><span style="color:#032F62"> 0.000s</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1">OK</span></span></code></pre>
+<blockquote>
+<p>For more on unit testing, see the <a href="https://docs.python.org/3/library/unittest.html">unittest — official Python documentation</a>.</p>
+</blockquote>
+<h2 id="notes">Notes</h2>
+<p>This article is hosted on <a href="https://github.com/geektutu/geektutu.github.io">GitHub</a> — typo fixes and PRs are welcome. Thanks for reading.</p>
+<blockquote>
+<p>The Chinese original of this article is available at <a href="https://geektutu.com/post/quick-python.html">geektutu.com/post/quick-python.html</a>.</p>
+</blockquote></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">Found this helpful? Buy me a coffee ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><span class="block h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1 [&amp;&gt;svg]:h-full [&amp;&gt;svg]:w-full"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#1a1815" d="M1 1.5h7m1 0h1m1 0h1m2 0h3m1 0h1m1 0h1m2 0h7M1 2.5h1m5 0h1m1 0h8m1 0h1m1 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m3 0h3m3 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h2m2 0h2m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m2 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m3 0h2m3 0h2m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m1 0h1m2 0h1m2 0h1m1 0h2M1 9.5h1m2 0h8m1 0h6m3 0h1m2 0h1m1 0h3M1 10.5h2m1 0h1m1 0h1m1 0h1m2 0h1m3 0h1m4 0h2m1 0h5m1 0h1M1 11.5h5m1 0h1m3 0h1m3 0h1m3 0h1m1 0h1m2 0h1M1 12.5h1m2 0h2m4 0h1m1 0h1m2 0h2m1 0h1m1 0h1m2 0h3m2 0h2M3 13.5h1m3 0h1m2 0h2m2 0h2m4 0h2m1 0h2m4 0h1M1 14.5h1m2 0h2m2 0h1m1 0h2m1 0h1m6 0h1m2 0h2m4 0h1M1 15.5h4m1 0h2m1 0h2m2 0h1m1 0h2m4 0h2m1 0h1m4 0h1M1 16.5h1m1 0h1m5 0h3m1 0h3m1 0h2m2 0h6M1 17.5h1m1 0h2m1 0h3m1 0h1m2 0h1m2 0h1m1 0h2m1 0h2m3 0h4M1 18.5h2m1 0h1m4 0h2m1 0h1m7 0h1m2 0h4M1 19.5h3m3 0h1m4 0h4m1 0h1m2 0h1m1 0h3m1 0h3M1 20.5h2m1 0h1m1 0h1m2 0h2m3 0h1m1 0h2m1 0h2m2 0h2m1 0h1m1 0h1M1 21.5h2m2 0h8m1 0h1m2 0h1m1 0h1m1 0h9M9 22.5h1m2 0h3m2 0h2m2 0h1m3 0h2m1 0h1M1 23.5h7m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m1 0h1m1 0h4M1 24.5h1m5 0h1m1 0h1m3 0h2m2 0h1m1 0h3m3 0h3M1 25.5h1m1 0h3m1 0h1m1 0h2m3 0h1m1 0h2m1 0h1m1 0h6m2 0h1M1 26.5h1m1 0h3m1 0h1m1 0h1m1 0h5m1 0h1m3 0h2m2 0h1m2 0h1M1 27.5h1m1 0h3m1 0h1m2 0h5m3 0h1m2 0h1m1 0h1m1 0h1m2 0h2M1 28.5h1m5 0h1m4 0h1m3 0h1m2 0h2m1 0h3M1 29.5h7m1 0h3m3 0h1m2 0h1m8 0h2"/></svg>
+</span><figcaption class="text-sm text-muted">Alipay</figcaption></figure><figure class="flex flex-col items-center gap-2"><span class="block h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1 [&amp;&gt;svg]:h-full [&amp;&gt;svg]:w-full"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#1a1815" d="M1 1.5h7m3 0h1m3 0h3m2 0h2m1 0h7M1 2.5h1m5 0h1m3 0h6m1 0h1m4 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h2m2 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m4 0h1m1 0h2m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h5m1 0h1m3 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m1 0h3m1 0h4m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m1 0h1m1 0h1m5 0h1M1 9.5h1m1 0h5m3 0h1m1 0h4m1 0h1m1 0h2m1 0h5M3 10.5h1m1 0h2m1 0h3m1 0h1m2 0h1m1 0h3m1 0h2m1 0h2m1 0h1m1 0h1M1 11.5h2m4 0h2m2 0h2m1 0h1m1 0h1m1 0h2m4 0h1m2 0h2M2 12.5h2m6 0h3m2 0h1m1 0h1m1 0h2m2 0h3m2 0h1M1 13.5h3m2 0h5m2 0h1m1 0h2m1 0h1m1 0h2m5 0h2M5 14.5h1m3 0h1m1 0h3m3 0h3m1 0h2m1 0h4m1 0h1M2 15.5h4m1 0h3m3 0h2m1 0h1m2 0h1m2 0h1m1 0h4M2 16.5h1m1 0h2m6 0h1m3 0h1m3 0h4m1 0h1m2 0h1M1 17.5h2m2 0h4m2 0h1m2 0h5m1 0h1m3 0h1m2 0h3M1 18.5h1m1 0h1m1 0h1m3 0h3m1 0h1m1 0h1m3 0h9m1 0h1M1 19.5h1m2 0h1m1 0h3m7 0h1m4 0h1m1 0h1m1 0h3M1 20.5h1m1 0h2m1 0h1m3 0h4m1 0h1m6 0h1m2 0h2m2 0h1M1 21.5h1m3 0h3m4 0h1m1 0h1m2 0h2m2 0h5m1 0h1M9 22.5h1m1 0h3m1 0h1m1 0h1m2 0h2m3 0h2m2 0h1M1 23.5h7m2 0h4m1 0h2m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h2m2 0h1m1 0h1m3 0h1m2 0h2M1 25.5h1m1 0h3m1 0h1m1 0h1m6 0h3m2 0h9M1 26.5h1m1 0h3m1 0h1m1 0h4m1 0h1m3 0h1m5 0h1m3 0h2M1 27.5h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h2m2 0h2m1 0h2m1 0h1m1 0h2M1 28.5h1m5 0h1m2 0h2m2 0h2m3 0h1m6 0h1m1 0h1M1 29.5h7m1 0h4m1 0h1m1 0h1m3 0h1m1 0h4m1 0h1"/></svg>
+</span><figcaption class="text-sm text-muted">WeChat</figcaption></figure></div></section><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="Chapter navigation"><a href="/en/post/quick-go-context.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← Previous chapter</span><span class="font-display font-medium transition-colors group-hover:text-accent">Go Context: A Quick Guide to Concurrency Control</span></a><a href="/en/post/quick-rust.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">Next chapter →</span><span class="font-display font-medium transition-colors group-hover:text-accent">A Gentle Introduction to Rust</span></a></nav><script>(function(){const bookId = "history";
+const slug = "quick-python";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">Comments</p><div id="gitalk-container"></div></section><script>(function(){const id = "/en/post/quick-python.html";
+const title = "A Gentle Introduction to Python";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+const gitalkLang = "en";
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: gitalkLang,
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 Geektutu · Turning articles into books</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/en/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/en/about" class="transition-colors hover:text-accent">About</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="Total visits">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="Page views"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});var e=document.getElementById(`reading-bar`);function t(){if(!e)return;let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e.style.width=n+`%`}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();var n=document.querySelector(`.book-toc-scroll`),r=document.querySelector(`.book-toc [aria-current="page"]`);if(n&&r){let e=r.offsetTop-n.clientHeight/2+r.offsetHeight/2;n.scrollTop=Math.max(0,e)}var i=Array.from(document.querySelectorAll(`#section-toc a`)),a=i.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(e=>!!e);function o(){let e=null;for(let t of a)t.getBoundingClientRect().top<=120&&(e=t);i.forEach(e=>e.classList.remove(`active`)),e&&i.find(t=>t.getAttribute(`href`)===`#`+e.id)?.classList.add(`active`)}window.addEventListener(`scroll`,o,{passive:!0}),o();</script>

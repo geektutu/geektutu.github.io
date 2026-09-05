@@ -1,0 +1,384 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>A Quick Guide to Protocol Buffers in Go · Geektutu</title><meta name="description" content="Protocol Buffers (protobuf) is a language- and platform-neutral, scalable and extensible way to serialize structured data — smaller and faster than JSON or XML. This tutorial covers Protocol Buffers 3 (proto3): installation, basic syntax and how to use it in Go."><link rel="canonical" href="https://geektutu.com/en/post/quick-go-protobuf.html"><link rel="alternate" hreflang="en" href="https://geektutu.com/en/post/quick-go-protobuf.html"><link rel="alternate" hreflang="zh-CN" href="https://geektutu.com/post/quick-go-protobuf.html"><link rel="alternate" hreflang="x-default" href="https://geektutu.com/post/quick-go-protobuf.html"><link rel="alternate" type="application/rss+xml" title="Geektutu" hreflang="zh-CN" href="https://geektutu.com/feed.xml"><link rel="alternate" type="application/rss+xml" title="Geektutu" hreflang="en" href="https://geektutu.com/en/feed.xml"><link rel="sitemap" type="application/xml" href="https://geektutu.com/sitemap-index.xml"><!-- Open Graph --><meta property="og:site_name" content="Geektutu"><meta property="og:type" content="article"><meta property="og:title" content="A Quick Guide to Protocol Buffers in Go · Geektutu"><meta property="og:description" content="Protocol Buffers (protobuf) is a language- and platform-neutral, scalable and extensible way to serialize structured data — smaller and faster than JSON or XML. This tutorial covers Protocol Buffers 3 (proto3): installation, basic syntax and how to use it in Go."><meta property="og:url" content="https://geektutu.com/en/post/quick-go-protobuf.html"><meta property="og:image" content="https://geektutu.com/_astro/protocol-buffers.BV7zWI0F.jpg"><meta property="og:image:alt" content="A Quick Guide to Protocol Buffers in Go · Geektutu"><meta property="og:locale" content="en_US"><meta property="og:locale:alternate" content="zh_CN"><meta property="article:published_time" content="2020-01-10T16:27:00.000Z"><meta property="article:modified_time" content="2020-01-10T16:27:00.000Z"><meta property="article:tag" content="Go"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A Quick Guide to Protocol Buffers in Go · Geektutu"><meta name="twitter:description" content="Protocol Buffers (protobuf) is a language- and platform-neutral, scalable and extensible way to serialize structured data — smaller and faster than JSON or XML. This tutorial covers Protocol Buffers 3 (proto3): installation, basic syntax and how to use it in Go."><meta name="twitter:image" content="https://geektutu.com/_astro/protocol-buffers.BV7zWI0F.jpg"><!-- 结构化数据：全站 WebSite，子页面通过 head slot 追加 --><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Geektutu","alternateName":"Geektutu","url":"https://geektutu.com/en/","inLanguage":"en","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://geektutu.com/en/search/?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"A Quick Guide to Protocol Buffers in Go","description":"Protocol Buffers (protobuf) is a language- and platform-neutral, scalable and extensible way to serialize structured data — smaller and faster than JSON or XML. This tutorial covers Protocol Buffers 3 (proto3): installation, basic syntax and how to use it in Go.","image":["https://geektutu.com/_astro/protocol-buffers.BV7zWI0F.jpg"],"datePublished":"2020-01-10T16:27:00.000Z","dateModified":"2020-01-10T16:27:00.000Z","author":{"@type":"Person","name":"Geektutu","url":"https://github.com/geektutu"},"keywords":"Go","inLanguage":"en","mainEntityOfPage":{"@type":"WebPage","@id":"https://geektutu.com/en/post/quick-go-protobuf.html"},"isPartOf":{"@type":"Blog","@id":"https://geektutu.com/#blog","name":"Geektutu","url":"https://geektutu.com/"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://geektutu.com/en/"},{"@type":"ListItem","position":2,"name":"Quick Guide","item":"https://geektutu.com/en/books/history"},{"@type":"ListItem","position":3,"name":"A Quick Guide to Protocol Buffers in Go"}]}</script><link rel="icon" type="image/png" href="/icon.png"><link rel="preload" href="/fonts/literata-latin-subset.woff2" as="font" type="font/woff2" crossorigin><!-- 内联防 FOUC：首帧前应用主题 --><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Layout.3bYFP7Qy.css"></head><body class="min-h-screen relative"><div class="paper-grain" aria-hidden="true"></div><div class="relative z-10 flex min-h-screen flex-col"><header class="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur no-print"><div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><a href="/en/" class="group flex items-center gap-2.5"><span class="inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-surface ring-1 ring-line"><img src="/icon.png" alt="" width="32" height="32" class="h-full w-full object-cover"></span><span class="font-display text-xl font-semibold tracking-tight transition-colors group-hover:text-accent">Geektutu</span></a><div class="flex items-center gap-2"><nav class="hidden items-center gap-2 sm:flex" aria-label="Main navigation"><a href="/en/" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Home</a><a href="/en/books" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Books</a><a href="/en/tags" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Tags</a><a href="/en/search" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">Search</a><a href="/en/about" class="rounded-full px-3 py-1.5 text-sm transition-colors text-muted hover:text-ink hover:bg-surface">About</a></nav><a href="/post/quick-go-protobuf.html" hreflang="zh-CN" aria-label="切换到中文" class="inline-flex h-9 items-center justify-center rounded-full border border-line px-3 text-sm text-muted transition-colors hover:text-accent hover:border-accent/40">中文</a><button id="theme-toggle" type="button" aria-label="Toggle dark mode" class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-accent hover:border-accent/40"><svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg><svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div></header><main class="flex-1"><div class="fixed inset-x-0 top-0 z-50 h-0.5 no-print" aria-hidden="true"><div id="reading-bar" class="h-full w-0 bg-accent transition-[width] duration-100"></div></div><div class="mx-auto max-w-6xl px-5"><div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] lg:gap-10"><aside class="no-print hidden lg:sticky lg:top-20 lg:block lg:self-start"><div class="rounded-2xl border border-line bg-paper-soft"><div class="book-toc-scroll relative lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto"><nav class="book-toc px-5 pb-6 pt-5" aria-label="Contents"><!-- 书名 --><a href="/en/books/history" class="group block"><p class="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-faint">Book</p><p class="mt-1.5 font-display text-base font-semibold leading-snug text-ink transition-colors group-hover:text-accent">Quick Guide</p></a><div class="mt-4 h-px bg-line" aria-hidden="true"></div><!-- 章节列表 --><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Quick Start · Go</span></div><ul><li><a href="/en/post/quick-golang.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Gentle Introduction to Go</a></li><li><a href="/en/post/quick-go-gin.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Gin in a Nutshell</a></li><li><a href="/en/post/quick-go2.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Quick Guide to Go 2</a></li><li><a href="/en/post/quick-go-protobuf.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed bg-accent-soft font-medium text-accent shadow-[inset_2px_0_0_var(--accent)]" aria-current="page">A Quick Guide to Protocol Buffers in Go</a></li><li><a href="/en/post/quick-go-rpc.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Quick Guide to Go RPC &amp; TLS</a></li><li><a href="/en/post/quick-go-wasm.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Quick Guide to Go WebAssembly (Wasm)</a></li><li><a href="/en/post/quick-go-test.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Test: Unit Testing in Go</a></li><li><a href="/en/post/quick-gomock.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Quick Guide to gomock</a></li><li><a href="/en/post/quick-go-mmap.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Quick Guide to mmap in Go</a></li><li><a href="/en/post/quick-go-context.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">Go Context: A Quick Guide to Concurrency Control</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Quick Start · Python</span></div><ul><li><a href="/en/post/quick-python.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Gentle Introduction to Python</a></li></ul></section><section class="last:mb-0"><div class="mt-6 mb-1.5 flex items-center gap-2 px-2.5"><span class="h-[2px] w-3.5 shrink-0 rounded-full bg-accent/70" aria-hidden="true"></span><span class="font-display text-[0.85rem] font-semibold tracking-wide text-ink">Quick Start · Rust</span></div><ul><li><a href="/en/post/quick-rust.html" class="toc-link block rounded-lg py-1.5 pr-2 pl-7 text-[0.9rem] leading-relaxed text-ink/85 hover:bg-surface hover:text-ink">A Gentle Introduction to Rust</a></li></ul></section></nav></div></div></aside><article class="min-w-0 py-12"><div class="mx-auto max-w-2xl"><header class="border-b border-line pb-6"><a href="/en/books/history" class="mb-4 inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"><span class="text-accent">▤</span> Quick Guide</a><h1 class="font-display text-4xl font-semibold leading-tight tracking-tight">A Quick Guide to Protocol Buffers in Go</h1><div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-faint"><time datetime="2020-01-10">2020-01-10</time><span aria-hidden="true">·</span><span>8 min read</span><span class="flex flex-wrap gap-2"><a href="/en/tags/Go" class="rounded-full bg-surface px-2.5 py-0.5 text-xs text-muted transition-colors hover:text-accent">#Go</a></span></div></header><div class="mt-6 rounded-2xl border border-line bg-paper-soft px-5 py-4"><p class="text-[0.7rem] font-medium uppercase tracking-widest text-faint">TL;DR</p><p class="mt-1.5 text-[0.95rem] leading-relaxed text-muted">Protocol Buffers (protobuf) is a language- and platform-neutral, scalable and extensible way to serialize structured data — smaller and faster than JSON or XML. This tutorial covers Protocol Buffers 3 (proto3): installation, basic syntax and how to use it in Go.</p></div><div class="mt-8"><nav class="rounded-2xl border border-line bg-paper-soft p-4 no-print" aria-label="On this page"><p class="mb-2 text-[0.7rem] font-medium uppercase tracking-widest text-faint">On this page</p><ul id="section-toc" class="space-y-1.5 text-sm"><li style="padding-left:0rem"><a href="#1-introduction-to-protocol-buffers" class="toc-link block text-muted" data-toc-depth="2">1 Introduction to Protocol Buffers</a></li><li style="padding-left:0rem"><a href="#2-installation" class="toc-link block text-muted" data-toc-depth="2">2 Installation</a></li><li style="padding-left:0.9rem"><a href="#21-protoc" class="toc-link block text-muted" data-toc-depth="3">2.1 protoc</a></li><li style="padding-left:0.9rem"><a href="#22-protoc-gen-go" class="toc-link block text-muted" data-toc-depth="3">2.2 protoc-gen-go</a></li><li style="padding-left:0rem"><a href="#3-defining-message-types" class="toc-link block text-muted" data-toc-depth="2">3 Defining Message Types</a></li><li style="padding-left:0rem"><a href="#4-field-types" class="toc-link block text-muted" data-toc-depth="2">4 Field Types</a></li><li style="padding-left:0.9rem"><a href="#41-scalar-types" class="toc-link block text-muted" data-toc-depth="3">4.1 Scalar Types</a></li><li style="padding-left:0.9rem"><a href="#42-enumerations" class="toc-link block text-muted" data-toc-depth="3">4.2 Enumerations</a></li><li style="padding-left:0.9rem"><a href="#43-using-other-message-types" class="toc-link block text-muted" data-toc-depth="3">4.3 Using Other Message Types</a></li><li style="padding-left:0.9rem"><a href="#44-any" class="toc-link block text-muted" data-toc-depth="3">4.4 Any</a></li><li style="padding-left:0.9rem"><a href="#45-oneof" class="toc-link block text-muted" data-toc-depth="3">4.5 oneof</a></li><li style="padding-left:0.9rem"><a href="#46-map" class="toc-link block text-muted" data-toc-depth="3">4.6 map</a></li><li style="padding-left:0rem"><a href="#5-defining-services" class="toc-link block text-muted" data-toc-depth="2">5 Defining Services</a></li><li style="padding-left:0rem"><a href="#6-other-protoc-options" class="toc-link block text-muted" data-toc-depth="2">6 Other protoc Options</a></li><li style="padding-left:0rem"><a href="#7-recommended-style" class="toc-link block text-muted" data-toc-depth="2">7 Recommended Style</a></li><li style="padding-left:0rem"><a href="#notes--references" class="toc-link block text-muted" data-toc-depth="2">Notes &amp; references</a></li></ul></nav><div class="mt-6 markdown"><p><img alt="Golang Protocol Buffers" loading="lazy" decoding="async" sizes="(min-width: 1000px) 1000px, 100vw" data-astro-image="constrained" data-astro-image-pos="center" width="1000" height="389" src="/_astro/go-protobuf.COYbahcX_C5gl2.webp" srcset="/_astro/go-protobuf.COYbahcX_1MQvSG.webp 640w, /_astro/go-protobuf.COYbahcX_Zi3hGM.webp 750w, /_astro/go-protobuf.COYbahcX_1PGcrb.webp 828w, /_astro/go-protobuf.COYbahcX_C5gl2.webp 1000w"></p>
+<h2 id="1-introduction-to-protocol-buffers">1 Introduction to Protocol Buffers</h2>
+<p>Protocol Buffers (protobuf) is a lightweight and efficient structured data storage format that is language- and platform-neutral, scalable and serializable. In terms of performance and efficiency, protobuf significantly outperforms other structured data formats such as JSON and XML. protobuf is stored in binary: it takes up little space, at the cost of poor readability. protobuf is widely used in areas such as communication protocols and data storage. For example, <a href="https://github.com/golang/groupcache">groupcache</a>, the Go version of the well-known distributed caching tool <a href="https://memcached.org/">Memcached</a>, uses protobuf as its RPC data format.</p>
+<p>With protobuf, you define the structured data you want to process in <code>.proto</code> files, and the <code>protoc</code> tool can convert <code>.proto</code> files into code for many languages, including C, C++, Golang, Java and Python — good compatibility, easy to use.</p>
+<h2 id="2-installation">2 Installation</h2>
+<h3 id="21-protoc">2.1 protoc</h3>
+<p>Download the latest release package from <a href="https://github.com/protocolbuffers/protobuf/releases">Protobuf Releases</a> and install it. On Ubuntu, you can follow the steps below (3.11.2 as an example).</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># download the package</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> wget</span><span style="color:#032F62"> https://github.com/protocolbuffers/protobuf/releases/download/v3.11.2/protoc-3.11.2-linux-x86_64.zip</span></span>
+<span class="line"><span style="color:#6A737D"># extract it to /usr/local</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> sudo</span><span style="color:#032F62"> 7z</span><span style="color:#032F62"> x</span><span style="color:#032F62"> protoc-3.11.2-linux-x86_64.zip</span><span style="color:#005CC5"> -o/usr/local</span></span></code></pre>
+<p>If you don’t want to install it under /usr/local, extract it to another directory and add the bin directory under the extraction path to your PATH.</p>
+<p>If the version is displayed correctly, the installation succeeded.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> protoc</span><span style="color:#005CC5"> --version</span></span>
+<span class="line"><span style="color:#6F42C1">libprotoc</span><span style="color:#005CC5"> 3.11.2</span></span></code></pre>
+<h3 id="22-protoc-gen-go">2.2 protoc-gen-go</h3>
+<p>To use protobuf in Golang, we also need to install protoc-gen-go, the tool that converts <code>.proto</code> files into Golang code.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">go</span><span style="color:#032F62"> get</span><span style="color:#005CC5"> -u</span><span style="color:#032F62"> github.com/golang/protobuf/protoc-gen-go</span></span></code></pre>
+<p>protoc-gen-go will be installed automatically into <code>$GOPATH/bin</code>; you need to add this directory to your PATH as well.</p>
+<h2 id="3-defining-message-types">3 Defining Message Types</h2>
+<p>Next, let’s create a very simple example, <code>student.proto</code>:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">syntax </span><span style="color:#D73A49">=</span><span style="color:#032F62"> "proto3"</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// this is a comment</span></span>
+<span class="line"><span style="color:#24292E">message Student {</span></span>
+<span class="line"><span style="color:#D73A49">  string</span><span style="color:#24292E"> name </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">  bool</span><span style="color:#24292E"> male </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  repeated </span><span style="color:#D73A49">int32</span><span style="color:#24292E"> scores </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 3</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>Run the following in the current directory:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> protoc</span><span style="color:#005CC5"> --go_out=.</span><span style="color:#005CC5"> *</span><span style="color:#032F62">.proto</span></span>
+<span class="line"><span style="color:#6F42C1">$</span><span style="color:#032F62"> ls</span></span>
+<span class="line"><span style="color:#6F42C1">student.pb.go</span><span style="color:#032F62">  student.proto</span></span></code></pre>
+<p>This converts all the .proto files in the directory into Go code. As you can see, a new Go file <em>student.pb.go</em> appears in the directory. It defines a Student struct and related methods:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">type</span><span style="color:#6F42C1"> Student</span><span style="color:#D73A49"> struct</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">	Name </span><span style="color:#D73A49">string</span><span style="color:#032F62"> `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`</span></span>
+<span class="line"><span style="color:#24292E">	Male </span><span style="color:#D73A49">bool</span><span style="color:#032F62"> `protobuf:"varint,2,opt,name=male,proto3" json:"male,omitempty"`</span></span>
+<span class="line"><span style="color:#24292E">	Scores []</span><span style="color:#D73A49">int32</span><span style="color:#032F62"> `protobuf:"varint,3,rep,packed,name=scores,proto3" json:"scores,omitempty"`</span></span>
+<span class="line"><span style="color:#D73A49">	...</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>A line-by-line walkthrough of <code>student.proto</code>:</p>
+<ul>
+<li>protobuf has two versions, and the default is proto2. If you want proto3, declare it with <code>syntax = "proto3"</code> on the first non-empty, non-comment line.</li>
+<li><code>package</code>, the package name declaration, is optional and is used to prevent naming conflicts between different message types.</li>
+<li>Message types are defined with the <code>message</code> keyword: Student is the type name, and name, male and scores are its 3 fields, of type string, bool and []int32 respectively. Fields can be scalar types or composite types.</li>
+<li>The default field modifier is singular and is usually omitted; <code>repeated</code> means the field can repeat, i.e. it corresponds to an array type in Go.</li>
+<li>The number after <code>=</code> of each field is called the identifier. Every field must be given a unique identifier. Identifiers identify each field in the binary format of the message, cannot be changed once used, and must be in the range [1, 2^29 - 1].</li>
+<li>.proto files support comments: <code>//</code> for single-line and <code>/* ... */</code> for multi-line.</li>
+<li>A .proto file can define multiple message types, which correspond to multiple structs.</li>
+</ul>
+<p>Next, you can start using it directly in your project code. Here is a very simple example proving that the serialized and deserialized instances contain the same data.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">package</span><span style="color:#6F42C1"> main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">import</span><span style="color:#24292E"> (</span></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">log</span><span style="color:#032F62">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#032F62">	"</span><span style="color:#6F42C1">github.com/golang/protobuf/proto</span><span style="color:#032F62">"</span></span>
+<span class="line"><span style="color:#24292E">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49">func</span><span style="color:#6F42C1"> main</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">	test </span><span style="color:#D73A49">:=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#6F42C1">Student</span><span style="color:#24292E">{</span></span>
+<span class="line"><span style="color:#24292E">		Name: </span><span style="color:#032F62">"geektutu"</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">		Male:  </span><span style="color:#005CC5">true</span><span style="color:#24292E">,</span></span>
+<span class="line"><span style="color:#24292E">		Scores: []</span><span style="color:#D73A49">int32</span><span style="color:#24292E">{</span><span style="color:#005CC5">98</span><span style="color:#24292E">, </span><span style="color:#005CC5">85</span><span style="color:#24292E">, </span><span style="color:#005CC5">88</span><span style="color:#24292E">},</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">	data, err </span><span style="color:#D73A49">:=</span><span style="color:#24292E"> proto.</span><span style="color:#6F42C1">Marshal</span><span style="color:#24292E">(test)</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Fatal</span><span style="color:#24292E">(</span><span style="color:#032F62">"marshaling error: "</span><span style="color:#24292E">, err)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">	newTest </span><span style="color:#D73A49">:=</span><span style="color:#D73A49"> &#x26;</span><span style="color:#6F42C1">Student</span><span style="color:#24292E">{}</span></span>
+<span class="line"><span style="color:#24292E">	err </span><span style="color:#D73A49">=</span><span style="color:#24292E"> proto.</span><span style="color:#6F42C1">Unmarshal</span><span style="color:#24292E">(data, newTest)</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> err </span><span style="color:#D73A49">!=</span><span style="color:#005CC5"> nil</span><span style="color:#24292E"> {</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Fatal</span><span style="color:#24292E">(</span><span style="color:#032F62">"unmarshaling error: "</span><span style="color:#24292E">, err)</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#6A737D">	// Now test and newTest contain the same data.</span></span>
+<span class="line"><span style="color:#D73A49">	if</span><span style="color:#24292E"> test.</span><span style="color:#6F42C1">GetName</span><span style="color:#24292E">() </span><span style="color:#D73A49">!=</span><span style="color:#24292E"> newTest.</span><span style="color:#6F42C1">GetName</span><span style="color:#24292E">() {</span></span>
+<span class="line"><span style="color:#24292E">		log.</span><span style="color:#6F42C1">Fatalf</span><span style="color:#24292E">(</span><span style="color:#032F62">"data mismatch </span><span style="color:#005CC5">%q</span><span style="color:#032F62"> != </span><span style="color:#005CC5">%q</span><span style="color:#032F62">"</span><span style="color:#24292E">, test.</span><span style="color:#6F42C1">GetName</span><span style="color:#24292E">(), newTest.</span><span style="color:#6F42C1">GetName</span><span style="color:#24292E">())</span></span>
+<span class="line"><span style="color:#24292E">	}</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<ul>
+<li>Reserved Fields</li>
+</ul>
+<p>When updating a message type, you may remove some fields/identifiers. These removed fields/identifiers might get reused later; if data from an older version is then loaded, it can cause data conflicts. When upgrading, you can reserve these fields/identifiers so that they will not be reused — protoc will check for this.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">message Foo {</span></span>
+<span class="line"><span style="color:#24292E">  reserved </span><span style="color:#005CC5">2</span><span style="color:#24292E">, </span><span style="color:#005CC5">15</span><span style="color:#24292E">, </span><span style="color:#005CC5">9</span><span style="color:#24292E"> to </span><span style="color:#005CC5">11</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  reserved </span><span style="color:#032F62">"foo"</span><span style="color:#24292E">, </span><span style="color:#032F62">"bar"</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h2 id="4-field-types">4 Field Types</h2>
+<h3 id="41-scalar-types">4.1 Scalar Types</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>proto type</th><th>go type</th><th>Notes</th><th>proto type</th><th>go type</th><th>Notes</th></tr></thead><tbody><tr><td>double</td><td>float64</td><td></td><td>float</td><td>float32</td><td></td></tr><tr><td>int32</td><td>int32</td><td></td><td>int64</td><td>int64</td><td></td></tr><tr><td>uint32</td><td>uint32</td><td></td><td>uint64</td><td>uint64</td><td></td></tr><tr><td>sint32</td><td>int32</td><td>efficient for negative numbers</td><td>sint64</td><td>int64</td><td>efficient for negative numbers</td></tr><tr><td>fixed32</td><td>uint32</td><td>fixed-length encoding, efficient for values above 2^28</td><td>fixed64</td><td>uint64</td><td>fixed-length encoding, efficient for values above 2^56</td></tr><tr><td>sfixed32</td><td>int32</td><td>fixed-length encoding</td><td>sfixed64</td><td>int64</td><td>fixed-length encoding</td></tr><tr><td>bool</td><td>bool</td><td></td><td>string</td><td>string</td><td>UTF-8 encoded, up to 2^32 in length</td></tr><tr><td>bytes</td><td>[]byte</td><td>arbitrary byte sequence, up to 2^32 in length</td><td></td><td></td><td></td></tr></tbody></table>
+<p>If a scalar field is not set, it won’t be serialized; when parsed, it is assigned a default value:</p>
+<ul>
+<li>strings: empty string</li>
+<li>bytes: empty sequence</li>
+<li>bools: false</li>
+<li>numeric types: 0</li>
+</ul>
+<h3 id="42-enumerations">4.2 Enumerations</h3>
+<p>Enum types are suitable for providing a set of predefined values and choosing one of them. For example, we can define gender as an enum type.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">message Student {</span></span>
+<span class="line"><span style="color:#D73A49">  string</span><span style="color:#24292E"> name </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  enum Gender {</span></span>
+<span class="line"><span style="color:#24292E">    FEMALE </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    MALE </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"><span style="color:#24292E">  Gender gender </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  repeated </span><span style="color:#D73A49">int32</span><span style="color:#24292E"> scores </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 3</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<ul>
+<li>The identifier of the first option of an enum must be 0; it is also the default value of the enum type.</li>
+<li>Alias: you may give different enum values the same identifier — this is called an alias and requires enabling the <code>allow_alias</code> option.</li>
+</ul>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">message EnumAllowAlias {</span></span>
+<span class="line"><span style="color:#24292E">  enum Status {</span></span>
+<span class="line"><span style="color:#24292E">    option allow_alias </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> true</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    UNKOWN </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 0</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    STARTED </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    RUNNING </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h3 id="43-using-other-message-types">4.3 Using Other Message Types</h3>
+<p><code>Result</code> is another message type, used as a message field type in SearchResponse.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">message SearchResponse {</span></span>
+<span class="line"><span style="color:#24292E">  repeated Result results </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">; </span></span>
+<span class="line"><span style="color:#24292E">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">message Result {</span></span>
+<span class="line"><span style="color:#D73A49">  string</span><span style="color:#24292E"> url </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">  string</span><span style="color:#24292E"> title </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  repeated </span><span style="color:#D73A49">string</span><span style="color:#24292E"> snippets </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 3</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>Nesting is also supported:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">message SearchResponse {</span></span>
+<span class="line"><span style="color:#24292E">  message Result {</span></span>
+<span class="line"><span style="color:#D73A49">    string</span><span style="color:#24292E"> url </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#D73A49">    string</span><span style="color:#24292E"> title </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    repeated </span><span style="color:#D73A49">string</span><span style="color:#24292E"> snippets </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 3</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"><span style="color:#24292E">  repeated Result results </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>If they are defined in other files, you can import those message types for use:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#032F62"> "</span><span style="color:#6F42C1">myproject/other_protos.proto</span><span style="color:#032F62">"</span><span style="color:#24292E">;</span></span></code></pre>
+<h3 id="44-any">4.4 Any</h3>
+<p>Any can represent arbitrary types that are not defined in your .proto files.</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#D73A49">import</span><span style="color:#032F62"> "</span><span style="color:#6F42C1">google/protobuf/any.proto</span><span style="color:#032F62">"</span><span style="color:#24292E">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E">message ErrorStatus {</span></span>
+<span class="line"><span style="color:#D73A49">  string</span><span style="color:#24292E"> message </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  repeated google.protobuf.Any details </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 2</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h3 id="45-oneof">4.5 oneof</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">message SampleMessage {</span></span>
+<span class="line"><span style="color:#24292E">  oneof test_oneof {</span></span>
+<span class="line"><span style="color:#D73A49">    string</span><span style="color:#24292E"> name </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 4</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">    SubMessage sub_message </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 9</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">  }</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h3 id="46-map">4.6 map</h3>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">message MapRequest {</span></span>
+<span class="line"><span style="color:#D73A49">  map&#x3C;</span><span style="color:#D73A49">string</span><span style="color:#24292E">, </span><span style="color:#D73A49">int32></span><span style="color:#24292E"> points </span><span style="color:#D73A49">=</span><span style="color:#005CC5"> 1</span><span style="color:#24292E">;</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<h2 id="5-defining-services">5 Defining Services</h2>
+<p>If your message types are used for remote communication (Remote Procedure Call, RPC), you can define RPC service interfaces in the .proto file. For example, we define an RPC service named SearchService that provides a <code>Search</code> method, taking a <code>SearchRequest</code> and returning a <code>SearchResponse</code>:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#24292E">service SearchService {</span></span>
+<span class="line"><span style="color:#24292E">  rpc Search (SearchRequest) returns (SearchResponse);</span></span>
+<span class="line"><span style="color:#24292E">}</span></span></code></pre>
+<p>The official repository also provides a <a href="https://github.com/protocolbuffers/protobuf/blob/master/docs/third_party.md">list of plugins</a> to help you develop RPC services based on Protocol Buffers.</p>
+<h2 id="6-other-protoc-options">6 Other protoc Options</h2>
+<p>Command-line usage:</p>
+<pre class="astro-code github-light" style="background-color:#fff;color:#24292e; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1">protoc</span><span style="color:#005CC5"> --proto_path=IMPORT_PATH</span><span style="color:#005CC5"> --</span><span style="color:#D73A49">&#x3C;</span><span style="color:#005CC5">lang</span><span style="color:#D73A49">></span><span style="color:#005CC5">_out=DST_DIR</span><span style="color:#032F62"> path/to/file.proto</span></span></code></pre>
+<ul>
+<li><code>--proto_path=IMPORT_PATH</code>: .proto files can import other .proto files; proto_path specifies the directory to search for those imported .proto files. If you don’t import other .proto files, this option can be omitted.</li>
+<li><code>--&#x3C;lang>_out=DST_DIR</code>: specifies the target directory for the generated code; for example, —go_out=. generates Go code in the current directory. Other languages are also supported: cpp/java/python/ruby/objc/csharp/php, etc.</li>
+</ul>
+<h2 id="7-recommended-style">7 Recommended Style</h2>
+<ul>
+<li>
+<p>Files</p>
+<ul>
+<li>File names use the lower_snake_case style, e.g. lower_snake_case.proto</li>
+<li>No more than 80 characters per line</li>
+<li>Indent with 2 spaces</li>
+</ul>
+</li>
+<li>
+<p>Packages</p>
+<ul>
+<li>Package names should match the directory structure: if a file lives in the <code>my/package/</code> directory, the package name should be <code>my.package</code></li>
+</ul>
+</li>
+<li>
+<p>Messages &#x26; Fields</p>
+<ul>
+<li>Message names use CamelCase, e.g. <code>message StudentRequest { ... }</code></li>
+<li>Field names use the lower_snake_case style, e.g. <code>string status_code = 1</code></li>
+<li>Enums: enum names use CamelCase, e.g. <code>enum FooBar</code>; enum values use CAPITALS_WITH_UNDERSCORES, e.g. FOO_DEFAULT=1</li>
+</ul>
+</li>
+<li>
+<p>Services</p>
+<ul>
+<li>RPC service names and method names both use CamelCase, e.g. <code>service FooService{ rpc GetSomething() }</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="notes--references">Notes &#x26; references</h2>
+<p>This article is hosted on <a href="https://github.com/geektutu/geektutu.github.io">GitHub</a> — typo fixes and PRs are welcome. Thanks for reading.</p>
+<ol>
+<li><a href="https://github.com/protocolbuffers/protobuf">protobuf repository - github.com</a></li>
+<li><a href="https://github.com/golang/protobuf">golang protobuf repository - github.com</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Remote_procedure_call">Remote procedure call - wikipedia.org</a></li>
+<li><a href="https://github.com/golang/groupcache">groupcache, the Go version of memcached - github.com</a></li>
+<li><a href="https://developers.google.com/protocol-buffers/docs/proto3">Language Guide (proto3), the official guide - google.com</a></li>
+<li><a href="https://developers.google.com/protocol-buffers/docs/style">Proto Style Guide, the code style guide - google.com</a></li>
+<li><a href="https://github.com/protocolbuffers/protobuf/blob/master/docs/third_party.md">Protocol Buffer plugin list - github.com</a></li>
+</ol>
+<blockquote>
+<p>The Chinese original of this article is available at <a href="https://geektutu.com/post/quick-go-protobuf.html">geektutu.com/post/quick-go-protobuf.html</a>.</p>
+</blockquote></div></div><section class="no-print mt-10 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper-soft p-8 text-center"><p class="font-display text-lg font-semibold text-ink">Found this helpful? Buy me a coffee ☕</p><div class="flex flex-wrap items-start justify-center gap-8"><figure class="flex flex-col items-center gap-2"><span class="block h-40 w-40 rounded-xl border-2 border-[#1677ff] bg-white p-1 [&amp;&gt;svg]:h-full [&amp;&gt;svg]:w-full"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#1a1815" d="M1 1.5h7m1 0h1m1 0h1m2 0h3m1 0h1m1 0h1m2 0h7M1 2.5h1m5 0h1m1 0h8m1 0h1m1 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m3 0h3m3 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h2m2 0h2m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m2 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m3 0h2m3 0h2m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m1 0h1m2 0h1m2 0h1m1 0h2M1 9.5h1m2 0h8m1 0h6m3 0h1m2 0h1m1 0h3M1 10.5h2m1 0h1m1 0h1m1 0h1m2 0h1m3 0h1m4 0h2m1 0h5m1 0h1M1 11.5h5m1 0h1m3 0h1m3 0h1m3 0h1m1 0h1m2 0h1M1 12.5h1m2 0h2m4 0h1m1 0h1m2 0h2m1 0h1m1 0h1m2 0h3m2 0h2M3 13.5h1m3 0h1m2 0h2m2 0h2m4 0h2m1 0h2m4 0h1M1 14.5h1m2 0h2m2 0h1m1 0h2m1 0h1m6 0h1m2 0h2m4 0h1M1 15.5h4m1 0h2m1 0h2m2 0h1m1 0h2m4 0h2m1 0h1m4 0h1M1 16.5h1m1 0h1m5 0h3m1 0h3m1 0h2m2 0h6M1 17.5h1m1 0h2m1 0h3m1 0h1m2 0h1m2 0h1m1 0h2m1 0h2m3 0h4M1 18.5h2m1 0h1m4 0h2m1 0h1m7 0h1m2 0h4M1 19.5h3m3 0h1m4 0h4m1 0h1m2 0h1m1 0h3m1 0h3M1 20.5h2m1 0h1m1 0h1m2 0h2m3 0h1m1 0h2m1 0h2m2 0h2m1 0h1m1 0h1M1 21.5h2m2 0h8m1 0h1m2 0h1m1 0h1m1 0h9M9 22.5h1m2 0h3m2 0h2m2 0h1m3 0h2m1 0h1M1 23.5h7m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m1 0h1m1 0h4M1 24.5h1m5 0h1m1 0h1m3 0h2m2 0h1m1 0h3m3 0h3M1 25.5h1m1 0h3m1 0h1m1 0h2m3 0h1m1 0h2m1 0h1m1 0h6m2 0h1M1 26.5h1m1 0h3m1 0h1m1 0h1m1 0h5m1 0h1m3 0h2m2 0h1m2 0h1M1 27.5h1m1 0h3m1 0h1m2 0h5m3 0h1m2 0h1m1 0h1m1 0h1m2 0h2M1 28.5h1m5 0h1m4 0h1m3 0h1m2 0h2m1 0h3M1 29.5h7m1 0h3m3 0h1m2 0h1m8 0h2"/></svg>
+</span><figcaption class="text-sm text-muted">Alipay</figcaption></figure><figure class="flex flex-col items-center gap-2"><span class="block h-40 w-40 rounded-xl border-2 border-[#07c160] bg-white p-1 [&amp;&gt;svg]:h-full [&amp;&gt;svg]:w-full"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#1a1815" d="M1 1.5h7m3 0h1m3 0h3m2 0h2m1 0h7M1 2.5h1m5 0h1m3 0h6m1 0h1m4 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h2m2 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m4 0h1m1 0h2m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h5m1 0h1m3 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m1 0h3m1 0h4m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m1 0h1m1 0h1m5 0h1M1 9.5h1m1 0h5m3 0h1m1 0h4m1 0h1m1 0h2m1 0h5M3 10.5h1m1 0h2m1 0h3m1 0h1m2 0h1m1 0h3m1 0h2m1 0h2m1 0h1m1 0h1M1 11.5h2m4 0h2m2 0h2m1 0h1m1 0h1m1 0h2m4 0h1m2 0h2M2 12.5h2m6 0h3m2 0h1m1 0h1m1 0h2m2 0h3m2 0h1M1 13.5h3m2 0h5m2 0h1m1 0h2m1 0h1m1 0h2m5 0h2M5 14.5h1m3 0h1m1 0h3m3 0h3m1 0h2m1 0h4m1 0h1M2 15.5h4m1 0h3m3 0h2m1 0h1m2 0h1m2 0h1m1 0h4M2 16.5h1m1 0h2m6 0h1m3 0h1m3 0h4m1 0h1m2 0h1M1 17.5h2m2 0h4m2 0h1m2 0h5m1 0h1m3 0h1m2 0h3M1 18.5h1m1 0h1m1 0h1m3 0h3m1 0h1m1 0h1m3 0h9m1 0h1M1 19.5h1m2 0h1m1 0h3m7 0h1m4 0h1m1 0h1m1 0h3M1 20.5h1m1 0h2m1 0h1m3 0h4m1 0h1m6 0h1m2 0h2m2 0h1M1 21.5h1m3 0h3m4 0h1m1 0h1m2 0h2m2 0h5m1 0h1M9 22.5h1m1 0h3m1 0h1m1 0h1m2 0h2m3 0h2m2 0h1M1 23.5h7m2 0h4m1 0h2m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h2m2 0h1m1 0h1m3 0h1m2 0h2M1 25.5h1m1 0h3m1 0h1m1 0h1m6 0h3m2 0h9M1 26.5h1m1 0h3m1 0h1m1 0h4m1 0h1m3 0h1m5 0h1m3 0h2M1 27.5h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h2m2 0h2m1 0h2m1 0h1m1 0h2M1 28.5h1m5 0h1m2 0h2m2 0h2m3 0h1m6 0h1m1 0h1M1 29.5h7m1 0h4m1 0h1m1 0h1m3 0h1m1 0h4m1 0h1"/></svg>
+</span><figcaption class="text-sm text-muted">WeChat</figcaption></figure></div></section><nav class="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2 no-print" aria-label="Chapter navigation"><a href="/en/post/quick-go2.html" class="group flex flex-col gap-1 rounded-2xl border border-line p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">← Previous chapter</span><span class="font-display font-medium transition-colors group-hover:text-accent">A Quick Guide to Go 2</span></a><a href="/en/post/quick-go-rpc.html" class="group flex flex-col items-end gap-1 rounded-2xl border border-line p-4 text-right transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"><span class="text-xs text-faint">Next chapter →</span><span class="font-display font-medium transition-colors group-hover:text-accent">A Quick Guide to Go RPC &amp; TLS</span></a></nav><script>(function(){const bookId = "history";
+const slug = "quick-go-protobuf";
+
+  // 记录上次阅读章节，便于读者继续阅读
+  const key = `last-read:${bookId}`;
+  try {
+    localStorage.setItem(key, JSON.stringify({ slug, at: Date.now() }));
+  } catch (e) {}
+})();</script><section class="no-print mt-12 border-t border-line pt-10"><p class="mb-6 text-xs font-medium uppercase tracking-[0.2em] text-faint">Comments</p><div id="gitalk-container"></div></section><script>(function(){const id = "/en/post/quick-go-protobuf.html";
+const title = "A Quick Guide to Protocol Buffers in Go";
+const clientID = "c1fdd456a4caae5f7df0";
+const clientSecret = "b2674451e21feae50520f99337ec15d2aebe7879";
+const owner = "geektutu";
+const repo = "geektutu.github.io";
+const admin = ["geektutu"];
+const gitalkLang = "en";
+
+    // 延迟加载：评论容器进入视口后才加载 gitalk 资源，避免拖慢首屏
+    const container = document.getElementById('gitalk-container');
+    let loaded = false;
+
+    function initGitalk() {
+      const gitalk = new Gitalk({
+        clientID,
+        clientSecret,
+        repo,
+        owner,
+        admin,
+        id,
+        title,
+        language: gitalkLang,
+        distractionFreeMode: false,
+      });
+      gitalk.render('gitalk-container');
+    }
+
+    function loadGitalk() {
+      if (loaded) return;
+      loaded = true;
+      if (window.Gitalk) {
+        initGitalk();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/css/gitalk.css';
+      document.head.appendChild(link);
+      const script = document.createElement('script');
+      script.src = '/js/gitalk.min.js';
+      script.async = true;
+      script.onload = initGitalk;
+      document.body.appendChild(script);
+    }
+
+    if (container && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadGitalk();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(container);
+    } else if (container) {
+      loadGitalk();
+    }
+  })();</script></div></article></div></div></main><footer class="border-t border-line no-print"><div class="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left"><p class="text-sm text-muted">© 2026 Geektutu · Turning articles into books</p><div class="flex items-center gap-4 text-sm text-faint"><a href="/en/feed.xml" class="transition-colors hover:text-accent">RSS</a><a href="/en/about" class="transition-colors hover:text-accent">About</a><a href="https://github.com/geektutu" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">GitHub</a></div></div><div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line px-5 py-3 text-xs text-faint"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="transition-colors hover:text-accent">沪ICP备18001798号-1</a></div><p class="px-5 pb-5 pt-2 text-center text-xs text-faint tabular-nums"><span id="busuanzi_container_site_pv" title="Total visits">👁 <span id="busuanzi_value_site_pv"></span></span><span id="busuanzi_container_page_pv" title="Page views"><span class="mx-2">·</span>📚 <span id="busuanzi_value_page_pv"></span></span></p></footer><!-- 不蒜子访问统计：页面加载完成后异步引入 --><script>
+  window.addEventListener('load', function () {
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    s.async = true;
+    document.body.appendChild(s);
+  });
+</script></div></body></html><script type="module">document.getElementById(`theme-toggle`)?.addEventListener(`click`,()=>{let e=document.documentElement.classList.toggle(`dark`);try{localStorage.setItem(`theme`,e?`dark`:`light`)}catch{}});var e=document.getElementById(`reading-bar`);function t(){if(!e)return;let t=document.documentElement.scrollHeight-window.innerHeight,n=t>0?window.scrollY/t*100:0;e.style.width=n+`%`}window.addEventListener(`scroll`,t,{passive:!0}),window.addEventListener(`resize`,t),t();var n=document.querySelector(`.book-toc-scroll`),r=document.querySelector(`.book-toc [aria-current="page"]`);if(n&&r){let e=r.offsetTop-n.clientHeight/2+r.offsetHeight/2;n.scrollTop=Math.max(0,e)}var i=Array.from(document.querySelectorAll(`#section-toc a`)),a=i.map(e=>document.getElementById(e.getAttribute(`href`).slice(1))).filter(e=>!!e);function o(){let e=null;for(let t of a)t.getBoundingClientRect().top<=120&&(e=t);i.forEach(e=>e.classList.remove(`active`)),e&&i.find(t=>t.getAttribute(`href`)===`#`+e.id)?.classList.add(`active`)}window.addEventListener(`scroll`,o,{passive:!0}),o();</script>
