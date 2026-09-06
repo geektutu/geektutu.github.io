@@ -492,9 +492,9 @@ greet('Hello, Mr Dai', 3)
 
 ```bash
 Hi, Jack
-Hi, Tom
-Hi, Tom
-Hi, Tom
+Hello, Mr Dai
+Hello, Mr Dai
+Hello, Mr Dai
 ```
 
 - `greet` 函数的功能是打印 msg，默认是1次，但可以通过参数 times 控制。
