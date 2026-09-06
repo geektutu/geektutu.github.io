@@ -12,11 +12,16 @@ Coding 创建有趣的开源项目，戳：[https://geektutu.com/](https://geekt
 
 **较为完整的系列有：**
 
-- AI
+- 七天从零实现系列
+  - [七天用Go从零实现系列](https://geektutu.com/books/7days-golang/)
   - [七天从零实现 GeekAgent](https://geektutu.com/books/geekagent/)
 
+- 一篇文章入门系列
+  - [一篇文章入门 Python](https://geektutu.com/post/quick-python.html)
+  - [一篇文章入门 Go](https://geektutu.com/post/quick-golang.html)
+  - [一篇文章入门 Rust](https://geektutu.com/post/quick-rust.html)
+
 - Go 语言
-  - [七天用Go从零实现系列](https://geektutu.com/books/7days-golang/)
   - [Go 语言高性能编程](https://geektutu.com/books/high-performance-go/)
   - [极客面试](https://geektutu.com/books/interview-questions/)
 
